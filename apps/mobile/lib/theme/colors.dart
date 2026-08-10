@@ -7,21 +7,21 @@ final FColors lightColors = FColors(
   brightness: .light,
   systemOverlayStyle: .dark,
   barrier: Color(0x33000000),
-  background: Color(0xFFFFFFFF),
-  foreground: Color(0xFF0C0C09),
-  primary: Color(0xFF008236),
-  primaryForeground: Color(0xFFF0FDF4),
-  secondary: Color(0xFFF4F4F0),
-  secondaryForeground: Color(0xFF1D1D16),
-  muted: Color(0xFFF4F4F0),
-  mutedForeground: Color(0xFF7C7C67),
-  destructive: Color(0xFFE7000B),
-  destructiveForeground: Color(0xFFFAFAFA),
-  error: Color(0xFFE7000B),
-  errorForeground: Color(0xFFFAFAFA),
+  background: Color(0xFFF8FAF9),
+  foreground: Color(0xFF111412),
+  primary: Color(0xFF056C35),
+  primaryForeground: Color(0xFFFFFFFF),
+  secondary: Color(0xFFE8F3ED),
+  secondaryForeground: Color(0xFF034A25),
+  muted: Color(0xFFEEF2F0),
+  mutedForeground: Color(0xFF5E6862),
+  destructive: Color(0xFFB42318),
+  destructiveForeground: Color(0xFFFFFFFF),
+  error: Color(0xFFB42318),
+  errorForeground: Color(0xFFFFFFFF),
   card: Color(0xFFFFFFFF),
-  border: Color(0xFFE8E8E3),
-  extensions: const [AppColors()],
+  border: Color(0xFFD4DAD6),
+  extensions: const [AppColors(focus: Color(0xFF0B65D8))],
 );
 
 final FColors darkColors = FColors(
@@ -64,27 +64,28 @@ extension FColorsExtensions on FColors {
 /// Add your fields below, then implement [copyWith], [lerp], [==], and [hashCode].
 /// See https://api.flutter.dev/flutter/material/ThemeExtension-class.html.
 class AppColors extends ThemeExtension<AppColors> {
-  // TODO: add your color fields here:
-  // final Color accent;
+  final Color focus;
 
-  const AppColors();
+  const AppColors({this.focus = const Color(0xFF016630)});
 
   @override
-  AppColors copyWith() => const AppColors();
+  AppColors copyWith({Color? focus}) => AppColors(focus: focus ?? this.focus);
 
   @override
   AppColors lerp(covariant AppColors? other, double t) {
     if (other == null) {
       return this;
     }
-    return const AppColors();
+    return AppColors(focus: Color.lerp(focus, other.focus, t)!);
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AppColors && runtimeType == other.runtimeType;
+      other is AppColors &&
+          runtimeType == other.runtimeType &&
+          focus == other.focus;
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, focus);
 }
