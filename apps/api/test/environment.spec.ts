@@ -29,6 +29,15 @@ describe("environment validation", () => {
     expect(validateEnvironment(validEnvironment()).PORT).toBe(3000);
   });
 
+  it("reports missing secrets without throwing a TypeError", () => {
+    const environment = validEnvironment();
+    delete (environment as Partial<typeof environment>).ACCESS_TOKEN_SECRET;
+
+    expect(() => validateEnvironment(environment)).toThrow(
+      "Invalid or missing configuration: ACCESS_TOKEN_SECRET",
+    );
+  });
+
   it.each([
     ["short key", { EMAIL_ENCRYPTION_KEY: Buffer.alloc(8).toString("base64") }],
     [

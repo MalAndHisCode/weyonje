@@ -154,10 +154,14 @@ export function validateEnvironment(
 }
 
 export function decodeSecret(
-  value: string,
+  value: unknown,
   minimumBytes: number,
 ): Buffer | null {
-  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(value) || value.length % 4 !== 0) {
+  if (
+    typeof value !== "string" ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(value) ||
+    value.length % 4 !== 0
+  ) {
     return null;
   }
   const decoded = Buffer.from(value, "base64");

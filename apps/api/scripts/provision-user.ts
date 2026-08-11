@@ -1,16 +1,20 @@
 import "reflect-metadata";
 
 import { BadRequestException } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { config } from "dotenv";
+import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
-import { AppModule } from "../src/app.module";
 import { EmailSecurityService } from "../src/auth/email-security.service";
 import { PasswordService } from "../src/auth/password.service";
+import { buildAuthConfig } from "../src/config/auth.config";
 import { validateEnvironment } from "../src/config/environment";
-import { PrismaService } from "../src/database/prisma.service";
+import { PrismaClient } from "../src/generated/prisma/client";
 import { ActorType, ProviderStatus } from "../src/generated/prisma/enums";
+
+config({ path: resolve(__dirname, "../../../.env") });
 
 interface ProvisioningOptions {
   actorType: ActorType;
@@ -27,19 +31,19 @@ async function main(): Promise<void> {
     throw new Error("Development user provisioning is disabled in production.");
   }
   const options = parseOptions(process.argv.slice(2));
-  process.env.DATABASE_URL = environment.DIRECT_URL;
-  const app = await NestFactory.createApplicationContext(AppModule, {
-    logger: false,
+  const authentication = buildAuthConfig(environment);
+  const emails = new EmailSecurityService(authentication);
+  const passwords = new PasswordService(authentication);
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: environment.DIRECT_URL }),
   });
+  await prisma.$connect();
   try {
     const email = await promptLine("Email: ");
     const password = await promptSecret("Password: ");
     const confirmation = await promptSecret("Confirm password: ");
     if (password !== confirmation) throw new Error("Passwords do not match.");
 
-    const emails = app.get(EmailSecurityService);
-    const passwords = app.get(PasswordService);
-    const prisma = app.get(PrismaService);
     const normalizedEmail = emails.normalize(email);
     passwords.validateForProvisioning(password);
     try {
@@ -65,7 +69,7 @@ async function main(): Promise<void> {
       throw error;
     }
   } finally {
-    await app.close();
+    await prisma.$disconnect();
   }
 }
 
@@ -125,29 +129,51 @@ async function promptSecret(label: string): Promise<string> {
   }
   stdout.write(label);
   stdin.setRawMode(true);
-  stdin.resume();
   stdin.setEncoding("utf8");
-  let value = "";
-  try {
-    for await (const chunk of stdin) {
-      for (const character of chunk) {
+  return new Promise<string>((resolve, reject) => {
+    let value = "";
+    const cleanup = () => {
+      stdin.off("data", onData);
+      stdin.off("end", onEnd);
+      stdin.off("error", onError);
+      stdin.setRawMode(false);
+      stdin.pause();
+    };
+    const succeed = () => {
+      cleanup();
+      stdout.write("\n");
+      resolve(value);
+    };
+    const fail = (error: Error) => {
+      cleanup();
+      reject(error);
+    };
+    const onData = (chunk: string | Buffer) => {
+      const text = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+      for (const character of text) {
         if (character === "\r" || character === "\n") {
-          stdout.write("\n");
-          return value;
+          succeed();
+          return;
         }
-        if (character === "\u0003") throw new Error("Provisioning cancelled.");
+        if (character === "\u0003") {
+          fail(new Error("Provisioning cancelled."));
+          return;
+        }
         if (character === "\b" || character === "\u007f") {
           value = value.slice(0, -1);
         } else if (character >= " ") {
           value += character;
         }
       }
-    }
-    throw new Error("Password input ended unexpectedly.");
-  } finally {
-    stdin.setRawMode(false);
-    stdin.pause();
-  }
+    };
+    const onEnd = () => fail(new Error("Password input ended unexpectedly."));
+    const onError = (error: Error) => fail(error);
+
+    stdin.on("data", onData);
+    stdin.once("end", onEnd);
+    stdin.once("error", onError);
+    stdin.resume();
+  });
 }
 
 function isUniqueConstraint(error: unknown): boolean {
