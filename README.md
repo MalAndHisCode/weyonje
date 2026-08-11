@@ -1,36 +1,53 @@
 # Weyonje
 
-Weyonje is an Android Flutter application with a NestJS/Fastify API. The current implemented slice covers `AUTH-001` welcome and account access, bounded `AUTH-002` account-type selection, and `AUTH-003` browser-based Keycloak Authorization Code Flow with PKCE.
+Weyonje is an Android Flutter application with a NestJS/Fastify API. The implemented slice preserves `AUTH-001` welcome/account access and bounded `AUTH-002` account-type selection, and implements native email/password sign-in with Prisma-backed server sessions for `AUTH-003`.
 
-Registration data collection and role dashboards are intentionally outside this slice. Their route boundaries state that the destination is unavailable and do not simulate completed functionality.
+Registration, password recovery, verification delivery, Provider approval, dashboards, and downstream waste-collection workflows are not implemented. Their existing route boundaries remain truthful and collect no data.
 
 ## Repository
 
-- `apps/mobile`: Flutter, Forui, Riverpod, GoRouter, Dio, AppAuth, and secure token storage.
-- `apps/api`: NestJS/Fastify identity and eligibility API with TypeORM/PostgreSQL.
-- `packages/contracts`: shared TypeScript actor, provider-status, access, and error contracts.
-- `docs/project-context`: adopted product, UX, brand, architecture, and current-state sources.
+- `apps/mobile`: Flutter, Forui, Riverpod, GoRouter, Dio, native sign-in fields, and encrypted platform session storage.
+- `apps/api`: NestJS/Fastify native authentication, Prisma, Argon2id, encrypted email storage, rotating sessions, and eligibility.
+- `packages/contracts`: shared authentication, actor, provider-status, access, and safe-error contracts.
+- `docs/project-context`: adopted requirements, UX/brand guidance, architecture, and verified current state.
 
 ## Local checks
 
 ```text
-pnpm install
+pnpm install --frozen-lockfile
 pnpm format
 pnpm typecheck
 pnpm test
 pnpm build
 pnpm openapi:check
+pnpm audit --prod --audit-level high
 
 cd apps/mobile
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
-flutter build apk --debug
+flutter build apk --debug --dart-define-from-file=config/auth.local.json
 ```
 
-The API requires configured Keycloak and PostgreSQL services to start. Copy `.env.example` to an ignored `.env` and replace every placeholder. Run migrations with `pnpm --filter @weyonje/api migration:run` before starting the API.
+Database integration is opt-in and requires an isolated PostgreSQL database explicitly supplied through `TEST_DATABASE_URL` and `TEST_DIRECT_URL`. Routine checks do not connect to Neon or any shared database.
 
-The mobile app receives non-secret environment coordinates at compile time:
+## Development configuration
+
+Copy `.env.example` to an ignored `.env`, replace every placeholder, and keep every cryptographic key separate. The API uses Neon's pooled address as `DATABASE_URL` and direct address as `DIRECT_URL`. Apply the checked-in migration from an approved workstation:
+
+```text
+pnpm --filter @weyonje/api migration:deploy
+```
+
+Create development accounts interactively; email and masked password are prompted and no password is accepted on the command line:
+
+```text
+pnpm --filter @weyonje/api provision:user -- --actor-type CLIENT --email-verified
+pnpm --filter @weyonje/api provision:user -- --actor-type SERVICE_PROVIDER --provider-status APPROVED --email-verified
+pnpm --filter @weyonje/api provision:user -- --actor-type KCCA_STAFF --kcca-mobile-monitoring --email-verified
+```
+
+The mobile build needs only the HTTPS API base URL:
 
 ```text
 cd apps/mobile
@@ -38,6 +55,4 @@ copy config\auth.example.json config\auth.local.json
 flutter run --dart-define-from-file=config/auth.local.json
 ```
 
-Never put a Keycloak client secret in the mobile configuration. The Android redirect scheme defaults to `ug.go.kcca.weyonje.auth`, matching `ug.go.kcca.weyonje.auth:/oauthredirect` in the example.
-
-See [apps/api/README.md](apps/api/README.md) and [apps/mobile/README.md](apps/mobile/README.md) for exact identity and runtime setup.
+See [apps/api/README.md](apps/api/README.md), [apps/mobile/README.md](apps/mobile/README.md), and [docs/project-context/CURRENT_SYSTEM_STATE.md](docs/project-context/CURRENT_SYSTEM_STATE.md) for security, Neon, Koyeb Free, and known-limitation details.

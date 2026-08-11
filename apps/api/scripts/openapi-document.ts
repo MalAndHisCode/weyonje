@@ -6,15 +6,20 @@ import {
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
 
+import { AccessTokenGuard } from "../src/auth/access-token.guard";
+import { AuthController } from "../src/auth/auth.controller";
+import { AuthService } from "../src/auth/auth.service";
+import { SessionService } from "../src/auth/session.service";
 import { ActorsController } from "../src/identity/actors.controller";
 import { CurrentActorService } from "../src/identity/current-actor.service";
-import { JwtAuthGuard } from "../src/identity/jwt-auth.guard";
 
 @Module({
-  controllers: [ActorsController],
+  controllers: [AuthController, ActorsController],
   providers: [
+    { provide: AuthService, useValue: {} },
+    { provide: SessionService, useValue: {} },
     { provide: CurrentActorService, useValue: { resolve: () => undefined } },
-    { provide: JwtAuthGuard, useValue: { canActivate: () => true } },
+    { provide: AccessTokenGuard, useValue: { canActivate: () => true } },
   ],
 })
 class OpenApiModule {}
@@ -30,7 +35,7 @@ export async function generateOpenApiDocument(): Promise<OpenAPIObject> {
   const config = new DocumentBuilder()
     .setTitle("Weyonje API")
     .setDescription(
-      "Authoritative identity and eligibility capabilities for Weyonje clients.",
+      "Native authentication, server-managed sessions, and authoritative eligibility for Weyonje clients.",
     )
     .setVersion("0.1.0")
     .addBearerAuth()

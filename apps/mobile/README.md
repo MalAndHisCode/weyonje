@@ -1,34 +1,27 @@
 # Weyonje mobile authentication entry
 
-The Android application implements:
+The Android application implements guarded launch/session resolution, unchanged `AUTH-001`, bounded `AUTH-002`, and native `AUTH-003` email/password sign-in. It stores one validated JSON credential record in encrypted platform storage, calls `GET /v1/actors/me`, rotates credentials once through `POST /v1/auth/refresh` after expiry or an authentication `401`, coalesces concurrent refreshes, and routes only after current API eligibility is known.
 
-- a guarded launch state with no protected-content flash;
-- `AUTH-001` welcome and account access;
-- `AUTH-002` Client or Service Provider selection, followed by an explicit no-data-collected boundary because registration is out of scope;
-- `AUTH-003` system-browser sign-in through Keycloak Authorization Code Flow with PKCE;
-- encrypted platform storage for the minimum session material;
-- one refresh attempt after an API `401`, safe local invalidation for unrecoverable sessions, and session preservation for transient failures; and
-- authoritative role/eligibility routing from `GET /v1/actors/me`.
+The sign-in page has persistent Email address and Password labels, obscures the password, uses explicit keyboard/focus order, prevents duplicate submissions, and contains no browser, identity-provider, OIDC, or PKCE handoff. The API remains authoritative; GoRouter guards prevent protected-content flash but are not authorization controls.
 
 ## Compile-time configuration
 
-Copy `config/auth.example.json` to ignored `config/auth.local.json` and replace:
-
-- `WEYONJE_API_BASE_URL`
-- `WEYONJE_KEYCLOAK_ISSUER`
-- `WEYONJE_KEYCLOAK_CLIENT_ID`
-- `WEYONJE_AUTH_REDIRECT_URI`
-
-Run with:
+Copy `config/auth.example.json` to ignored `config/auth.local.json` and replace `WEYONJE_API_BASE_URL` with the HTTPS Koyeb development API URL:
 
 ```text
 flutter run --dart-define-from-file=config/auth.local.json
 ```
 
-The API and issuer must use HTTPS. The redirect URI must use a dedicated custom scheme and exactly match a Keycloak allow-list entry. The public mobile client must have no embedded secret and must require PKCE `S256`.
+Do not place API secrets, database addresses, signing keys, encryption keys, email lookup keys, refresh-token hash keys, or user credentials in mobile configuration.
 
-The default Android scheme is `ug.go.kcca.weyonje.auth`, corresponding to `ug.go.kcca.weyonje.auth:/oauthredirect`. If an approved environment uses another scheme, update the Android Gradle property `WEYONJE_AUTH_REDIRECT_SCHEME` and the Dart redirect URI together.
+## Session behaviour
+
+- Successful sign-in stores only access token, rotating refresh token, and their expiries.
+- Temporary connectivity failures preserve potentially recoverable credentials and expose retry.
+- Invalid/revoked sessions and unrecoverable refresh failures clear local credentials.
+- Sign-out asks the API to revoke the current session, then clears local credentials even if the network call fails. A failed network revocation can leave the server session active until later revocation or absolute expiry.
+- Lifecycle resume revalidates server authority; obsolete launch/sign-in requests are cancelled.
 
 ## Scope boundary
 
-No native password fields, registration forms, KCCA self-registration, provider approval workflow, or role dashboard is implemented. Successful identity and access checks reach role-specific screens that explicitly identify unavailable downstream functionality and load no protected feature data.
+Registration forms, forgot-password/password-reset UI, verification delivery, Provider approval, KCCA self-registration, and role dashboards are not implemented. Successful eligibility reaches role-specific unavailable boundaries that load no protected workflow data.

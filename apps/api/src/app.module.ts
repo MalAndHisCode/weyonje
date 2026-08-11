@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule } from "@nestjs/config";
 
+import { AuthModule } from "./auth/auth.module";
+import { authConfig } from "./config/auth.config";
 import { validateEnvironment } from "./config/environment";
-import { identityConfig } from "./config/identity.config";
-import { databaseConfig } from "./database/typeorm.config";
+import { PrismaModule } from "./database/prisma.module";
 import { IdentityModule } from "./identity/identity.module";
 
 @Module({
@@ -13,12 +13,10 @@ import { IdentityModule } from "./identity/identity.module";
       isGlobal: true,
       cache: true,
       validate: validateEnvironment,
-      load: [identityConfig, databaseConfig],
+      load: [authConfig],
     }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => config.getOrThrow("database"),
-    }),
+    PrismaModule,
+    AuthModule,
     IdentityModule,
   ],
 })

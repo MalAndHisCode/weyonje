@@ -1,0 +1,109 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ActorType {
+  CLIENT
+  SERVICE_PROVIDER
+  KCCA_STAFF
+
+  @@map("actor_type")
+}
+
+enum ProviderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  INACTIVE
+  DISABLED
+
+  @@map("provider_status")
+}
+
+enum ThrottleScope {
+  EMAIL
+  IP
+
+  @@map("throttle_scope")
+}
+
+model User {
+  id                        String                  @id @default(uuid()) @db.Uuid
+  encryptedEmail            String                  @map("encrypted_email") @db.VarChar(1024)
+  emailLookup               String                  @unique(map: "uq_users_email_lookup") @map("email_lookup") @db.VarChar(64)
+  passwordHash              String                  @map("password_hash") @db.VarChar(512)
+  actorType                 ActorType               @map("actor_type")
+  providerStatus            ProviderStatus?         @map("provider_status")
+  isActive                  Boolean                 @default(true) @map("is_active")
+  loginEnabled              Boolean                 @default(true) @map("login_enabled")
+  emailVerifiedAt           DateTime?               @map("email_verified_at") @db.Timestamptz(3)
+  mobileMonitoringPermitted Boolean                 @default(false) @map("mobile_monitoring_permitted")
+  passwordChangedAt         DateTime                @default(now()) @map("password_changed_at") @db.Timestamptz(3)
+  passwordVersion           Int                     @default(1) @map("password_version")
+  failedLoginCount          Int                     @default(0) @map("failed_login_count")
+  authenticationLockedUntil DateTime?               @map("authentication_locked_until") @db.Timestamptz(3)
+  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sessions                  AuthenticationSession[]
+
+  @@index([actorType], map: "ix_users_actor_type")
+  @@map("users")
+}
+
+model AuthenticationSession {
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @map("user_id") @db.Uuid
+  familyId          String         @map("family_id") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastUsedAt        DateTime       @default(now()) @map("last_used_at") @db.Timestamptz(3)
+  absoluteExpiresAt DateTime       @map("absolute_expires_at") @db.Timestamptz(3)
+  revokedAt         DateTime?      @map("revoked_at") @db.Timestamptz(3)
+  revocationReason  String?        @map("revocation_reason") @db.VarChar(64)
+  passwordVersion   Int            @map("password_version")
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens     RefreshToken[]
+
+  @@index([userId], map: "ix_authentication_sessions_user_id")
+  @@index([familyId], map: "ix_authentication_sessions_family_id")
+  @@index([absoluteExpiresAt], map: "ix_authentication_sessions_expiry")
+  @@map("authentication_sessions")
+}
+
+model RefreshToken {
+  id           String                @id @default(uuid()) @db.Uuid
+  sessionId    String                @map("session_id") @db.Uuid
+  tokenHash    String                @unique(map: "uq_refresh_tokens_token_hash") @map("token_hash") @db.VarChar(64)
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt    DateTime              @map("expires_at") @db.Timestamptz(3)
+  usedAt       DateTime?             @map("used_at") @db.Timestamptz(3)
+  revokedAt    DateTime?             @map("revoked_at") @db.Timestamptz(3)
+  replacedById String?               @unique(map: "uq_refresh_tokens_replaced_by") @map("replaced_by_id") @db.Uuid
+  session      AuthenticationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  replacedBy   RefreshToken?         @relation("RefreshRotation", fields: [replacedById], references: [id], onDelete: SetNull)
+  replaces     RefreshToken?         @relation("RefreshRotation")
+
+  @@index([sessionId], map: "ix_refresh_tokens_session_id")
+  @@index([expiresAt], map: "ix_refresh_tokens_expiry")
+  @@map("refresh_tokens")
+}
+
+model LoginThrottle {
+  id              String        @id @default(uuid()) @db.Uuid
+  scope           ThrottleScope
+  keyHash         String        @map("key_hash") @db.VarChar(64)
+  failedAttempts  Int           @default(0) @map("failed_attempts")
+  windowStartedAt DateTime      @default(now()) @map("window_started_at") @db.Timestamptz(3)
+  lockedUntil     DateTime?     @map("locked_until") @db.Timestamptz(3)
+  expiresAt       DateTime      @map("expires_at") @db.Timestamptz(3)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([scope, keyHash], map: "uq_login_throttles_scope_key")
+  @@index([expiresAt], map: "ix_login_throttles_expiry")
+  @@map("login_throttles")
+}

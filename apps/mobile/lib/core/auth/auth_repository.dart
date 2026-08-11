@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
 
 import '../config/app_config.dart';
 import 'current_actor.dart';
@@ -30,6 +28,11 @@ class TransientAuthFailure extends AuthOutcome {
   final String message;
 }
 
+class RateLimitedAuthFailure extends AuthOutcome {
+  const RateLimitedAuthFailure(this.message);
+  final String message;
+}
+
 class DeniedSession extends AuthOutcome {
   const DeniedSession(this.message);
   final String message;
@@ -41,74 +44,82 @@ class CancelledSignIn extends AuthOutcome {
 
 abstract interface class AuthRepository {
   Future<AuthOutcome> resolveStoredSession(CancelToken cancelToken);
-  Future<AuthOutcome> signIn();
+  Future<AuthOutcome> signIn(
+    String email,
+    String password,
+    CancelToken cancelToken,
+  );
   Future<void> signOut();
 }
 
-class OidcAuthRepository implements AuthRepository {
-  OidcAuthRepository(
-    this._config,
-    this._sessionStore,
-    this._dio,
-    this._appAuth,
-  );
+class NativeAuthRepository implements AuthRepository {
+  NativeAuthRepository(this._config, this._sessionStore, this._dio);
 
   final AppConfig _config;
   final SessionStore _sessionStore;
   final Dio _dio;
-  final FlutterAppAuth _appAuth;
+  Future<Object>? _refreshInFlight;
 
   @override
   Future<AuthOutcome> resolveStoredSession(CancelToken cancelToken) async {
     final stored = await _sessionStore.read();
-    if (stored == null) {
-      return const NoStoredSession();
-    }
+    if (stored == null) return const NoStoredSession();
     final configurationError = _config.validate();
     if (configurationError != null) {
       return TransientAuthFailure(configurationError);
+    }
+    if (!stored.refreshTokenExpiresAt.isAfter(DateTime.now().toUtc())) {
+      await _sessionStore.clear();
+      return const InvalidSession('Your session has expired. Sign in again.');
     }
     return _resolve(stored, cancelToken, allowRefresh: true);
   }
 
   @override
-  Future<AuthOutcome> signIn() async {
+  Future<AuthOutcome> signIn(
+    String email,
+    String password,
+    CancelToken cancelToken,
+  ) async {
     final configurationError = _config.validate();
     if (configurationError != null) {
       return TransientAuthFailure(configurationError);
     }
     try {
-      final response = await _appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          _config.keycloakClientId,
-          _config.redirectUri,
-          discoveryUrl: _config.discoveryUrl,
-          scopes: const ['openid'],
-        ),
+      final response = await _dio.post<Object?>(
+        '/v1/auth/sign-in',
+        data: {'email': email, 'password': password},
+        cancelToken: cancelToken,
       );
-      final credentials = _credentialsFromResponse(response);
-      if (credentials == null) {
-        await _sessionStore.clear();
-        return const InvalidSession(
-          'Sign-in did not return a usable session. Try again.',
+      final credentials = SessionCredentials.fromJson(response.data);
+      await _sessionStore.write(credentials);
+      return _resolve(credentials, cancelToken, allowRefresh: true);
+    } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) return const CancelledSignIn();
+      if (error.response?.statusCode == 401) {
+        return const InvalidSession('Email or password is incorrect.');
+      }
+      if (error.response?.statusCode == 429) {
+        return const RateLimitedAuthFailure(
+          'Too many sign-in attempts. Wait briefly and try again.',
         );
       }
-      await _sessionStore.write(credentials);
-      return _resolve(credentials, CancelToken(), allowRefresh: true);
-    } on PlatformException catch (error) {
-      if (_isCancellation(error)) return const CancelledSignIn();
-      if (_isUnrecoverableOidcError(error)) {
-        await _sessionStore.clear();
+      if (error.response?.statusCode == 400) {
         return const InvalidSession(
-          'Sign-in could not be completed. Start again.',
+          'Check your email and password, then try again.',
         );
       }
       return const TransientAuthFailure(
-        'The identity service could not be reached. Check your connection and try again.',
+        'Weyonje could not sign you in. Check your connection and try again.',
+      );
+    } on FormatException {
+      await _sessionStore.clear();
+      return const InvalidSession(
+        'Sign-in returned an invalid session. Try again.',
       );
     } catch (_) {
       return const TransientAuthFailure(
-        'Sign-in could not be completed. Check your connection and try again.',
+        'Weyonje could not sign you in. Check your connection and try again.',
       );
     }
   }
@@ -118,13 +129,21 @@ class OidcAuthRepository implements AuthRepository {
     CancelToken cancelToken, {
     required bool allowRefresh,
   }) async {
+    if (allowRefresh &&
+        credentials.accessTokenExpiresAt.isBefore(
+          DateTime.now().toUtc().add(const Duration(seconds: 10)),
+        )) {
+      final refreshed = await _refreshOnce(credentials, cancelToken);
+      if (refreshed is SessionCredentials) {
+        return _resolve(refreshed, cancelToken, allowRefresh: false);
+      }
+      return refreshed as AuthOutcome;
+    }
     try {
       final response = await _dio.get<Object?>(
         '/v1/actors/me',
         cancelToken: cancelToken,
-        options: Options(
-          headers: {'Authorization': 'Bearer ${credentials.accessToken}'},
-        ),
+        options: _bearer(credentials.accessToken),
       );
       return ResolvedSession(CurrentActor.fromJson(response.data));
     } on DioException catch (error) {
@@ -135,7 +154,7 @@ class OidcAuthRepository implements AuthRepository {
       }
       final status = error.response?.statusCode;
       if (status == 401 && allowRefresh) {
-        final refreshed = await _refresh(credentials);
+        final refreshed = await _refreshOnce(credentials, cancelToken);
         if (refreshed is SessionCredentials) {
           return _resolve(refreshed, cancelToken, allowRefresh: false);
         }
@@ -164,78 +183,72 @@ class OidcAuthRepository implements AuthRepository {
     }
   }
 
-  Future<Object> _refresh(SessionCredentials credentials) async {
-    final refreshToken = credentials.refreshToken;
-    if (refreshToken == null || refreshToken.isEmpty) {
-      await _sessionStore.clear();
-      return const InvalidSession('Your session has expired. Sign in again.');
-    }
+  Future<Object> _refreshOnce(
+    SessionCredentials credentials,
+    CancelToken cancelToken,
+  ) {
+    final existing = _refreshInFlight;
+    if (existing != null) return existing;
+    final refresh = _refresh(credentials, cancelToken);
+    _refreshInFlight = refresh;
+    return refresh.whenComplete(() {
+      if (identical(_refreshInFlight, refresh)) _refreshInFlight = null;
+    });
+  }
+
+  Future<Object> _refresh(
+    SessionCredentials credentials,
+    CancelToken cancelToken,
+  ) async {
     try {
-      final response = await _appAuth.token(
-        TokenRequest(
-          _config.keycloakClientId,
-          _config.redirectUri,
-          discoveryUrl: _config.discoveryUrl,
-          refreshToken: refreshToken,
-          scopes: const ['openid'],
-        ),
+      final response = await _dio.post<Object?>(
+        '/v1/auth/refresh',
+        data: {'refreshToken': credentials.refreshToken},
+        cancelToken: cancelToken,
       );
-      final refreshed = _credentialsFromResponse(
-        response,
-        previousRefreshToken: refreshToken,
-      );
-      if (refreshed == null) {
-        await _sessionStore.clear();
-        return const InvalidSession(
-          'Your session can no longer be renewed. Sign in again.',
-        );
-      }
+      final refreshed = SessionCredentials.fromJson(response.data);
       await _sessionStore.write(refreshed);
       return refreshed;
-    } on PlatformException catch (error) {
-      if (_isUnrecoverableOidcError(error)) {
+    } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) {
+        return const TransientAuthFailure(
+          'Session renewal was cancelled. Retry to continue.',
+        );
+      }
+      if (error.response?.statusCode == 401) {
         await _sessionStore.clear();
         return const InvalidSession(
           'Your session can no longer be renewed. Sign in again.',
         );
       }
       return const TransientAuthFailure(
-        'The identity service could not renew your session. Check your connection and retry.',
+        'Weyonje could not renew your session. Check your connection and retry.',
       );
-    } catch (_) {
-      return const TransientAuthFailure(
-        'The identity service could not renew your session. Check your connection and retry.',
+    } on FormatException {
+      await _sessionStore.clear();
+      return const InvalidSession(
+        'Your session can no longer be renewed. Sign in again.',
       );
     }
-  }
-
-  SessionCredentials? _credentialsFromResponse(
-    TokenResponse? response, {
-    String? previousRefreshToken,
-  }) {
-    final accessToken = response?.accessToken;
-    if (accessToken == null || accessToken.isEmpty) return null;
-    return SessionCredentials(
-      accessToken: accessToken,
-      refreshToken: response?.refreshToken ?? previousRefreshToken,
-      idToken: response?.idToken,
-      accessTokenExpiration: response?.accessTokenExpirationDateTime,
-    );
-  }
-
-  bool _isCancellation(PlatformException error) =>
-      error.code.toLowerCase().contains('cancel') ||
-      '${error.details}'.toLowerCase().contains('cancel');
-
-  bool _isUnrecoverableOidcError(PlatformException error) {
-    final detail = '${error.code} ${error.message} ${error.details}'
-        .toLowerCase();
-    return detail.contains('invalid_grant') ||
-        detail.contains('invalid_client') ||
-        detail.contains('unauthorized_client') ||
-        detail.contains('access_denied');
   }
 
   @override
-  Future<void> signOut() => _sessionStore.clear();
+  Future<void> signOut() async {
+    final stored = await _sessionStore.read();
+    try {
+      if (stored != null && _config.validate() == null) {
+        await _dio.post<Object?>(
+          '/v1/auth/sign-out',
+          options: _bearer(stored.accessToken),
+        );
+      }
+    } catch (_) {
+      // Local credentials must be cleared even when server revocation is offline.
+    } finally {
+      await _sessionStore.clear();
+    }
+  }
+
+  Options _bearer(String accessToken) =>
+      Options(headers: {'Authorization': 'Bearer $accessToken'});
 }

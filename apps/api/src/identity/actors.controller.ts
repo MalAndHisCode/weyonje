@@ -8,9 +8,12 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 
+import {
+  AccessTokenGuard,
+  AuthenticatedRequest,
+} from "../auth/access-token.guard";
 import { ApiErrorDto, CurrentActorDto } from "./current-actor.dto";
 import { CurrentActorService } from "./current-actor.service";
-import { AuthenticatedRequest, JwtAuthGuard } from "./jwt-auth.guard";
 
 @ApiTags("actors")
 @ApiBearerAuth()
@@ -19,14 +22,14 @@ export class ActorsController {
   constructor(private readonly currentActor: CurrentActorService) {}
 
   @Get("me")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({
     summary: "Resolve the authenticated Weyonje actor and mobile eligibility",
   })
   @ApiOkResponse({ type: CurrentActorDto })
   @ApiUnauthorizedResponse({ type: ApiErrorDto })
   @ApiForbiddenResponse({ type: ApiErrorDto })
-  async me(@Req() request: AuthenticatedRequest): Promise<CurrentActorDto> {
-    return this.currentActor.resolve(request.actorIdentity!);
+  me(@Req() request: AuthenticatedRequest): CurrentActorDto {
+    return this.currentActor.resolve(request.authenticatedActor!);
   }
 }

@@ -110,6 +110,7 @@ class LaunchController extends Notifier<LaunchState> {
             : LaunchAuthenticated(actor),
       InvalidSession(:final message) => LaunchUnauthenticated(message: message),
       TransientAuthFailure(:final message) => LaunchTransientError(message),
+      RateLimitedAuthFailure(:final message) => LaunchTransientError(message),
       DeniedSession(:final message) => LaunchAccessDenied(message),
       CancelledSignIn() => const LaunchUnauthenticated(),
     };

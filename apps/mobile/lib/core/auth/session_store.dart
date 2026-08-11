@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'session_credentials.dart';
@@ -11,46 +13,45 @@ abstract interface class SessionStore {
 class SecureSessionStore implements SessionStore {
   SecureSessionStore(this._storage);
 
-  static const _accessToken = 'auth.access_token';
-  static const _refreshToken = 'auth.refresh_token';
-  static const _idToken = 'auth.id_token';
-  static const _expiration = 'auth.access_token_expiration';
+  static const _session = 'auth.session.v1';
+  static const _legacyKeys = [
+    'auth.access_token',
+    'auth.refresh_token',
+    'auth.id_token',
+    'auth.access_token_expiration',
+  ];
 
   final FlutterSecureStorage _storage;
 
   @override
   Future<SessionCredentials?> read() async {
-    final accessToken = await _storage.read(key: _accessToken);
-    if (accessToken == null || accessToken.isEmpty) return null;
-    final expirationValue = await _storage.read(key: _expiration);
-    return SessionCredentials(
-      accessToken: accessToken,
-      refreshToken: await _storage.read(key: _refreshToken),
-      idToken: await _storage.read(key: _idToken),
-      accessTokenExpiration: expirationValue == null
-          ? null
-          : DateTime.tryParse(expirationValue),
-    );
+    final encoded = await _storage.read(key: _session);
+    if (encoded == null || encoded.isEmpty) return null;
+    try {
+      return SessionCredentials.fromJson(jsonDecode(encoded));
+    } on FormatException {
+      await clear();
+      return null;
+    }
   }
 
   @override
   Future<void> write(SessionCredentials credentials) async {
-    await _storage.write(key: _accessToken, value: credentials.accessToken);
-    await _writeOptional(_refreshToken, credentials.refreshToken);
-    await _writeOptional(_idToken, credentials.idToken);
-    await _writeOptional(
-      _expiration,
-      credentials.accessTokenExpiration?.toUtc().toIso8601String(),
+    await _storage.write(
+      key: _session,
+      value: jsonEncode(credentials.toJson()),
     );
+    await _clearLegacyKeys();
   }
-
-  Future<void> _writeOptional(String key, String? value) => value == null
-      ? _storage.delete(key: key)
-      : _storage.write(key: key, value: value);
 
   @override
   Future<void> clear() async {
-    for (final key in [_accessToken, _refreshToken, _idToken, _expiration]) {
+    await _storage.delete(key: _session);
+    await _clearLegacyKeys();
+  }
+
+  Future<void> _clearLegacyKeys() async {
+    for (final key in _legacyKeys) {
       await _storage.delete(key: key);
     }
   }

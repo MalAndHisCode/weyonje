@@ -1,8 +1,0 @@
-{
-  "realm": "weyonje-ci",
-  "enabled": true,
-  "sslRequired": "external",
-  "registrationAllowed": false,
-  "resetPasswordAllowed": false,
-  "loginWithEmailAllowed": false
-}

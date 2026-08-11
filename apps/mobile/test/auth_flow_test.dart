@@ -91,11 +91,11 @@ void main() {
     });
 
     testWidgets(
-      'opens AUTH-003 and completes browser-sign-in through the repository boundary',
+      'opens native AUTH-003 and completes sign-in through the repository boundary',
       (tester) async {
         final repository = FakeAuthRepository(
           onResolve: (_) async => const NoStoredSession(),
-          onSignIn: () async => const ResolvedSession(
+          onSignIn: (_, _, _) async => const ResolvedSession(
             CurrentActor(
               actorType: ActorType.client,
               access: ActorAccess.eligible,
@@ -107,16 +107,129 @@ void main() {
         await tester.tap(find.byKey(const Key('sign-in')));
         await tester.pumpAndSettle();
 
-        expect(
-          find.text('Continue securely in your browser to sign in to Weyonje.'),
-          findsOneWidget,
+        expect(find.text('Email address'), findsOneWidget);
+        expect(find.text('Password'), findsOneWidget);
+        final passwordField = tester.widget<EditableText>(
+          find.descendant(
+            of: find.byKey(const Key('sign-in-password')),
+            matching: find.byType(EditableText),
+          ),
         );
-        await tester.tap(find.byKey(const Key('continue-sign-in')));
+        expect(passwordField.obscureText, isTrue);
+        expect(find.textContaining('browser'), findsNothing);
+        expect(find.textContaining('Keycloak'), findsNothing);
+        await tester.enterText(
+          find.byKey(const Key('sign-in-email')),
+          'account@example.test',
+        );
+        await tester.enterText(
+          find.byKey(const Key('sign-in-password')),
+          'not-a-real-password',
+        );
+        await tester.tap(find.byKey(const Key('submit-sign-in')));
         await tester.pumpAndSettle();
         expect(repository.signInCalls, 1);
         expect(find.text('Client dashboard unavailable'), findsWidgets);
       },
     );
+
+    testWidgets('keeps native sign-in controls reachable above the keyboard', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.view.resetViewInsets();
+      });
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('sign-in')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('sign-in')));
+      await tester.pumpAndSettle();
+
+      await tester.showKeyboard(find.byKey(const Key('sign-in-password')));
+      tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('submit-sign-in')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('submit-sign-in')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'prevents duplicate sign-in and preserves the loading control',
+      (tester) async {
+        final result = Completer<AuthOutcome>();
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+          onSignIn: (_, _, _) => result.future,
+        );
+        await pumpApp(tester, repository);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('sign-in')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('sign-in-email')),
+          'account@example.test',
+        );
+        await tester.enterText(
+          find.byKey(const Key('sign-in-password')),
+          'not-a-real-password',
+        );
+        final before = tester.getSize(find.byKey(const Key('submit-sign-in')));
+        await tester.tap(find.byKey(const Key('submit-sign-in')));
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('submit-sign-in')));
+        await tester.pump();
+
+        expect(repository.signInCalls, 1);
+        expect(find.text('Sign in'), findsWidgets);
+        expect(tester.getSize(find.byKey(const Key('submit-sign-in'))), before);
+
+        result.complete(
+          const RateLimitedAuthFailure(
+            'Too many sign-in attempts. Wait briefly and try again.',
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Try again shortly'), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows a recoverable connection failure on native sign-in', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onSignIn: (_, _, _) async => const TransientAuthFailure(
+          'Weyonje could not sign you in. Check your connection and try again.',
+        ),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('sign-in')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('sign-in-email')),
+        'account@example.test',
+      );
+      await tester.enterText(
+        find.byKey(const Key('sign-in-password')),
+        'not-a-real-password',
+      );
+      await tester.tap(find.byKey(const Key('submit-sign-in')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sign-in not completed'), findsOneWidget);
+      expect(find.textContaining('Check your connection'), findsOneWidget);
+    });
   });
 
   group('launch and session resolution', () {
@@ -285,6 +398,23 @@ void main() {
         expect(find.text('Provider work dashboard unavailable'), findsWidgets);
       },
     );
+
+    testWidgets('never routes an unpermitted KCCA account to monitoring', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const ResolvedSession(
+          CurrentActor(
+            actorType: ActorType.kccaStaff,
+            access: ActorAccess.denied,
+          ),
+        ),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      expect(find.text('Access denied'), findsOneWidget);
+      expect(find.textContaining('monitoring dashboard'), findsNothing);
+    });
 
     for (final status in [
       ProviderStatus.pending,

@@ -11,14 +11,14 @@ The core stack is:
 - **NestJS, TypeScript, and Node.js 24 LTS** for the backend API and background workers.
 - **PostgreSQL 18 with PostGIS 3.6** for transactional and geographical data.
 - **Valkey 9** and **BullMQ** for short-lived data, rate limiting, scheduled reminders, and reliable background jobs.
-- **Keycloak** for identity, login, session, and role management.
+- **NestJS native authentication with Prisma** for login, sessions, roles, and eligibility; **Argon2id** for passwords and authenticated encryption plus protected lookup for email.
 - **Socket.IO** for live journey updates.
 - **Google Maps Platform** for map display, place and address search, route calculation, and other approved mapping capabilities.
 - **Africa's Talking SMS** for required phone verification and SMS notifications in Uganda.
 - **Firebase Cloud Messaging** for mobile push notifications.
 - **Docker Compose on Ubuntu Server LTS**, fronted by **Nginx**, for production deployment.
-- **GitHub, GitHub Actions, and GitHub Container Registry** for source control, collaboration, automated delivery, Linux-based testing, and container-image storage.
-- **Windows 11 workstations with Render-hosted Linux development services** so developers can work directly on Windows while Valkey 9 and other genuinely Linux-dependent components run remotely.
+- **GitHub** for private source control and collaboration; this development slice uses documented manual checks and defines no automation workflow.
+- **Windows 11 workstations, Neon Free PostgreSQL, and one Koyeb Free Web Service** for the implemented authentication development slice.
 - **OpenTelemetry, Prometheus, Grafana, Loki, Tempo, and Alertmanager** for monitoring and diagnostics.
 
 Use the latest supported patch releases of these approved major versions when implementation begins, pin them in the repository, and upgrade them through tested maintenance releases rather than allowing uncontrolled version drift.
@@ -52,8 +52,8 @@ The specification describes business processes rather than a technical architect
 - **Android is the first production mobile target.** Flutter retains an iOS path without requiring a second codebase, but the specification does not explicitly require an iOS release.
 - **Location collection will occur only during an active service journey.** Continuous tracking outside a job is not supported by the specification and would create unnecessary privacy and battery risks.
 - **KCCA can provide or procure Linux virtual machines, network access, DNS, backup storage, and SMS credit.** Exact server capacity cannot be selected until expected user numbers, concurrent journeys, retention periods, and availability targets are known.
-- **Developers will work directly on Windows and have reliable internet access to GitHub, Render, Google Maps Platform, and other external services.** WSL, Docker Desktop, and a local Linux installation are not workstation requirements.
-- **Render will host Valkey 9 and integration instances of the NestJS API and BullMQ worker for development.** The API and worker must share Render's private network with Valkey for complete queue integration testing. Whether PostgreSQL/PostGIS, Keycloak, and monitoring services also run on Render remains an environment-design decision and must not be treated as confirmed until documented.
+- **Developers will work directly on Windows and have reliable internet access to GitHub, Neon, Koyeb, Google Maps Platform, and other approved external services.** WSL, Docker Desktop, and a local Linux installation are not workstation requirements.
+- **The implemented authentication slice uses Neon Free for Weyonje-owned development data and one stateless Koyeb Free Web Service for the NestJS API.** Workers, Valkey, monitoring, and other downstream services are not part of this slice and have no active development-hosting selection here.
 - **The initial workload is suitable for a modular monolith.** Nothing in the specification establishes a scale or team structure that would justify microservices or Kubernetes.
 - **The request location needs map display, address search, routing, and arrival detection.** These are reasonable supporting capabilities for the documented live monitoring and arrival notifications. They should be confirmed during detailed requirements analysis.
 - **Payments, document uploads, photographs, artificial intelligence, and public analytics are not included.** They are not required by the supplied specification and should not be added to the baseline stack without an approved requirement.
@@ -114,7 +114,7 @@ Node.js will run the API and background workers. Version 24 is the appropriate p
 
 **Technology: Eclipse Temurin OpenJDK 21 LTS**
 
-Java is required to run Keycloak and Android build tooling. Use one supported LTS distribution and pin it in development and CI environments.
+Java is required for Android build tooling. Use one supported LTS distribution and pin it in development environments.
 
 ## 6. Mobile Application Stack
 
@@ -154,11 +154,11 @@ Dio will call the Weyonje REST API. It will provide timeouts, request cancellati
 
 These tools will generate immutable Dart models and reliable JSON conversion from the backend's OpenAPI-defined data structures, reducing repetitive and error-prone mapping code.
 
-### flutter_appauth
+### Native Mobile Authentication
 
-**Technology: flutter_appauth**
+**Technology/approach: Weyonje-owned email/password fields over the HTTPS API**
 
-This library will connect the mobile app to Keycloak using OpenID Connect Authorization Code Flow with PKCE. Tokens must be stored through secure platform storage rather than ordinary application preferences.
+The mobile app collects bounded email and password input only for `POST /v1/auth/sign-in`. It stores only access token, rotating refresh token, and expiry metadata through secure platform storage. External browser handoff and embedded identity-provider configuration are not part of the selected stack.
 
 ### flutter_secure_storage
 
@@ -282,11 +282,11 @@ React Hook Form will manage efficient forms for Call Centre request entry, provi
 
 Zod will validate web form input and API responses at the browser boundary. Server validation remains authoritative.
 
-### react-oidc-context
+### Web Authentication Boundary
 
-**Technology: react-oidc-context**
+**Status: Not implemented**
 
-This library will integrate the portal with Keycloak through OpenID Connect and PKCE, including login, logout, token renewal, and authenticated route handling.
+The future portal must use the same API-owned authentication/session authority and server-side authorization model. No web authentication library or screen is selected or implemented by the current mobile/API slice.
 
 ### Google Maps JavaScript API
 
@@ -320,11 +320,11 @@ NestJS will structure the backend into modules with controllers, services, guard
 
 Fastify will provide the HTTP server beneath NestJS, giving efficient request handling while retaining NestJS structure.
 
-### TypeORM
+### Prisma ORM
 
-**Technology: TypeORM**
+**Technology: Prisma ORM and Prisma Client**
 
-TypeORM will map application entities to PostgreSQL, manage reviewed migrations, support transactions, and handle PostGIS geometry columns. Complex geographical and reporting queries should use explicit parameterised SQL rather than forcing them through an abstraction.
+Prisma is the API's only database access layer. Its checked-in schema and reproducible SQL migrations own ordinary persistence and transactions. PostgreSQL constraints enforce security and eligibility invariants Prisma cannot express; future PostGIS/reporting work may use reviewed parameterised SQL through Prisma without adding another ORM.
 
 ### pg
 
@@ -350,17 +350,17 @@ Generate an authoritative API contract and interactive internal documentation fr
 
 Generate TypeScript and Dart API models or clients from the reviewed OpenAPI contract. Generated files should not contain business logic and should be regenerated through one repository command.
 
-### Passport and JOSE
+### JOSE Access Tokens and Server Sessions
 
-**Technologies: Passport JWT strategy and JOSE**
+**Technology: JOSE with reviewed HS256 JWTs plus Prisma server sessions**
 
-Validate Keycloak-issued access tokens, signatures, audiences, issuers, and expiry. Backend guards must enforce roles and record ownership even when the interface hides an action.
+Issue short-lived access tokens containing only internal user and session identifiers. Validate the exact algorithm, signature, issuer, audience, issue/expiry times, current session, password version, and current database eligibility. Opaque refresh tokens rotate atomically and are stored only as keyed hashes.
 
 ### Node.js Crypto HMAC
 
 **Technology: Node.js Crypto with HMAC-SHA-256**
 
-Store only a keyed HMAC of each short-lived SMS verification code, using a server-held secret, an expiry time, and a strict attempt limit. A plain hash is insufficient for low-entropy numeric codes. User passwords should remain under Keycloak rather than being duplicated in the Weyonje database.
+Use Node's standard cryptography for HMAC-SHA-256 email lookup, refresh-token hashing, throttle-key protection, AES-256-GCM email encryption, and secure random values. Store passwords only as Argon2id hashes with unique salts; never encrypt passwords or persist raw tokens.
 
 ### Pino
 
@@ -406,29 +406,29 @@ Apply secure HTTP headers and rate limits, with stricter rules for login, OTP is
 
 ## 9. Identity, Authentication, and Authorization
 
-### Keycloak
+### API-Owned Native Authentication
 
-**Technology: Keycloak**
+**Technology/approach: NestJS authentication services backed by Prisma/PostgreSQL**
 
-Keycloak will be the central identity and access-management service for clients, service providers, KCCA staff, and administrators. It will issue standard OpenID Connect tokens, manage sessions, support role assignment, and keep authentication separate from Weyonje business records. Keycloak provides official production container guidance, health checks, metrics, PostgreSQL support, and standard OAuth/OIDC capabilities.
+The API owns email/password authentication, Argon2id verification, login throttling, session creation/revocation, rotating refresh tokens, roles, Provider eligibility, and KCCA mobile-monitoring permission. Registration, recovery, verification delivery, and approval administration remain outside the implemented slice.
 
-### OpenID Connect and OAuth 2.0 with PKCE
+### Email and Password Protection
 
-**Technology/standard: OpenID Connect and OAuth 2.0 Authorization Code Flow with PKCE**
+**Technology/standard: Argon2id, AES-256-GCM, and HMAC-SHA-256**
 
-Use standard browser-based authentication flows for the mobile and web clients. Do not place a privileged client secret inside the mobile or browser application.
+Normalize email consistently, encrypt it with a fresh authenticated-encryption nonce, and locate it only through a separately keyed non-reversible lookup. Keep encryption, lookup, token-signing, refresh-hash, and throttle secrets separate and external. Passwords are one-way Argon2id hashes and are never recoverable.
 
 ### Application Roles and Server-Side Policy Guards
 
-**Technology/approach: Keycloak roles plus NestJS guards and database ownership checks**
+**Technology/approach: Prisma role state plus NestJS guards and database ownership checks**
 
-Keycloak will carry coarse roles such as client, service provider, KCCA staff, Call Centre staff, and system administrator. NestJS will enforce record-level rules such as whether a provider can see a particular request or a client can view a particular journey.
+Weyonje PostgreSQL carries current actor type and bounded eligibility state. NestJS validates the current server session and enforces role, eligibility, ownership, and object-level rules rather than trusting stale token claims or mobile routes.
 
 ### Registration and Approval Orchestration
 
-**Technology/approach: NestJS registration workflow integrated with Keycloak Admin API**
+**Status: Not implemented**
 
-Weyonje will send and validate the required SMS code, then provision or enable the matching identity. Service-provider access to requests must remain disabled until KCCA approval. Rejection reasons and approval history belong in the Weyonje database, not only in identity metadata.
+Public registration, verification delivery, recovery, and Provider approval workflows are outside the current slice. Development accounts are created only through the interactive non-production provisioning command; Service Providers remain unable to enter work unless current database state is active and `APPROVED`.
 
 ## 10. Database and Data Storage
 
@@ -450,7 +450,7 @@ PostGIS extends PostgreSQL with geographical points, spatial indexes, distance c
 
 Valkey is a Linux Foundation-backed BSD-licensed, Redis-compatible in-memory data store. It will hold short-lived OTP state, rate-limit counters, cached reference data, WebSocket coordination, the latest provider position, and BullMQ job data. PostgreSQL remains the source of truth for durable business and journey history.
 
-Because Valkey 9 is not a supported native Windows server and Render's managed Key Value offering does not currently provide the selected major version, run a pinned official Valkey 9 container as a Render Private Service for development. Attach appropriately sized persistent storage for BullMQ job recovery, require authentication, limit access to the private network, and document backup or recovery expectations. Render-hosted integration instances of the API and worker will connect to this service; Linux GitHub Actions tests will also exercise the selected Valkey 9 version in isolated test containers.
+Valkey and BullMQ remain proposed for later downstream workflows. They are not required, hosted, or configured by the implemented authentication development slice.
 
 ### Database Constraints
 
@@ -460,9 +460,9 @@ Use database-level safeguards for identifiers, active assignments, valid ratings
 
 ### Database Migrations
 
-**Technology: TypeORM migrations reviewed as SQL changes**
+**Technology: Prisma migrations with reviewed PostgreSQL SQL**
 
-Every schema change must be committed, reviewed, tested against a restored database copy, applied through CI/CD, and accompanied by a rollback or forward-recovery plan.
+Every schema change must be committed, reviewed, validated offline, and applied through `DIRECT_URL` from an approved workstation. Database-dependent tests use explicitly supplied isolated test URLs and never a shared development database by default.
 
 ### pgBackRest
 
@@ -474,7 +474,7 @@ Create encrypted, compressed full and incremental PostgreSQL backups with retent
 
 **Technology: Restic**
 
-Back up encrypted configuration, Keycloak realm exports, and other necessary non-database operational files to storage outside the production host. Google Maps content is not a Weyonje backup asset and must not be copied or retained contrary to Google Maps Platform terms.
+Back up encrypted configuration and other necessary non-database operational files to storage outside the production host. Google Maps content is not a Weyonje backup asset and must not be copied or retained contrary to Google Maps Platform terms.
 
 ## 11. Mapping, Routing, and Location Tracking
 
@@ -534,7 +534,7 @@ Sample frequently enough to show useful movement during active journeys, reduce 
 
 **Technology/service: Africa's Talking Bulk SMS for Uganda**
 
-Use Africa's Talking for phone-verification codes and SMS notifications to clients who use the Call Centre or cannot receive app push notifications. It is a required paid communications service because delivery to Ugandan mobile networks incurs a per-message telecommunications charge. Google Maps Platform and Render development infrastructure may also create recurring charges. Africa's Talking officially lists bulk SMS availability in Uganda.
+Use Africa's Talking for phone-verification codes and SMS notifications to clients who use the Call Centre or cannot receive app push notifications. It is a future paid communications service because delivery to Ugandan mobile networks incurs a per-message telecommunications charge. Google Maps Platform may also create recurring charges. Africa's Talking officially lists bulk SMS availability in Uganda.
 
 Abstract the SMS provider behind a Weyonje interface so that KCCA can change provider later without changing registration or request workflows. Store provider message IDs and delivery results, but never log OTP values.
 
@@ -600,7 +600,7 @@ Host the Weyonje monorepo and provide pull requests, code review, issues, releas
 
 **Technology/platform: GitHub Container Registry**
 
-Store versioned, scanned container images produced by GitHub Actions where container packaging is required. Limit package permissions, authenticate with short-lived or narrowly scoped credentials, and deploy immutable version tags or digests rather than `latest`.
+Store versioned, scanned container images through an approved future build process where container packaging is required. Limit package permissions, authenticate with short-lived or narrowly scoped credentials, and deploy immutable version tags or digests rather than `latest`.
 
 ### pnpm Workspaces
 
@@ -612,7 +612,7 @@ Manage the backend, worker, web portal, shared TypeScript packages, and tooling 
 
 **Technology: Flutter Version Management**
 
-Pin the Flutter SDK version used by developers and CI so builds do not change unexpectedly when a developer updates their global Flutter installation.
+Pin the Flutter SDK version used by developers and any later approved automation so builds do not change unexpectedly when a developer updates their global Flutter installation.
 
 ### Task
 
@@ -626,7 +626,7 @@ Provide memorable cross-platform commands for setup, code generation, linting, t
 
 Standardise commit intent and support reliable release notes. This should aid review rather than become a substitute for meaningful pull-request descriptions.
 
-## 15. Windows and Render Development Environment
+## 15. Windows, Neon, and Koyeb Development Environment
 
 ### Windows 11
 
@@ -638,7 +638,7 @@ Develop the Flutter mobile application, React portal, NestJS API, BullMQ worker 
 
 **Technology: Visual Studio Code**
 
-Use one editor configuration for Dart, Flutter, TypeScript, ESLint, formatting, tests, Dockerfile and workflow-file validation, and Git/GitHub workflows. Container execution remains in GitHub Actions, Render, staging, or production rather than on the Windows workstation.
+Use one editor configuration for Dart, Flutter, TypeScript, formatting, tests, Prisma, and Git/GitHub workflows. The current API deployment uses Koyeb's native Node build and does not require a Dockerfile.
 
 ### Android Studio
 
@@ -646,41 +646,37 @@ Use one editor configuration for Dart, Flutter, TypeScript, ESLint, formatting, 
 
 Provide the Android SDK, emulator, device inspection, signing support, and native debugging required for Flutter development. Use a maintained physical Android device whenever the emulator cannot run or when testing GPS accuracy, foreground tracking, notifications, battery restrictions, and real device behaviour.
 
-### Render Development Environment
+### Neon Free Development Database
 
-**Platform/service: Render**
+**Platform/service: Neon Free PostgreSQL**
 
-Provide the shared Linux development environment for Valkey 9 and any other component that cannot run reliably or natively on Windows. Valkey 9 will run as a private containerized service. Render will also host integration instances of the NestJS API and BullMQ worker so they can connect to Valkey over the private network. Whether PostgreSQL/PostGIS, Keycloak, and monitoring services also run on Render must be decided and documented as the development architecture is finalised; this document does not assume that those services will run there.
+Use Neon's pooled TLS address as `DATABASE_URL` for Prisma runtime traffic and direct TLS address as `DIRECT_URL` for migrations and interactive development provisioning. Keep both values private. Free compute can suspend and cold-start; it is a development dependency with no production availability claim.
 
-The Render-hosted API and worker will require secure, network-reachable development PostgreSQL/PostGIS and Keycloak endpoints. Their final hosting location is unresolved; do not expose services running on an individual Windows workstation merely to satisfy this dependency.
+### Koyeb Free Development API
 
-Render is a runtime and integration environment, not the place where developers edit source code. Developers work in the Windows checkout, push changes to GitHub, and connect the Flutter and web applications to approved Render-hosted endpoints for complete integration testing.
+**Platform/service: one Koyeb Free Web Service**
 
-### Render API and Blueprint Configuration
-
-**Technologies: Render API and Render Blueprints**
-
-Manage Render services, deployments, environment groups, and other supported resources programmatically through the Render API and version-controlled Blueprint configuration. Keep API tokens and service secrets in protected GitHub or Render settings, grant the minimum required access, rotate them deliberately, and never commit them to the repository. Treat the Render Dashboard as an operational interface rather than an undocumented second source of configuration.
+Run only the stateless NestJS API from the private GitHub monorepo using Koyeb's native Node 24/pnpm build. Bind to `0.0.0.0` and the supplied `PORT`, enter secrets through Koyeb settings, store no durable local state, use Frankfurt when available and suitable, and accept free-service sleep/cold-start limitations. No worker or persistent disk is required by this slice.
 
 ### Development Workflow
 
-**Technology/approach: Windows development with GitHub automation and Render integration testing**
+**Technology/approach: Windows development with manual checks and Koyeb/Neon integration testing**
 
 Use the following workflow:
 
 1. Developers write and run supported code and tests on Windows.
 2. Changes are committed and pushed to GitHub.
-3. GitHub Actions runs platform-independent checks and Linux-specific automated tests, including container-based PostgreSQL/PostGIS, Valkey 9, and Keycloak integration tests where required.
-4. Approved changes are deployed to the Render development environment.
-5. The Flutter and web applications connect to Render-hosted services for complete integration testing.
+3. Developers run the documented format, analysis, type, test, Prisma, OpenAPI, and build commands manually; the repository defines no automation workflow for this slice.
+4. An authorised operator applies Prisma migrations to an isolated Neon development database and creates synthetic users interactively.
+5. Reviewed code may be configured manually as one Koyeb Free API service; mobile connects to its HTTPS endpoint for authorised integration testing.
 
-This workflow depends on reliable internet connectivity and the availability of GitHub and Render. Define safe behaviour for temporary outages, avoid making unpushed local work the only copy of important changes, and do not allow development shortcuts to bypass required Linux integration tests.
+This workflow depends on reliable internet connectivity and GitHub, Neon, and Koyeb availability. Free services may sleep; wake them before manual testing and never treat skipped external integration as passed.
 
 ### DBeaver Community
 
 **Technology: DBeaver Community**
 
-Inspect PostgreSQL data and execute authorised development queries against an approved native Windows or Render-hosted development database. Use TLS and restricted credentials for remote access; production write access should remain restricted and audited.
+Inspect PostgreSQL data and execute authorised development queries only against an approved isolated database using its direct TLS address and restricted credentials. Production write access remains outside this development slice.
 
 ### Bruno
 
@@ -694,7 +690,7 @@ Store human-readable API request collections in Git for development, debugging, 
 
 **Technology: ESLint**
 
-Enforce TypeScript and React correctness rules and block unsafe patterns in CI.
+Enforce TypeScript and React correctness rules and block unsafe patterns in the documented manual quality gate and any later approved automation.
 
 ### Prettier
 
@@ -712,7 +708,7 @@ Enforce sound Dart typing, Flutter conventions, and agreed project-specific rule
 
 **Technology: Lefthook**
 
-Run fast formatting, linting, and secret checks before commits while keeping the full authoritative checks in CI.
+Run fast formatting, linting, and secret checks before commits while keeping the full documented manual check set authoritative until automation is approved.
 
 ### Renovate
 
@@ -770,11 +766,11 @@ Run backend unit and integration tests for services, guards, state transitions, 
 
 Exercise the running NestJS HTTP API, including authentication, validation, status codes, and database effects.
 
-### Testcontainers
+### Opt-in PostgreSQL Integration Tests
 
-**Technology: Testcontainers**
+**Technology/approach: Prisma against an explicitly supplied isolated PostgreSQL database**
 
-Run integration tests against real PostgreSQL/PostGIS, Valkey 9, and Keycloak containers rather than unrealistic in-memory substitutes. Because developers do not run a local container engine, execute these tests on standard Ubuntu GitHub Actions runners or another approved Linux runner with container support.
+Routine tests use deterministic fakes at external boundaries. Real migration and constraint checks require `TEST_DATABASE_URL` and `TEST_DIRECT_URL`, skip transparently when absent, and must never use Neon or a shared database without explicit authorization. Docker Desktop, WSL, local Linux, and hosted automation are not required.
 
 ### Google Maps Integration Testing
 
@@ -812,7 +808,7 @@ Use these as checklists for the web, mobile, and API security requirements, part
 
 **Technology: Gitleaks**
 
-Scan commits and GitHub Actions workspaces for passwords, Google Maps and Render API keys, private keys, and other secrets before they reach protected branches.
+Scan local changes and any future approved automation workspace for passwords, platform API keys, private keys, and other secrets before they reach protected branches.
 
 ### Semgrep Community Edition
 
@@ -848,7 +844,7 @@ Provide a carefully tuned web-application firewall layer at Nginx for common mal
 
 **Technologies: SOPS and age**
 
-Encrypt environment-specific secret files for controlled storage and deployment. Decryption keys must remain outside Git and be limited to authorised GitHub Actions environments and operators. Prefer platform secret stores for Render and Google credentials that do not need to exist as encrypted repository files.
+Encrypt environment-specific secret files only when controlled storage is approved. Decryption keys must remain outside Git and be limited to authorised operators. Prefer Neon/Koyeb/Google platform secret stores for credentials that do not need to exist as encrypted repository files.
 
 ### CycloneDX SBOM
 
@@ -862,27 +858,19 @@ Generate a machine-readable inventory of application and container dependencies 
 
 Record high-value actions such as provider approval or rejection, role changes, request assignment, price updates, status transitions, collection confirmation, and administrative access. Application users must not be able to edit audit records.
 
-## 19. Continuous Integration and Delivery
+## 19. Manual Quality Gates and Delivery Boundary
 
-### GitHub Actions Runners
+### Manual Repository Checks
 
-**Technology: GitHub-hosted Ubuntu and Windows runners**
+**Technology/approach: documented reproducible local commands**
 
-Run repeatable workflows for linting, tests, code generation, security scans, image builds, and deployment. Use Windows runners only where Windows-specific verification is material, and use standard Ubuntu runners for Linux and container-based checks including Testcontainers and Valkey 9 integration. Pin action versions to reviewed immutable references where practical and grant each workflow the minimum required permissions.
-
-GitHub-hosted runner capacity, included minutes, network access, and static-IP requirements depend on the selected GitHub plan and repository settings. If standard hosted runners cannot securely reach a required private resource or lack sufficient capacity, document and approve a self-hosted or larger-runner design rather than silently weakening the test.
-
-### GitHub Actions
-
-**Technology: GitHub Actions**
-
-Define continuous integration and delivery as version-controlled workflows. A pull request must not merge into a protected release branch or deploy to a higher environment unless required tests, scans, reviews, and approvals succeed. Use GitHub environments, protected secrets, concurrency controls, and explicit deployment approvals to separate development, staging, and production authority.
+Run formatting, strict typing, unit/HTTP/widget tests, Prisma format/validate/generate, migration-file checks, OpenAPI drift, Android debug build, workspace build, diff checks, secret scans, and dependency review before handoff. Record exact results and skipped external checks. This slice deliberately defines no automated workflow or deployment.
 
 ### Docker BuildKit and Buildx
 
 **Technologies: Docker BuildKit and Buildx**
 
-Create reproducible multi-stage container images with dependency caching, minimal production layers, non-root users, and architecture-aware builds on GitHub Actions, Render, or approved Linux build infrastructure. Developers do not need Docker Desktop locally, but Dockerfiles and resulting images remain part of remote CI, development hosting where used, staging, and production.
+Container packaging remains a possible production concern, but the current Koyeb development API uses its supported native Node/pnpm build. No Dockerfile is required for this slice.
 
 ### Cosign
 
@@ -908,7 +896,7 @@ Keep production data and credentials out of lower environments. Staging should r
 
 **Platform: KCCA-managed virtual machines**
 
-Host Weyonje on infrastructure controlled by KCCA unless an approved hosting decision says otherwise. Separate public application services from data services through network rules and do not expose PostgreSQL, Valkey, or Keycloak administration directly to the internet.
+Host production Weyonje on infrastructure controlled or approved by KCCA unless a later decision says otherwise. Separate public application services from data services and never expose database administration directly to the internet. Koyeb/Neon settings here are development-only.
 
 ### Ubuntu Server 24.04 LTS
 
@@ -920,7 +908,7 @@ Use the mature 24.04 LTS line as the production operating system baseline. Ubunt
 
 **Technology: Docker Engine**
 
-Package the web portal, API, worker, Keycloak, and observability components consistently. Pin image versions and run application containers as non-root users. Google Maps Platform is an external service and is not packaged or hosted by Weyonje.
+Package future web, API, worker, and observability components consistently where containers are approved. Native authentication is part of the API; there is no separate identity-provider container. Google Maps Platform remains external.
 
 ### Docker Compose
 
@@ -958,7 +946,7 @@ Start and supervise Docker Compose deployments, backup timers, certificate check
 
 **Technology: OpenTelemetry SDKs and Collector**
 
-Create consistent traces, metrics, and diagnostic context across the API, workers, Keycloak integration, notification delivery, and web portal without locking Weyonje into one monitoring vendor.
+Create consistent traces, metrics, and diagnostic context across the API, workers, authentication/session services, notification delivery, and web portal without locking Weyonje into one monitoring vendor.
 
 ### Prometheus
 
@@ -1006,7 +994,7 @@ Expose host, database, container, and network-check metrics to Prometheus using 
 
 **Technology: Self-hosted GlitchTip**
 
-Collect grouped application exceptions and release regressions from the mobile app and backend while keeping diagnostic data under KCCA control. A Render-hosted development GlitchTip instance is optional until the development monitoring topology is confirmed; production hosting remains part of the approved KCCA infrastructure design.
+Collect grouped application exceptions and release regressions from the mobile app and backend while keeping diagnostic data under KCCA control. Development monitoring is unselected and not implemented; production hosting remains part of an approved future KCCA infrastructure design.
 
 ## 22. Backup, Recovery, and Maintenance
 
@@ -1038,7 +1026,7 @@ Apply appropriate security patches automatically while scheduling disruptive upd
 
 **Technology: Version-controlled Markdown runbooks**
 
-Document deployment, rollback, failed SMS handling, stuck jobs, Google Maps outage or quota exhaustion, database recovery, certificate renewal, Keycloak recovery, and incident escalation next to the code that changes them.
+Document deployment, rollback, failed SMS handling, stuck jobs, Google Maps outage or quota exhaustion, database recovery, certificate renewal, authentication-key/session recovery, and incident escalation next to the code that changes them.
 
 ## 23. Documentation Tools
 
@@ -1084,7 +1072,7 @@ Microservices are not recommended because the documented processes share transac
 
 ### Firebase Authentication, Firestore, and Realtime Database
 
-These are not recommended because Keycloak and PostgreSQL provide a more coherent, self-hosted identity and transactional data model. Firebase is limited to no-cost push delivery.
+These are not recommended because Weyonje's API-owned native authentication and PostgreSQL provide one coherent transactional authority. Firebase remains limited to future push delivery.
 
 ### Self-Hosted OpenStreetMap Stack
 
@@ -1108,9 +1096,9 @@ RabbitMQ or Kafka is not recommended initially. BullMQ and Valkey are enough for
 
 Google Maps Platform requires a billing-enabled Google Cloud project. Map loads, place and address searches, geocoding, route calculations, and other enabled services may incur usage charges. Configure least-privilege API access, environment-specific credentials, quotas, budgets, and spending alerts, and assign responsibility for regular cost and usage review before enabling production traffic.
 
-### Render Development Infrastructure
+### Neon and Koyeb Development Infrastructure
 
-Render will host the private Valkey 9 development service together with integration instances of the NestJS API and BullMQ worker. It may host PostgreSQL/PostGIS, Keycloak, monitoring, or other development components after the remaining topology is confirmed. Required compute, storage, bandwidth, persistent disks, and workspace features may incur recurring charges. Record service ownership, spending limits, suspension and cleanup procedures, and the migration path to KCCA-controlled staging and production infrastructure.
+The authentication slice selects only the free tiers: Neon Free PostgreSQL and one Koyeb Free Web Service. No paid resource, persistent disk, worker, automated deployment, or uptime guarantee is required. Free-tier limits and cold starts must be tested before relying on the environment; do not weaken Argon2id to fit hosting limits.
 
 ### GitHub Usage, If Beyond Included Allowances
 
@@ -1122,7 +1110,7 @@ This is required because the specification mandates SMS verification and SMS not
 
 ### Production Infrastructure
 
-Most application and operational components remain open source and can be self-hosted for production, but Google Maps Platform is a commercial external dependency and Render is a paid development dependency where free allowances are insufficient. Production virtual machines, storage, backups, networking, domains, and support also have real infrastructure costs unless supplied internally by KCCA.
+Most application and operational components remain open source and can be self-hosted for production, but Google Maps Platform is a commercial external dependency. The selected authentication development slice uses Neon Free and Koyeb Free only; production virtual machines, storage, backups, networking, domains, and support remain separate future costs unless supplied internally by KCCA.
 
 ### Mobile Distribution Fees, If Applicable
 
@@ -1144,12 +1132,12 @@ The stack is coherent and ready to guide development, but the following facts mu
 - exact notification matrix, message wording, reminder timing, retry policy, and escalation process;
 - KCCA identity integration requirements for staff, if any;
 - hosting, availability, recovery-time, recovery-point, and data-residency requirements;
-- whether PostgreSQL/PostGIS, Keycloak, monitoring, or other development services will join the confirmed Valkey 9, API, and worker integration services on Render, together with the selected region, capacity, persistence, networking, access controls, costs, and responsibility for operation;
-- the approved GitHub organisation and plan, repository ownership, Actions and runner model, GitHub Container Registry retention, and required access controls;
+- whether future PostGIS, monitoring, Valkey, worker, or other downstream development services are required, together with region, capacity, persistence, networking, access controls, costs, and operational responsibility;
+- the approved GitHub organisation and plan, repository ownership, package retention, and required access controls;
 - Ugandan data-protection, records-retention, and audit requirements applicable to client and location data; and
 - the relationship between client confirmation in the app-based flow and KCCA-recorded confirmation in the Call Centre flow.
 
-These confirmations should populate `CURRENT_SYSTEM_STATE.md` only after they are implemented or operationally established; before that, they belong in requirements and decision records. Workstation setup instructions, architecture records, operational documentation, and the future `CURRENT_SYSTEM_STATE.md` must all be aligned with the Windows, GitHub, Render, and Google Maps Platform decisions in this document.
+These confirmations should populate `CURRENT_SYSTEM_STATE.md` only after they are implemented or operationally established; before that, they belong in requirements and decision records. Workstation setup instructions, architecture records, operational documentation, and the future `CURRENT_SYSTEM_STATE.md` must align with Windows, GitHub, Neon, Koyeb, and Google Maps Platform decisions in this document.
 
 ## 27. Official References Used to Verify Key Choices
 
@@ -1159,7 +1147,9 @@ These confirmations should populate `CURRENT_SYSTEM_STATE.md` only after they ar
 - [PostgreSQL current documentation](https://www.postgresql.org/docs/current/)
 - [PostGIS documentation](https://postgis.net/documentation/manual/)
 - [Valkey project and releases](https://valkey.io/)
-- [Keycloak production container guidance](https://www.keycloak.org/server/containers)
+- [Prisma system requirements](https://www.prisma.io/docs/orm/reference/system-requirements)
+- [Neon connection pooling](https://neon.com/docs/connect/connection-pooling)
+- [Koyeb Node.js deployment](https://www.koyeb.com/docs/build-and-deploy/build-from-git/nodejs)
 - [Google Maps for Flutter](https://developers.google.com/maps/flutter-package/overview)
 - [Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/)
 - [Google Places API (New)](https://developers.google.com/maps/documentation/places/web-service/overview)
@@ -1168,11 +1158,7 @@ These confirmations should populate `CURRENT_SYSTEM_STATE.md` only after they ar
 - [Google Maps Platform API security guidance](https://developers.google.com/maps/api-security-best-practices)
 - [Google Maps Platform pricing and billing](https://developers.google.com/maps/billing-and-pricing/overview)
 - [Google Maps Platform terms and policies](https://developers.google.com/maps/terms)
-- [GitHub Actions documentation](https://docs.github.com/actions)
-- [GitHub-hosted runners reference](https://docs.github.com/actions/reference/runners/github-hosted-runners)
 - [GitHub Container Registry documentation](https://docs.github.com/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
-- [Render API documentation](https://render.com/docs/api)
-- [Render Blueprints](https://render.com/docs/infrastructure-as-code)
 - [Firebase pricing and no-cost products](https://firebase.google.com/docs/projects/billing/firebase-pricing-plans)
 - [Africa's Talking product availability by country](https://help.africastalking.com/en/articles/2727792-which-countries-are-africa-s-talking-products-in)
 - [BullMQ delayed jobs](https://docs.bullmq.io/guide/jobs/delayed)

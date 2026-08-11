@@ -2,8 +2,14 @@ packages:
   - apps/api
   - packages/*
 
+overrides:
+  js-yaml@5.2.1: 5.2.3
+
 allowBuilds:
+  argon2: true
   '@nestjs/core': true
   '@scarf/scarf': false
+  '@prisma/engines': true
   esbuild: true
+  prisma: true
   unrs-resolver: true

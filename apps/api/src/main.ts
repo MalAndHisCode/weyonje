@@ -18,7 +18,7 @@ async function bootstrap(): Promise<void> {
     bodyLimit: 1024 * 1024,
     connectionTimeout: 10_000,
     requestTimeout: 10_000,
-    trustProxy: false,
+    trustProxy: true,
     genReqId: () => crypto.randomUUID(),
   });
   const app = await NestFactory.create<NestFastifyApplication>(

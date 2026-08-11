@@ -6,9 +6,9 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "format": "pnpm --filter @weyonje/contracts format && pnpm --filter @weyonje/api format",
+    "format": "pnpm --filter @weyonje/contracts format && pnpm --filter @weyonje/api prisma:format && pnpm --filter @weyonje/api format",
     "lint": "pnpm --filter @weyonje/contracts lint && pnpm --filter @weyonje/api lint",
-    "typecheck": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api typecheck",
+    "typecheck": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api prisma:validate && pnpm --filter @weyonje/api typecheck",
     "test": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api test",
     "build": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api build",
     "openapi:generate": "pnpm --filter @weyonje/api openapi:generate",

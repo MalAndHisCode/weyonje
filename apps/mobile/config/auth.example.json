@@ -1,6 +1,3 @@
 {
-  "WEYONJE_API_BASE_URL": "https://api.example.invalid",
-  "WEYONJE_KEYCLOAK_ISSUER": "https://keycloak.example.invalid/realms/weyonje-local",
-  "WEYONJE_KEYCLOAK_CLIENT_ID": "weyonje-mobile-local",
-  "WEYONJE_AUTH_REDIRECT_URI": "ug.go.kcca.weyonje.auth:/oauthredirect"
+  "WEYONJE_API_BASE_URL": "https://api.example.invalid"
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,10 +12,10 @@ import '../support/fake_auth_repository.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<void> render(
+  Future<void> renderRepository(
     WidgetTester tester, {
     required Size size,
-    required AuthOutcome outcome,
+    required FakeAuthRepository repository,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -23,11 +25,7 @@ void main() {
     });
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(
-            FakeAuthRepository(onResolve: (_) async => outcome),
-          ),
-        ],
+        overrides: [authRepositoryProvider.overrideWithValue(repository)],
         child: const WeyonjeApplication(),
       ),
     );
@@ -37,6 +35,25 @@ void main() {
         tester.element(find.byType(WeyonjeApplication)),
       ),
     );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> render(
+    WidgetTester tester, {
+    required Size size,
+    required AuthOutcome outcome,
+  }) async {
+    await renderRepository(
+      tester,
+      size: size,
+      repository: FakeAuthRepository(onResolve: (_) async => outcome),
+    );
+  }
+
+  Future<void> openNativeSignIn(WidgetTester tester) async {
+    await tester.ensureVisible(find.byKey(const Key('sign-in')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sign-in')));
     await tester.pumpAndSettle();
   }
 
@@ -93,5 +110,101 @@ void main() {
       find.byType(WeyonjeApplication),
       matchesGoldenFile('goldens/session_error_compact.png'),
     );
+  });
+
+  testWidgets('native sign-in uses the available large portrait space', (
+    tester,
+  ) async {
+    await render(
+      tester,
+      size: const Size(412, 915),
+      outcome: const NoStoredSession(),
+    );
+    await openNativeSignIn(tester);
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/sign_in_large.png'),
+    );
+  });
+
+  testWidgets(
+    'native sign-in remains reachable in a compact keyboard viewport',
+    (tester) async {
+      await render(
+        tester,
+        size: const Size(320, 568),
+        outcome: const NoStoredSession(),
+      );
+      await openNativeSignIn(tester);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('submit-sign-in')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(WeyonjeApplication),
+        matchesGoldenFile('goldens/sign_in_keyboard_compact.png'),
+      );
+    },
+  );
+
+  testWidgets('native sign-in error is stable on a compact phone', (
+    tester,
+  ) async {
+    await renderRepository(
+      tester,
+      size: const Size(360, 640),
+      repository: FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onSignIn: (_, _, _) async =>
+            const InvalidSession('Email or password is incorrect.'),
+      ),
+    );
+    await openNativeSignIn(tester);
+    await tester.enterText(
+      find.byKey(const Key('sign-in-email')),
+      'account@example.test',
+    );
+    await tester.enterText(
+      find.byKey(const Key('sign-in-password')),
+      'not-a-real-password',
+    );
+    await tester.tap(find.byKey(const Key('submit-sign-in')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/sign_in_error_compact.png'),
+    );
+  });
+
+  testWidgets('native sign-in loading keeps its label and dimensions', (
+    tester,
+  ) async {
+    final pending = Completer<AuthOutcome>();
+    await renderRepository(
+      tester,
+      size: const Size(360, 640),
+      repository: FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onSignIn: (_, _, _) => pending.future,
+      ),
+    );
+    await openNativeSignIn(tester);
+    await tester.enterText(
+      find.byKey(const Key('sign-in-email')),
+      'account@example.test',
+    );
+    await tester.enterText(
+      find.byKey(const Key('sign-in-password')),
+      'not-a-real-password',
+    );
+    await tester.tap(find.byKey(const Key('submit-sign-in')));
+    await tester.pump();
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/sign_in_loading_compact.png'),
+    );
+    pending.complete(const CancelledSignIn());
+    await tester.pump(const Duration(milliseconds: 200));
   });
 }

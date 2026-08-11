@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -26,20 +25,18 @@ final dioProvider = Provider<Dio>((ref) {
       receiveTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
       responseType: ResponseType.json,
-      headers: const {'Accept': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
     ),
   );
 });
 
-final flutterAppAuthProvider = Provider<FlutterAppAuth>(
-  (ref) => const FlutterAppAuth(),
-);
-
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => OidcAuthRepository(
+  (ref) => NativeAuthRepository(
     ref.watch(appConfigProvider),
     ref.watch(sessionStoreProvider),
     ref.watch(dioProvider),
-    ref.watch(flutterAppAuthProvider),
   ),
 );

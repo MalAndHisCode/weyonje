@@ -7,9 +7,9 @@ import {
 import { ActorAccess, ActorType } from "@weyonje/contracts";
 import request from "supertest";
 
+import { AccessTokenGuard } from "../src/auth/access-token.guard";
 import { ActorsController } from "../src/identity/actors.controller";
 import { CurrentActorService } from "../src/identity/current-actor.service";
-import { JwtAuthGuard } from "../src/identity/jwt-auth.guard";
 
 describe("GET /v1/actors/me", () => {
   let app: INestApplication;
@@ -20,8 +20,17 @@ describe("GET /v1/actors/me", () => {
       controllers: [ActorsController],
       providers: [{ provide: CurrentActorService, useValue: { resolve } }],
     })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .overrideGuard(AccessTokenGuard)
+      .useValue({
+        canActivate: (context: {
+          switchToHttp(): { getRequest(): object };
+        }) => {
+          Object.assign(context.switchToHttp().getRequest(), {
+            authenticatedActor: { sessionId: "hidden", user: { id: "hidden" } },
+          });
+          return true;
+        },
+      })
       .compile();
     app = module.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
@@ -33,7 +42,7 @@ describe("GET /v1/actors/me", () => {
   afterAll(async () => app?.close());
 
   it("returns only routing eligibility fields", async () => {
-    resolve.mockResolvedValueOnce({
+    resolve.mockReturnValueOnce({
       actorType: ActorType.client,
       access: ActorAccess.eligible,
     });
@@ -41,6 +50,8 @@ describe("GET /v1/actors/me", () => {
       .get("/v1/actors/me")
       .expect(200);
     expect(response.body).toEqual({ actorType: "CLIENT", access: "ELIGIBLE" });
-    expect(response.text).not.toMatch(/phone|email|name|route/i);
+    expect(response.text).not.toMatch(
+      /phone|email|password|token|session|route/i,
+    );
   });
 });

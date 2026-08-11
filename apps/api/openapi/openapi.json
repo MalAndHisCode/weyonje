@@ -1,6 +1,137 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/v1/auth/sign-in": {
+      "post": {
+        "operationId": "AuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCredentialsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Generic response for all invalid account credentials or state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Sign in with an existing Weyonje account",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCredentialsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Rotate a Weyonje refresh token",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/v1/auth/sign-out": {
+      "post": {
+        "operationId": "AuthController_signOut",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignOutDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke the current Weyonje session",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/v1/actors/me": {
       "get": {
         "operationId": "ActorsController_me",
@@ -51,7 +182,7 @@
   },
   "info": {
     "title": "Weyonje API",
-    "description": "Authoritative identity and eligibility capabilities for Weyonje clients.",
+    "description": "Native authentication, server-managed sessions, and authoritative eligibility for Weyonje clients.",
     "version": "0.1.0",
     "contact": {}
   },
@@ -66,6 +197,94 @@
       }
     },
     "schemas": {
+      "SignInDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "account@example.invalid"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "SessionCredentialsDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "accessTokenExpiresAt",
+          "refreshTokenExpiresAt"
+        ]
+      },
+      "ApiErrorDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "AUTH_ACCESS_DENIED"
+          },
+          "message": {
+            "type": "string",
+            "example": "This account cannot access Weyonje mobile services."
+          },
+          "requestId": {
+            "type": "string",
+            "example": "2e96d4c8-5f83-4de0-957e-a7f0cff86690"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "SignOutDto": {
+        "type": "object",
+        "properties": {
+          "signedOut": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "signedOut"
+        ]
+      },
       "CurrentActorDto": {
         "type": "object",
         "properties": {
@@ -99,27 +318,6 @@
         "required": [
           "actorType",
           "access"
-        ]
-      },
-      "ApiErrorDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "example": "AUTH_ACCESS_DENIED"
-          },
-          "message": {
-            "type": "string",
-            "example": "This account cannot access Weyonje mobile services."
-          },
-          "requestId": {
-            "type": "string",
-            "example": "2e96d4c8-5f83-4de0-957e-a7f0cff86690"
-          }
-        },
-        "required": [
-          "code",
-          "message"
         ]
       }
     }

@@ -64,6 +64,9 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
     if (status === HttpStatus.UNAUTHORIZED)
       return ApiErrorCode.authenticationRequired;
+    if (status === HttpStatus.BAD_REQUEST) return ApiErrorCode.invalidRequest;
+    if (status === HttpStatus.TOO_MANY_REQUESTS)
+      return ApiErrorCode.rateLimited;
     if (status === HttpStatus.FORBIDDEN) return ApiErrorCode.accessDenied;
     if (status === HttpStatus.REQUEST_TIMEOUT)
       return ApiErrorCode.requestTimeout;
@@ -78,6 +81,9 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return "Authentication is required.";
     if (status === HttpStatus.FORBIDDEN)
       return "This account cannot access Weyonje mobile services.";
+    if (status === HttpStatus.BAD_REQUEST) return "The request is invalid.";
+    if (status === HttpStatus.TOO_MANY_REQUESTS)
+      return "Too many requests. Wait briefly and try again.";
     return "The request could not be completed. Try again later.";
   }
 }
