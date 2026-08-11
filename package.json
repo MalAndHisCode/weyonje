@@ -1,0 +1,21 @@
+{
+  "name": "weyonje",
+  "private": true,
+  "packageManager": "pnpm@11.16.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "format": "pnpm --filter @weyonje/contracts format && pnpm --filter @weyonje/api format",
+    "lint": "pnpm --filter @weyonje/contracts lint && pnpm --filter @weyonje/api lint",
+    "typecheck": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api typecheck",
+    "test": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api test",
+    "build": "pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api build",
+    "openapi:generate": "pnpm --filter @weyonje/api openapi:generate",
+    "openapi:check": "pnpm --filter @weyonje/api openapi:check"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  }
+}

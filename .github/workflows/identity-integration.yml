@@ -1,0 +1,84 @@
+name: Identity integration
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/identity-integration.yml"
+      - "apps/api/**"
+      - "packages/contracts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/identity-integration.yml"
+      - "apps/api/**"
+      - "packages/contracts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  identity-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18.4-alpine
+        env:
+          POSTGRES_DB: weyonje_ci
+          POSTGRES_USER: weyonje_ci
+          POSTGRES_PASSWORD: ci-isolated-not-a-secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U weyonje_ci -d weyonje_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.16.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.0
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Start pinned Keycloak realm
+        run: >-
+          docker run --detach --name weyonje-keycloak
+          --publish 8080:8080
+          --volume "$GITHUB_WORKSPACE/apps/api/test/fixtures/keycloak-realm.json:/opt/keycloak/data/import/weyonje-realm.json:ro"
+          quay.io/keycloak/keycloak:26.6.4
+          start-dev --import-realm
+      - name: Wait for Keycloak discovery
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080/realms/weyonje-ci/.well-known/openid-configuration >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs weyonje-keycloak
+          exit 1
+      - name: Run API checks and external integration tests
+        env:
+          RUN_EXTERNAL_INTEGRATION: "true"
+          KEYCLOAK_ISSUER: http://127.0.0.1:8080/realms/weyonje-ci
+          DATABASE_HOST: 127.0.0.1
+          DATABASE_PORT: "5432"
+          DATABASE_NAME: weyonje_ci
+          DATABASE_USER: weyonje_ci
+          DATABASE_PASSWORD: ci-isolated-not-a-secret
+        run: |
+          pnpm --filter @weyonje/api typecheck
+          pnpm --filter @weyonje/api test
+          pnpm openapi:check

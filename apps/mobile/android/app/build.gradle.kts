@@ -21,6 +21,9 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
+        manifestPlaceholders["appAuthRedirectScheme"] =
+            providers.gradleProperty("WEYONJE_AUTH_REDIRECT_SCHEME")
+                .getOrElse("ug.go.kcca.weyonje.auth")
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

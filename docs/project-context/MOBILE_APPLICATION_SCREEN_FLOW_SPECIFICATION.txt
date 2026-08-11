@@ -1,0 +1,2257 @@
+# Weyonje Mobile Application Screen Flow Specification
+
+## 1. Mobile Actors
+
+### Client
+
+A Client uses the mobile application to:
+
+* create and verify a Weyonje Client Account;
+* receive a Weyonje Client Number;
+* sign in and access the Client dashboard;
+* submit a waste-collection service request;
+* provide the service location and contact details;
+* receive request-status notifications and reminders;
+* monitor the Service Provider travelling to the request location;
+* confirm whether waste collection was completed;
+* provide feedback and rate the service; and
+* view the status of submitted requests.
+
+The Client described in the KCCA Call Centre process does not use the mobile application and is therefore not treated as a mobile-app actor for that process.
+
+### Service Provider
+
+A Service Provider uses the mobile application to:
+
+* create and verify a Service Provider Account;
+* wait for KCCA approval;
+* receive an approval or rejection notification;
+* receive a Weyonje Service Provider Number after approval;
+* view pending or assigned service requests;
+* review request details;
+* contact a Client and conduct due diligence;
+* enter an agreed price and accept a mobile-originated request;
+* accept or reject a Call Centre-assigned request;
+* receive reminders;
+* initiate an accepted job;
+* share location while carrying out the job;
+* mark waste collection as completed;
+* wait for the applicable Client or KCCA confirmation;
+* travel to the disposal site under real-time monitoring;
+* receive arrival notifications; and
+* mark disposal as completed.
+
+### KCCA Staff
+
+KCCA Staff use the mobile application only for the mobile-facing monitoring activities supported by the specification:
+
+* monitor a Service Provider travelling to a request location for a Call Centre-originated request;
+* receive or view relevant job progress and arrival notifications;
+* monitor a Service Provider travelling from the request location to the disposal site;
+* view the disposal journey’s route and stopovers; and
+* receive notification when disposal is completed.
+
+The following KCCA Staff activities are assigned to “the system” or the KCCA Call Centre and are not specified as mobile pages:
+
+* reviewing and approving or rejecting Service Provider registrations;
+* recording Call Centre service requests;
+* reviewing available Service Providers;
+* selecting or reselecting a Service Provider;
+* contacting a Call Centre Client to confirm the work; and
+* completing the Feedback Form on behalf of a Call Centre Client.
+
+Their effects on mobile users are represented through account states, job states, restrictions, and notifications.
+
+## 2. Screen Flow Overview
+
+### Client journey
+
+#### First-time registration
+
+`Welcome and Account Access`
+→ `Choose Account Type`
+→ select **Client**
+→ `Client Registration`
+→ submit registration
+→ SMS verification code sent
+→ `Phone Verification`
+→ successful verification
+→ Weyonje Client Number assigned
+→ successful account-creation confirmation
+→ `Client Dashboard`
+
+If verification fails:
+
+`Phone Verification`
+→ validation or system error
+→ remain on `Phone Verification`
+
+#### Returning Client
+
+`Welcome and Account Access`
+→ `Sign In`
+→ successful authentication
+→ `Client Dashboard`
+
+#### Mobile service request
+
+`Client Dashboard`
+→ `Request a Service`
+→ review auto-populated Client details
+→ select whether service is needed at the current location
+
+Branches:
+
+* **Yes:** device location must be enabled → current coordinates are captured.
+* **No, map option:** `Request Location Picker` → drop a pin → coordinates returned to the request form.
+* **No, text option:** enter the request location in the request form.
+
+Then:
+
+`Request a Service`
+→ complete the remaining documented fields
+→ save and submit
+→ request saved as **Pending**
+→ `Client Request Details`
+
+#### Service fulfilment
+
+`Client Request Details — Pending`
+→ Service Provider accepts request and enters agreed price
+→ Client receives push notification
+→ `Client Request Details — Accepted`
+→ approaching-date-and-time reminder
+→ Service Provider initiates job
+→ Client receives “Service Provider is coming” notification
+→ `Journey to Request Tracking`
+→ Service Provider arrives
+→ Client and Service Provider receive arrival notification
+→ Service Provider selects **Collection Completed**
+→ Client receives confirmation prompt
+→ `Collection Confirmation and Feedback`
+→ Client submits work status, feedback, and rating
+→ request becomes **Collection Completed**
+→ Client and Service Provider receive notification
+→ `Client Request Details — Collection Completed`
+
+The subsequent disposal journey is monitored by the Service Provider and KCCA Staff. The source does not require a Client disposal-monitoring page or state that the Client receives the final disposal-completion notification.
+
+### Service Provider journey
+
+#### First-time registration
+
+`Welcome and Account Access`
+→ `Choose Account Type`
+→ select **Service Provider**
+→ `Service Provider Registration`
+→ submit registration
+→ SMS verification code sent
+→ `Phone Verification`
+→ successful telephone verification
+→ KCCA Staff notified
+→ `Service Provider Account Status — Pending`
+
+KCCA decision branches:
+
+* **Approved:** account activated → Service Provider Number assigned → approval notification → `Service Provider Account Status — Approved` → `Provider Work Dashboard`.
+* **Rejected:** account remains inactive → rejection reason delivered → `Service Provider Account Status — Rejected`.
+
+#### Mobile-originated request
+
+`Provider Work Dashboard`
+→ `Pending Service Requests`
+→ `Provider Request Details`
+→ call Client and conduct due diligence
+→ discuss request details
+→ enter agreed price
+→ accept job
+→ request becomes **Accepted**
+→ `My Jobs`
+→ approaching-date-and-time reminder
+→ `Provider Job Details`
+→ enable device location
+→ select **Initiate Job**
+→ request becomes **Active**
+→ travel to request location
+→ arrival notification
+→ collect waste
+→ select **Collection Completed**
+→ wait for Client confirmation and feedback
+→ request becomes **Collection Completed**
+→ `Disposal Journey Monitoring`
+→ arrive at disposal site
+→ disposal-site arrival notification
+→ dispose of waste
+→ select **Completed Disposing**
+→ request becomes **Completed**
+
+#### Call Centre-originated request
+
+KCCA Staff select a Service Provider through the external system
+→ selected Service Provider receives pending-request notification
+→ `Pending Service Requests`
+→ `Provider Request Details`
+
+Decision branches:
+
+* **Reject:** KCCA Staff are notified → the assignment ends for that Service Provider → KCCA selects another Service Provider through the external system.
+* **Accept:** request becomes **Accepted** → Client receives an SMS containing the expected service timing → `My Jobs`.
+
+Then:
+
+`My Jobs`
+→ reminder
+→ `Provider Job Details`
+→ enable location
+→ select **Initiate Job**
+→ request becomes **Active**
+→ travel to request location under KCCA monitoring
+→ arrival notification
+→ collect waste
+→ select **Collection Completed**
+→ KCCA Staff confirm the work with the Client and submit feedback through the external system
+→ request becomes **Collection Completed**
+→ `Disposal Journey Monitoring`
+→ arrive at disposal site
+→ select **Completed Disposing**
+→ request becomes **Completed**
+
+### KCCA Staff mobile journey
+
+#### Call Centre-originated journey to the request location
+
+`Sign In`
+→ `KCCA Monitoring Dashboard`
+→ approaching-date-and-time reminder
+→ Service Provider initiates job
+→ `Journey to Request Tracking`
+→ monitor the Service Provider
+→ receive arrival notification
+→ Service Provider reports collection complete
+→ KCCA completes Client confirmation and feedback through the external system
+→ request becomes **Collection Completed**
+
+#### Disposal journey
+
+`KCCA Monitoring Dashboard`
+→ notification that the Service Provider is travelling to the disposal site
+→ `Disposal Journey Monitoring`
+→ monitor the live position
+→ view the travelled route and stopovers
+→ receive disposal-site arrival notification
+→ Service Provider selects **Completed Disposing**
+→ receive disposal-completion notification
+→ request becomes **Completed**
+
+### Interface elements that are not separate pages
+
+The following should be implemented as page states, dialogs, system permission prompts, or reusable components:
+
+* request-status badges;
+* reminder banners and push notifications;
+* successful-submission confirmations;
+* account-creation success feedback;
+* accept, reject, initiate-job, collection-completed, and disposal-completed confirmation dialogs;
+* location-permission prompts;
+* loading, empty, validation, connectivity, and permission-restricted states;
+* map markers, route lines, and stopover markers;
+* call-Client controls; and
+* arrival notifications.
+
+## 3. Detailed Page Specifications
+
+## Account Access and Role Selection
+
+### Welcome and Account Access
+
+**Screen ID:** `AUTH-001`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Provides the first mobile entry point and presents the documented prompt to create an account. It also gives returning mobile users access to sign-in. KCCA Staff are not offered self-registration because no KCCA Staff registration process is documented.
+
+**Actors:**
+Client, Service Provider, and KCCA Staff.
+
+**Entry points and preconditions:**
+
+* Opened when the Weyonje mobile application starts without an authenticated session.
+* Client and Service Provider registration requires the application to have been installed on the user’s mobile device.
+* No existing account is required to begin Client or Service Provider registration.
+
+**Processes covered:**
+
+* First-use account-creation prompt for Clients and Service Providers.
+* Entry to authentication for returning Clients, approved Service Providers, and permitted KCCA Staff.
+* Separation of self-registration from staff access.
+
+**Information displayed:**
+
+* Weyonje application identity.
+* Prompt to create an account.
+* Sign-in option for an existing account.
+* No KCCA Staff self-registration option.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Create Account:** Opens `Choose Account Type`.
+* **Sign In:** Opens `Sign In`.
+
+**Business rules, decisions, and validations:**
+
+* Self-registration is available only for Client and Service Provider account types.
+* KCCA Staff accounts must already exist through an arrangement outside the documented mobile registration processes.
+* An existing authenticated session may bypass this page and open the actor’s authorized dashboard.
+
+**Permissions and actor-specific behaviour:**
+
+* Unauthenticated Clients and Service Providers may start registration.
+* KCCA Staff may sign in but may not create a staff account from this page.
+* Rejected or unapproved Service Providers must not gain access to service requests through sign-in.
+
+**Page states and feedback:**
+
+* Default unauthenticated state.
+* Loading state while an existing session is checked.
+* Recoverable connectivity or session-check error.
+* Existing-session state that redirects to the authorized destination.
+
+**Notifications and external-process effects:**
+
+None documented.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** Application launch.
+* **Next page after success:** `Choose Account Type` or `Sign In`.
+* **Alternative or failure paths:** Session-check failure remains recoverable on this page.
+* **Exit behaviour:** Closing the application ends the current interaction without creating an account.
+
+**Backend and data requirements:**
+
+* Determine whether a valid authenticated session exists.
+* Return the authenticated actor’s role and eligibility before allowing dashboard access.
+* Prevent an unapproved or rejected Service Provider from reaching provider-work pages.
+
+**Source traceability:**
+
+* Client Self-Registration Process, steps 1–3.
+* Service Provider Registration Process, steps 1–3.
+* Mobile and Call Centre service-request prerequisites requiring users to log in.
+
+### Choose Account Type
+
+**Screen ID:** `AUTH-002`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Allows a first-time user to select the documented account type before the appropriate registration form is presented.
+
+**Actors:**
+Client and Service Provider.
+
+**Entry points and preconditions:**
+
+* Reached by selecting **Create Account** on `Welcome and Account Access`.
+* User must not already be in an authenticated registration or account session that conflicts with the selection.
+
+**Processes covered:**
+
+* Selection of a Client Type Account.
+* Selection of a Service Provider Type Account.
+* Routing to the correct registration form.
+
+**Information displayed:**
+
+* Client account option.
+* Service Provider account option.
+* A short distinction between requesting services and providing services, without introducing additional roles.
+
+**Inputs and form fields:**
+
+* **Account Type:** Required single selection: `Client` or `Service Provider`.
+
+**User actions:**
+
+* **Continue:** Opens the registration form associated with the selected account type.
+* **Return:** Returns to `Welcome and Account Access` without creating an account.
+
+**Business rules, decisions, and validations:**
+
+* Exactly one account type must be selected.
+* KCCA Staff must not appear as a self-registration option.
+* The selected type determines the required form and subsequent approval rules.
+
+**Permissions and actor-specific behaviour:**
+
+* Available only to unauthenticated users beginning Client or Service Provider registration.
+
+**Page states and feedback:**
+
+* No-selection state.
+* Selected-account-type state.
+* Validation state if the user attempts to continue without a selection.
+* Recoverable navigation error.
+
+**Notifications and external-process effects:**
+
+None documented.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Welcome and Account Access`.
+* **Next page after success:** `Client Registration` or `Service Provider Registration`.
+* **Alternative or failure paths:** Missing selection remains on this page with validation feedback.
+* **Exit behaviour:** Return to `Welcome and Account Access`.
+
+**Backend and data requirements:**
+
+* No business record needs to be created until the corresponding registration form is submitted.
+* The selected account type must be carried into the registration workflow.
+
+**Source traceability:**
+
+* Client Self-Registration Process, step 3.
+* Service Provider Registration Process, step 3.
+
+## Registration and Verification
+
+### Client Registration
+
+**Screen ID:** `REG-CL-001`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Collects the complete Weyonje Client Self-Registration Form and submits it for telephone verification.
+
+**Actors:**
+Client.
+
+**Entry points and preconditions:**
+
+* Reached after selecting the Client account type.
+* Weyonje mobile application must be installed.
+* User must not already have completed this registration flow in the current session.
+
+**Processes covered:**
+
+* Creation of an Individual or Company/Organization Client registration.
+* Collection of the documented identity and contact information.
+* Submission that causes an SMS verification code to be sent.
+
+**Information displayed:**
+
+* Client registration instructions.
+* Mandatory, optional, and conditional field indicators.
+* Conditional fields appropriate to the selected Client Type.
+
+**Inputs and form fields:**
+
+* **Client Type:** Mandatory single-select field: `Individual` or `Company / Organization`.
+* **First Name:** Mandatory open-text field when Client Type is `Individual`; inactive otherwise.
+* **Last Name:** Mandatory open-text field when Client Type is `Individual`; inactive otherwise.
+* **Company / Organization Name:** Mandatory open-text field when Client Type is `Company / Organization`; inactive otherwise.
+* **Telephone Contact:** Mandatory numeric field. This number must be verified and will be used for communication between the Client and Service Providers.
+* **Contact Email Address:** Optional alphanumeric field. The source provides no further email-format rules.
+* **Contact Person (Name):** Mandatory open-text field when Client Type is `Company / Organization`; inactive otherwise.
+* **Contact Person (Telephone Contact):** Mandatory numeric field when Client Type is `Company / Organization`; inactive otherwise.
+
+**User actions:**
+
+* **Save and Submit Registration:** Validates and submits the form, causes an SMS verification code to be sent, and opens `Phone Verification`.
+* **Return:** Returns to `Choose Account Type` before submission.
+
+**Business rules, decisions, and validations:**
+
+* The Client Type selection controls which name and contact-person fields are active and mandatory.
+* Telephone Contact must contain a numeric value; no length or country-code format is documented.
+* Conditional mandatory fields must be present before submission.
+* Optional email may be omitted.
+* A Weyonje Client Number is assigned only after successful telephone verification.
+* Duplicate-account detection and correction rules are not documented and must not be invented silently.
+
+**Permissions and actor-specific behaviour:**
+
+* Only a user registering a Client account may submit this form.
+* Service Provider registration data must not be accepted through this page.
+
+**Page states and feedback:**
+
+* Empty initial form.
+* Individual Client form state.
+* Company/Organization form state.
+* Field-validation state.
+* Submission-in-progress state.
+* Recoverable connectivity or server-error state.
+* Successful-submission state indicating that an SMS code has been sent.
+
+**Notifications and external-process effects:**
+
+* Successful submission initiates delivery of an SMS verification code to the Client’s Telephone Contact.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Choose Account Type`.
+* **Next page after success:** `Phone Verification`.
+* **Alternative or failure paths:** Validation or submission failure remains on this page without creating a verified account.
+* **Exit behaviour:** Leaving before successful submission does not complete registration. Draft-retention behaviour is not documented.
+
+**Backend and data requirements:**
+
+* Validate mandatory and conditional fields.
+* Store the submitted registration in a state awaiting phone verification.
+* Send an SMS verification code to the submitted telephone number.
+* Prevent assignment of a Client Number until verification succeeds.
+* Preserve the selected Client Type and applicable details.
+
+**Source traceability:**
+
+* Client Self-Registration Process, steps 3–7.
+* Client Self-Registration Process control requiring telephone verification.
+* KCCA Weyonje System Forms, Weyonje Client Self-Registration Form, fields 1–8.
+
+### Service Provider Registration
+
+**Screen ID:** `REG-SP-001`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Collects the Service Provider Registration Form and submits it for telephone verification and subsequent KCCA approval.
+
+**Actors:**
+Service Provider.
+
+**Entry points and preconditions:**
+
+* Reached after selecting the Service Provider account type.
+* The mobile application must be installed.
+* The Service Provider must satisfy KCCA’s operating requirements, including a current trade licence and ESS licence as applicable.
+
+**Processes covered:**
+
+* Creation of a Service Provider registration.
+* Collection of the documented provider and contact-person information.
+* Submission for phone verification.
+* Preparation for KCCA approval after verification.
+
+**Information displayed:**
+
+* Registration instructions.
+* Notice that KCCA approval is required before service requests can be accessed.
+* Notice that the provider must meet KCCA operating requirements.
+* Mandatory field indicators.
+
+**Inputs and form fields:**
+
+* **ESS License Number:** Mandatory open-text field.
+* **Company Name:** Mandatory open-text field.
+* **Telephone Contact:** Mandatory numeric field.
+* **Email Address:** Mandatory alphanumeric field. The source specifies no further email-format rules.
+* **Work Address / Location:** Mandatory open-text field.
+* **Service Provider Type:** Mandatory single-select field: `Gulper` or `Emptier`.
+* **Contact Person (Name):** Mandatory open-text field.
+* **Contact Person (Telephone Contact):** Mandatory numeric field.
+
+**User actions:**
+
+* **Save and Submit Registration:** Validates and submits the registration, sends an SMS verification code, and opens `Phone Verification`.
+* **Return:** Returns to `Choose Account Type` before submission.
+
+**Business rules, decisions, and validations:**
+
+* All eight documented fields are mandatory.
+* Telephone fields must contain numeric values; no length or country-code format is documented.
+* Provider Type must be either Gulper or Emptier.
+* The provider must satisfy KCCA operating requirements before approval.
+* The form records an ESS License Number but does not contain a trade-licence field or document-upload fields. These must not be added without an approved requirement.
+* Phone verification alone does not activate the Service Provider account.
+* A Service Provider Number is assigned only after KCCA approval.
+
+**Permissions and actor-specific behaviour:**
+
+* Only a user registering a Service Provider account may submit this form.
+* Submission does not grant permission to access service requests.
+
+**Page states and feedback:**
+
+* Empty initial form.
+* Populated form.
+* Field-validation state.
+* Submission-in-progress state.
+* Recoverable connectivity or server-error state.
+* Successful-submission state confirming that an SMS code has been sent.
+
+**Notifications and external-process effects:**
+
+* Submission initiates SMS verification.
+* After successful verification, KCCA Staff must be notified through the external system about the new Service Provider account.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Choose Account Type`.
+* **Next page after success:** `Phone Verification`.
+* **Alternative or failure paths:** Validation or submission failure remains on this page.
+* **Exit behaviour:** Leaving before submission does not complete registration. Draft-retention behaviour is not documented.
+
+**Backend and data requirements:**
+
+* Validate and persist the registration in an unverified state.
+* Send an SMS verification code.
+* After verification, create a pending Service Provider account for KCCA review.
+* Notify KCCA Staff of the newly verified registration.
+* Keep the provider inactive until KCCA approval.
+
+**Source traceability:**
+
+* Service Provider Registration Process, prerequisites and steps 3–12.
+* Service Provider Registration Process approval control.
+* KCCA Weyonje System Forms, Weyonje Service Provider Registration Form, fields 1–8.
+
+### Phone Verification
+
+**Screen ID:** `REG-001`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Allows a registering Client or Service Provider to enter the SMS verification code and verify the submitted telephone number.
+
+**Actors:**
+Client and Service Provider.
+
+**Entry points and preconditions:**
+
+* Registration form was successfully submitted.
+* The system attempted to send an SMS code to the registration Telephone Contact.
+* The page must know whether it belongs to a Client or Service Provider registration.
+
+**Processes covered:**
+
+* Telephone-number verification.
+* Assignment of a Client Number after Client verification.
+* Submission of a verified Service Provider registration for KCCA approval.
+* Prevention of unverified accounts from entering protected workflows.
+
+**Information displayed:**
+
+* Masked or otherwise safely represented destination telephone number.
+* Instruction to enter the SMS verification code.
+* Actor-appropriate explanation of what follows successful verification.
+* The exact code length, expiry period, retry limit, and resend rules are not documented.
+
+**Inputs and form fields:**
+
+* **Verification Code:** Mandatory value received through SMS. Its length, character format, expiry, and retry rules are not specified.
+
+**User actions:**
+
+* **Verify and Submit:** Validates the code and completes phone verification.
+* No resend-code action is documented; it must not be treated as an approved business requirement without clarification.
+
+**Business rules, decisions, and validations:**
+
+* The submitted code must correspond to the registration and telephone number.
+* A Client cannot complete registration without telephone verification.
+* A Service Provider cannot enter KCCA approval review without telephone verification.
+* Incorrect, expired, or already-used code handling is required for safe operation, but the source does not define the applicable limits or timing.
+* Successful Client verification causes a Client Number to be assigned.
+* Successful Service Provider verification does not grant access to service requests.
+
+**Permissions and actor-specific behaviour:**
+
+* Client success leads to an active Client account and dashboard.
+* Service Provider success leads to a pending account awaiting KCCA approval.
+
+**Page states and feedback:**
+
+* Awaiting-code state.
+* Code-entry state.
+* Verification-in-progress state.
+* Invalid-code state.
+* Expired or unusable-code state where supported by the verification service.
+* Recoverable SMS or connectivity error.
+* Client success state showing successful account creation.
+* Service Provider success state explaining that KCCA approval is pending.
+
+**Notifications and external-process effects:**
+
+* Client receives successful account-creation confirmation.
+* KCCA Staff receive a system notification after a Service Provider completes verification.
+* Service Provider later receives a separate KCCA approval or rejection notification.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Client Registration` or `Service Provider Registration`.
+* **Next page after success:** Client → `Client Dashboard`; Service Provider → `Service Provider Account Status`.
+* **Alternative or failure paths:** Invalid or failed verification remains on this page.
+* **Exit behaviour:** An unverified registration remains unable to access protected functionality; persistence and expiry are not documented.
+
+**Backend and data requirements:**
+
+* Validate the code against the correct registration.
+* Mark the telephone number as verified exactly once.
+* For a Client, assign and persist a unique Weyonje Client Number.
+* For a Service Provider, create or retain the pending-review state and notify KCCA Staff.
+* Prevent code reuse and unauthorized account verification.
+
+**Source traceability:**
+
+* Client Self-Registration Process, steps 5–8 and control point.
+* Service Provider Registration Process, steps 5–7.
+* Registration forms’ Telephone Contact fields.
+
+### Sign In
+
+**Screen ID:** `AUTH-003`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Authenticates an existing mobile user before protected pages or request information can be accessed.
+
+**Actors:**
+Client, approved Service Provider, and authorized KCCA Staff.
+
+**Entry points and preconditions:**
+
+* Reached from `Welcome and Account Access`.
+* Client must have a verified Client Account.
+* Service Provider must have a verified and KCCA-approved account to access service requests.
+* KCCA Staff must have an existing KCCA Staff Account before using mobile monitoring.
+
+**Processes covered:**
+
+* Enforcing the documented requirement that Clients and Service Providers log in.
+* Enforcing role and account-status restrictions.
+* Routing authenticated actors to the correct mobile landing page.
+
+**Information displayed:**
+
+* Authentication instructions.
+* Account-status feedback when access is restricted.
+* The specification does not define the credential type, credential fields, recovery method, or session rules.
+
+**Inputs and form fields:**
+
+* **Authentication credentials:** Required, but the exact fields and authentication method are not documented in the Business Process Specification.
+
+**User actions:**
+
+* **Sign In:** Authenticates the user and opens the authorized role destination.
+
+**Business rules, decisions, and validations:**
+
+* A verified Client may access Client functionality.
+* Only an approved and activated Service Provider may access service requests.
+* A pending or rejected Service Provider must be routed to `Service Provider Account Status`.
+* KCCA Staff may access only the mobile monitoring functionality permitted for their account.
+* Authentication, lockout, recovery, and session-expiry rules require separate approved requirements.
+
+**Permissions and actor-specific behaviour:**
+
+* Clients are routed to `Client Dashboard`.
+* Approved Service Providers are routed to `Provider Work Dashboard`.
+* Pending or rejected Service Providers are routed to their account-status page.
+* KCCA Staff are routed to `KCCA Monitoring Dashboard`.
+
+**Page states and feedback:**
+
+* Initial sign-in state.
+* Authentication-in-progress state.
+* Invalid-credentials state.
+* Recoverable connectivity or authentication-service error.
+* Restricted-provider-account state.
+* Successful-authentication redirect.
+
+**Notifications and external-process effects:**
+
+* An external KCCA approval or rejection may change the destination of a Service Provider’s next sign-in.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Welcome and Account Access`.
+* **Next page after success:** Actor-specific dashboard or `Service Provider Account Status`.
+* **Alternative or failure paths:** Authentication failure remains on this page.
+* **Exit behaviour:** Return to `Welcome and Account Access` or close the application.
+
+**Backend and data requirements:**
+
+* Authenticate the account.
+* Retrieve its actor type, verification state, approval state, activation state, and mobile permissions.
+* Enforce authorization on the server as well as in the interface.
+* Deny provider-work access when KCCA approval or account activation is absent.
+
+**Source traceability:**
+
+* Mobile service-request prerequisites requiring Client and Service Provider login.
+* Call Centre service-request prerequisites requiring Service Provider login.
+* Service Provider Registration Process, steps 10–13.
+
+### Service Provider Account Status
+
+**Screen ID:** `REG-SP-002`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Shows a verified Service Provider whether the account is awaiting KCCA review, approved and active, or rejected and inactive.
+
+**Actors:**
+Service Provider.
+
+**Entry points and preconditions:**
+
+* Phone verification has succeeded.
+* Reached immediately after provider verification or when a restricted provider signs in.
+
+**Processes covered:**
+
+* Waiting for KCCA approval.
+* Reflecting an external KCCA approval or rejection.
+* Displaying the rejection reason.
+* Displaying the Service Provider Number after approval.
+* Preventing unauthorized access to service requests.
+
+**Information displayed:**
+
+* Current account state: `Pending`, `Approved/Active`, or `Rejected/Inactive`.
+* KCCA rejection reason when rejected.
+* Weyonje Service Provider Number when approved.
+* Confirmation that an approved provider can receive service requests.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Refresh Status:** Retrieves the latest KCCA decision.
+* **Continue to Service Requests:** Available only after approval and activation; opens `Provider Work Dashboard`.
+
+**Business rules, decisions, and validations:**
+
+* Pending providers cannot access service requests.
+* Rejected accounts remain inactive.
+* Rejection reason must be shown to the affected provider.
+* Approved accounts must be activated and assigned a Service Provider Number.
+* Reapplication, appeal, or editing after rejection is not documented.
+
+**Permissions and actor-specific behaviour:**
+
+* A Service Provider may view only their own account status and rejection reason.
+* Clients and KCCA Staff must not access this page.
+* Work-related navigation must be hidden or unavailable while pending or rejected.
+
+**Page states and feedback:**
+
+* Status-loading state.
+* Pending-review state.
+* Approved and active state.
+* Rejected and inactive state.
+* Recoverable connectivity error.
+* Permission-restricted state for other actors.
+
+**Notifications and external-process effects:**
+
+* KCCA approval changes the state to approved, activates the account, assigns a Provider Number, and notifies the provider.
+* KCCA rejection changes the state to rejected and delivers the rejection reason.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Phone Verification`, `Sign In`, or an approval/rejection notification.
+* **Next page after success:** `Provider Work Dashboard` after approval.
+* **Alternative or failure paths:** Pending remains on this page; rejected has no further documented workflow.
+* **Exit behaviour:** Sign out or close the application.
+
+**Backend and data requirements:**
+
+* Retrieve the authenticated provider’s verification, approval, activation, number, and rejection-reason data.
+* Enforce provider-work restrictions server-side.
+* Apply KCCA decisions and notifications consistently and only to the affected account.
+
+**Source traceability:**
+
+* Service Provider Registration Process, steps 7–13.
+* Service Provider Registration Process control requiring KCCA approval.
+
+## Actor Dashboards and Work Entry
+
+### Client Dashboard
+
+**Screen ID:** `HOME-CL-001`
+
+**Requirement status:** Explicit Requirement for the post-registration dashboard; its specific contents are Derived Requirements.
+
+**Purpose:**
+Provides the verified Client’s authenticated landing area and entry point to requesting and revisiting waste-collection services.
+
+**Actors:**
+Client.
+
+**Entry points and preconditions:**
+
+* Successful Client registration and telephone verification.
+* Successful sign-in to a verified Client Account.
+
+**Processes covered:**
+
+* Post-registration redirect.
+* Starting a service request.
+* Reopening submitted requests and their current states.
+
+**Information displayed:**
+
+* Successful authenticated Client context.
+* Weyonje Client Number.
+* Entry to request a service.
+* Summary or entry to the Client’s requests.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Request for a Service:** Opens `Request a Service`.
+* **View My Requests:** Opens `My Requests`.
+
+**Business rules, decisions, and validations:**
+
+* Only a verified and authenticated Client may access this dashboard.
+* Request creation must not begin for an unverified account.
+* The Client may access only their own requests.
+
+**Permissions and actor-specific behaviour:**
+
+* Service Provider and KCCA Staff functions are unavailable.
+* Call Centre Clients without smartphone access do not use this page.
+
+**Page states and feedback:**
+
+* Initial loading state.
+* Authenticated Client state.
+* No-requests state.
+* Requests-summary state.
+* Recoverable data-loading error.
+* Expired-session or permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* Request acceptance, reminders, Provider initiation, arrival, and collection-completion prompts may direct the Client from a notification to the relevant request page.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Phone Verification` or `Sign In`.
+* **Next page after success:** `Request a Service` or `My Requests`.
+* **Alternative or failure paths:** Data-load failure remains recoverable.
+* **Exit behaviour:** Sign out or close the application.
+
+**Backend and data requirements:**
+
+* Retrieve the authenticated Client’s number and request summaries.
+* Enforce ownership when returning request data.
+* Return current workflow statuses and outstanding Client actions.
+
+**Source traceability:**
+
+* Client Self-Registration Process, steps 7–8.
+* Mobile service-request process, steps 1–4 and 7–15.
+
+### Provider Work Dashboard
+
+**Screen ID:** `HOME-SP-001`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Provides an approved Service Provider with a controlled entry point to pending requests, assigned work, and active jobs.
+
+**Actors:**
+Approved Service Provider.
+
+**Entry points and preconditions:**
+
+* Successful sign-in.
+* Telephone number verified.
+* KCCA approval granted and account activated.
+
+**Processes covered:**
+
+* Access to pending service requests.
+* Access to accepted and active jobs.
+* Response to Call Centre assignment notifications.
+* Access to jobs requiring immediate action.
+
+**Information displayed:**
+
+* Weyonje Service Provider Number.
+* Pending-request summary.
+* Accepted or active job summary.
+* Relevant reminders and required actions.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **View Pending Requests:** Opens `Pending Service Requests`.
+* **View My Jobs:** Opens `My Jobs`.
+* **Open Required Action:** Opens the relevant request or job.
+
+**Business rules, decisions, and validations:**
+
+* Only approved, active providers may access provider work.
+* A pending or rejected provider must be redirected to `Service Provider Account Status`.
+* Request and job information must be limited to records the provider is allowed to view.
+
+**Permissions and actor-specific behaviour:**
+
+* Clients and KCCA Staff cannot access provider work.
+* A provider may act only on their own accepted or assigned jobs.
+* Marketplace pending requests and directly assigned Call Centre requests must be distinguished.
+
+**Page states and feedback:**
+
+* Loading state.
+* No-pending-requests state.
+* No-assigned-jobs state.
+* Populated work-summary state.
+* Reminder or action-required state.
+* Recoverable data-loading error.
+* Account-no-longer-eligible state.
+
+**Notifications and external-process effects:**
+
+* KCCA assignment creates a pending request notification.
+* Request acceptance, reminders, Client or KCCA collection confirmation, and completion updates affect the displayed work state.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Sign In` or approved `Service Provider Account Status`.
+* **Next page after success:** `Pending Service Requests` or `My Jobs`.
+* **Alternative or failure paths:** Ineligible account redirects to account status.
+* **Exit behaviour:** Sign out or close the application.
+
+**Backend and data requirements:**
+
+* Verify approval and activation on every protected request.
+* Retrieve available or assigned pending requests and the provider’s jobs.
+* Return current statuses and outstanding actions.
+
+**Source traceability:**
+
+* Service Provider Registration Process, steps 11–13.
+* Mobile service-request process, steps 5–9.
+* Call Centre service-request process, steps 8–14.
+
+### KCCA Monitoring Dashboard
+
+**Screen ID:** `HOME-KCCA-001`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Gives authorized KCCA Staff a mobile entry point to journeys and jobs that the specification requires them to monitor.
+
+**Actors:**
+Authorized KCCA Staff.
+
+**Entry points and preconditions:**
+
+* KCCA Staff member has signed in to an existing KCCA Staff Account.
+* Staff member has permission to monitor the relevant request or Provider.
+
+**Processes covered:**
+
+* Opening a Call Centre-originated journey to the request location.
+* Opening a disposal journey for either request origin.
+* Viewing reminders, arrival events, collection reports, and disposal updates.
+* Reflecting external Call Centre or back-office actions.
+
+**Information displayed:**
+
+* Monitored jobs grouped by relevant stage.
+* Request origin where needed to determine the monitoring responsibility.
+* Provider, current status, journey phase, scheduled date and time when available, and outstanding external action.
+* Relevant system notifications.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Monitor Journey to Request:** Opens `Journey to Request Tracking` for a Call Centre-originated request.
+* **Monitor Disposal Journey:** Opens `Disposal Journey Monitoring`.
+* **Refresh:** Retrieves current statuses.
+
+**Business rules, decisions, and validations:**
+
+* This page must not provide provider-approval, request-entry, provider-selection, or Call Centre feedback forms.
+* Journey access must be restricted to authorized KCCA Staff.
+* KCCA Staff monitoring is read-only except for actions performed through the separate external system.
+
+**Permissions and actor-specific behaviour:**
+
+* KCCA Staff may view permitted operational journeys.
+* Clients and Service Providers cannot access this dashboard.
+* A Call Centre request’s Client remains outside the mobile application.
+
+**Page states and feedback:**
+
+* Loading state.
+* No-active-journeys state.
+* Populated monitoring state.
+* Reminder or arrival state.
+* Collection-awaiting-external-confirmation state.
+* Completed state.
+* Recoverable connectivity error.
+* Permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* Provider initiation makes a Call Centre journey available for monitoring.
+* Provider arrival creates an arrival notification.
+* Provider selection of **Collection Completed** prompts external KCCA confirmation.
+* External feedback submission changes the request to Collection Completed.
+* A confirmed collection creates the disposal-monitoring stage.
+* Provider disposal completion updates the job to Completed.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Sign In` or a KCCA notification.
+* **Next page after success:** `Journey to Request Tracking` or `Disposal Journey Monitoring`.
+* **Alternative or failure paths:** Unauthorized or completed records remain unavailable or read-only.
+* **Exit behaviour:** Return to the dashboard, sign out, or close the application.
+
+**Backend and data requirements:**
+
+* Retrieve authorized journeys, their origins, Providers, workflow states, and monitoring phases.
+* Enforce KCCA Staff permissions.
+* Reflect actions completed through the Call Centre or back-office system.
+* Deliver or expose the documented reminders and operational notifications.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 16–22.
+* Call Centre service-request process, steps 13–28.
+* Call Centre process note permitting KCCA Staff to use the mobile application to monitor the Provider.
+
+## Client Service Requests
+
+### Request a Service
+
+**Screen ID:** `REQ-CL-001`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Presents the Weyonje Service Request Form so a verified Client can request waste-collection services through the mobile application.
+
+**Actors:**
+Verified Client.
+
+**Entry points and preconditions:**
+
+* Reached from `Client Dashboard`.
+* Client Account must be verified.
+* Client must be signed in.
+* Device location must be enabled to make a Weyonje Service Request.
+
+**Processes covered:**
+
+* Collection of the complete documented request form.
+* Capture of the current location or an alternative request location.
+* Submission and creation of a Pending request.
+* Presentation of the request to Service Providers.
+
+**Information displayed:**
+
+* Client Details section.
+* Service Request Details section.
+* Additional Contact Details section.
+* Current location and selected request-location information.
+* Mandatory, optional, conditional, and auto-populated indicators.
+
+**Inputs and form fields:**
+
+* **Client Name:** Auto-populated from the Client profile.
+* **Telephone Contact:** Auto-populated from the Client profile.
+* **Email Address:** Conditionally auto-populated and displayed only when the Client supplied one during registration.
+* **Is the Weyonje Service needed at your current location?:** Mandatory selection: `Yes` or `No`.
+* **Service Location:** Conditionally auto-populated with the device’s Google map coordinates when the answer is `Yes`. Device location must be enabled.
+* **Request Location:** Conditionally mandatory when the answer is `No`. The Client may either drop a pin on a map, which captures the selected coordinates, or enter an open-text location.
+* **Type of Toilet to Empty:** Single-select field: `Pit Latrine` or `Septic Tank`. The source leaves its field-status column blank, so its requiredness is not defined and must not be assumed.
+* **Contact Person (Name):** Optional open-text field.
+* **Contact Person (Telephone Contact):** Conditionally mandatory numeric field when Contact Person (Name) is entered.
+* **Scheduled Date and Time — documented data gap:** Both service-request workflows refer to a “date and time that were selected,” but the Service Request Form contains no date or time field and does not identify who selects it. The field, actor, format, and requiredness require clarification before implementation.
+
+**User actions:**
+
+* **Select Current Location:** Captures device coordinates when current-location service is selected.
+* **Choose Location on Map:** Opens `Request Location Picker`.
+* **Save and Submit:** Validates and submits the request. The source does not establish a separate draft workflow despite referring to saving and submitting.
+
+**Business rules, decisions, and validations:**
+
+* Client profile fields are read-only and auto-populated.
+* Location must be enabled before the request is made.
+* Selecting `Yes` requires current coordinates.
+* Selecting `No` requires a map pin or textual Request Location.
+* Contact Person Telephone Contact becomes mandatory when a Contact Person Name is supplied.
+* Numeric telephone validation applies, but no number format or length is documented.
+* The request becomes Pending only after successful submission.
+* Scheduling cannot be implemented reliably until the missing date-and-time rule is resolved.
+
+**Permissions and actor-specific behaviour:**
+
+* Only a verified, authenticated Client may submit this mobile form.
+* KCCA Staff use the equivalent form through the external Call Centre system, not this page.
+* A Client may submit only under their own account and auto-populated profile.
+
+**Page states and feedback:**
+
+* Initial state with Client details loading.
+* Populated Client-details state.
+* Current-location branch.
+* Alternative-location branch.
+* Location-permission-denied or location-disabled state.
+* Form-validation state.
+* Submission-in-progress state.
+* Recoverable map, location, connectivity, or server error.
+* Successful-submission state that transitions to the Pending request.
+
+**Notifications and external-process effects:**
+
+* Submission does not yet notify the Client of provider acceptance.
+* Provider acceptance later causes a push notification and updates the request to Accepted.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Client Dashboard`.
+* **Next page after success:** `Client Request Details` in Pending state.
+* **Alternative or failure paths:** Location or validation failure remains on this page; map selection opens `Request Location Picker`.
+* **Exit behaviour:** Return to the dashboard. Draft persistence is not documented.
+
+**Backend and data requirements:**
+
+* Retrieve Client profile data for auto-population.
+* Validate authentication, ownership, mandatory fields, conditional fields, and captured coordinates.
+* Persist the service request as Pending.
+* Make the Pending request available to eligible Service Providers.
+* Preserve location coordinates, textual location when supplied, toilet type, additional contact details, and any later-approved scheduling data.
+
+**Source traceability:**
+
+* Mobile service-request process, prerequisites and steps 1–4.
+* Weyonje Service Request Form, Sections A–C, fields 1–9.
+* Mobile and Call Centre processes, reminder steps referring to selected date and time.
+
+### Request Location Picker
+
+**Screen ID:** `REQ-CL-002`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Provides a full-screen map interaction for choosing a service location different from the Client’s current location.
+
+**Actors:**
+Verified Client.
+
+**Entry points and preconditions:**
+
+* Opened from `Request a Service`.
+* Client selected `No` for service at the current location.
+* Client chose the map-pin option rather than open-text location entry.
+* Map data must be available.
+
+**Processes covered:**
+
+* Displaying a map.
+* Allowing the Client to drop or move a pin.
+* Capturing the selected point’s Google map coordinates.
+* Returning the selected coordinates to the request form.
+
+**Information displayed:**
+
+* Map.
+* Current pin position.
+* Selected coordinates or a human-readable representation when available.
+* Instructions to position and confirm the pin.
+
+**Inputs and form fields:**
+
+* **Request Location Pin:** Conditionally mandatory map point representing the requested service location.
+
+**User actions:**
+
+* **Drop or Move Pin:** Changes the proposed request location.
+* **Confirm Location:** Returns the selected coordinates to `Request a Service`.
+* **Return Without Confirming:** Returns without changing the existing field value.
+
+**Business rules, decisions, and validations:**
+
+* A valid location point must be selected before confirmation.
+* The system must capture the coordinates of the point where the pin is dropped.
+* Textual Request Location entry remains an alternative on the parent form.
+* The source does not define map boundaries, address search, accuracy rules, or service-area restrictions.
+
+**Permissions and actor-specific behaviour:**
+
+* Available only within an authenticated Client request flow.
+* This page does not create or submit the service request.
+
+**Page states and feedback:**
+
+* Map-loading state.
+* No-pin-selected state.
+* Pin-selected state.
+* Map-load or connectivity error.
+* Invalid or unavailable coordinate state.
+
+**Notifications and external-process effects:**
+
+None documented.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Request a Service`.
+* **Next page after success:** `Request a Service` with Request Location populated.
+* **Alternative or failure paths:** Map failure returns to the form where the Client may use open-text entry.
+* **Exit behaviour:** Return without confirming leaves the previous value unchanged.
+
+**Backend and data requirements:**
+
+* Supply map data needed for location selection.
+* Return selected latitude and longitude to the parent form.
+* Do not submit the service request from this page.
+
+**Source traceability:**
+
+* Weyonje Service Request Form, field 6, Request Location, Option 1.
+
+### My Requests
+
+**Screen ID:** `REQ-CL-003`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Allows a Client to reopen their service requests and follow documented workflow statuses and outstanding actions.
+
+**Actors:**
+Client.
+
+**Entry points and preconditions:**
+
+* Opened from `Client Dashboard`.
+* Client is authenticated and verified.
+
+**Processes covered:**
+
+* Finding submitted requests.
+* Opening pending, accepted, active, Collection Completed, or Completed request records.
+* Identifying a request awaiting Client feedback.
+
+**Information displayed:**
+
+* Client-owned request summaries.
+* Service or request location.
+* Provider information when a Provider has accepted.
+* Current documented status: `Pending`, `Accepted`, `Active`, `Collection Completed`, or `Completed`.
+* Scheduled date and time when that unresolved data requirement has been defined and recorded.
+* Outstanding Client action such as collection confirmation.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Open Request:** Opens `Client Request Details`.
+* **Confirm Collection:** Opens `Collection Confirmation and Feedback` when required.
+* **Track Provider:** Opens `Journey to Request Tracking` while the Provider is travelling to the Client.
+
+**Business rules, decisions, and validations:**
+
+* The Client may view only requests associated with their account.
+* Only actions valid for the current request status may be available.
+* No cancellation workflow is documented.
+* No Client action during disposal is documented.
+
+**Permissions and actor-specific behaviour:**
+
+* Client-only page.
+* Call Centre Clients without mobile access do not use it.
+
+**Page states and feedback:**
+
+* Loading state.
+* Empty state.
+* Populated request-list state.
+* Action-required state.
+* Recoverable data-loading error.
+* Expired-session or permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* Provider acceptance, Provider initiation, arrival, and Collection Completed actions change list status and available Client actions.
+* Final disposal completion may update the stored request status, but the source does not require a Client notification.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Client Dashboard`.
+* **Next page after success:** `Client Request Details`, `Journey to Request Tracking`, or `Collection Confirmation and Feedback`.
+* **Alternative or failure paths:** Loading failure remains recoverable.
+* **Exit behaviour:** Return to `Client Dashboard`.
+
+**Backend and data requirements:**
+
+* Retrieve only the authenticated Client’s requests.
+* Return the current workflow status, Provider assignment, request location, and outstanding Client action.
+* Keep status synchronized with Provider and KCCA actions.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 4–22.
+* Derived from the need to revisit and complete an asynchronous request after submission.
+
+### Client Request Details
+
+**Screen ID:** `REQ-CL-004`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Provides a single Client-facing record of the submitted request, its Provider assignment, current status, and the next permitted action.
+
+**Actors:**
+Client.
+
+**Entry points and preconditions:**
+
+* Opened after request submission, from `My Requests`, or from a request notification.
+* Client must own the request.
+
+**Processes covered:**
+
+* Displaying the Pending request.
+* Reflecting Provider acceptance and agreed price.
+* Showing reminder, Active, arrival, and collection-confirmation states.
+* Opening live tracking or feedback when required.
+* Reflecting Collection Completed and final Completed status.
+
+**Information displayed:**
+
+* Submitted Client, service-location, toilet-type, and additional-contact details.
+* Current request status.
+* Service Provider details when accepted.
+* Agreed price for a mobile-originated request.
+* Scheduled date and time when available.
+* Reminder or arrival information.
+* Outstanding action or waiting reason.
+* Completion status.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Track Service Provider:** Opens `Journey to Request Tracking` when the mobile-originated request is Active and the Provider is travelling to the request location.
+* **Confirm Work and Give Feedback:** Opens `Collection Confirmation and Feedback` after the Provider reports collection complete.
+* **Refresh Status:** Retrieves the latest request state.
+
+**Business rules, decisions, and validations:**
+
+* Pending changes to Accepted only after a Service Provider accepts.
+* Active begins when the Provider selects Initiate Job with location enabled.
+* The Client must not confirm collection before the Provider reports Collection Completed.
+* The Provider must not begin the disposal journey before the Client’s collection confirmation is recorded.
+* No Client cancellation, provider reassignment, or payment workflow is documented.
+
+**Permissions and actor-specific behaviour:**
+
+* Only the owning Client may view the request.
+* Provider and KCCA operational actions are read-only effects here.
+* Call Centre-originated requests do not require this Client mobile page.
+
+**Page states and feedback:**
+
+* Loading state.
+* Pending state.
+* Accepted state.
+* Reminder state.
+* Active and Provider-travelling state.
+* Provider-arrived state.
+* Awaiting-Client-confirmation state.
+* Collection Completed state.
+* Completed state.
+* Recoverable connectivity error.
+* Permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* Provider acceptance generates a Client push notification.
+* Approaching date and time generates a Client reminder.
+* Provider initiation generates a “coming to your location” notification.
+* Provider arrival generates an arrival notification.
+* Provider collection completion generates the feedback prompt.
+* Client feedback changes the request to Collection Completed.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** Request submission, `My Requests`, notification, or `Client Dashboard`.
+* **Next page after success:** `Journey to Request Tracking` or `Collection Confirmation and Feedback`.
+* **Alternative or failure paths:** Pending remains until accepted; failed refresh preserves the last confirmed state.
+* **Exit behaviour:** Return to `My Requests` or `Client Dashboard`.
+
+**Backend and data requirements:**
+
+* Retrieve the complete Client-owned request.
+* Return Provider assignment, agreed price, current status, and relevant timestamps.
+* Enforce ownership and valid transitions.
+* Expose only actions valid for the current workflow state.
+* Apply Provider and KCCA updates consistently.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 4–22.
+* Weyonje Service Request Form.
+* Client Feedback Form.
+
+## Provider Request Intake
+
+### Pending Service Requests
+
+**Screen ID:** `REQ-SP-001`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Displays pending requests that an approved Service Provider may review, including requests available to different Providers and Call Centre requests assigned specifically to that Provider.
+
+**Actors:**
+Approved Service Provider.
+
+**Entry points and preconditions:**
+
+* Opened from `Provider Work Dashboard` or a pending-request notification.
+* Provider must be verified, approved, active, and signed in.
+
+**Processes covered:**
+
+* Accessing pending mobile-originated requests.
+* Accessing a KCCA-selected Call Centre request.
+* Opening request details before acceptance or rejection.
+
+**Information displayed:**
+
+* Pending request summaries.
+* Enough request information to distinguish records.
+* Request origin or assignment type.
+* Assigned-only indication for Call Centre requests.
+* Relevant scheduled timing when available.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Open Request:** Opens `Provider Request Details`.
+* **Refresh:** Retrieves current pending requests.
+
+**Business rules, decisions, and validations:**
+
+* Only approved providers may access the list.
+* Mobile-originated requests may be presented to different Service Providers.
+* Call Centre requests must be visible only to the Provider selected by KCCA.
+* Requests already accepted by another Provider must no longer be acceptably pending.
+* A Provider who rejected a Call Centre assignment must not continue acting on that assignment unless KCCA selects them again through a documented future action.
+
+**Permissions and actor-specific behaviour:**
+
+* Pending and rejected provider accounts have no access.
+* A Provider sees only marketplace requests they are eligible to view and Call Centre requests assigned to them.
+* KCCA Staff and Clients do not use this page.
+
+**Page states and feedback:**
+
+* Loading state.
+* Empty state.
+* Populated pending-list state.
+* Newly assigned request state.
+* Stale or no-longer-available request state.
+* Recoverable connectivity error.
+* Account-restricted state.
+
+**Notifications and external-process effects:**
+
+* KCCA selection generates a pending-request notification and makes the assigned request available.
+* Acceptance by another Provider removes a mobile-originated request from actionable pending results.
+* Provider rejection of a Call Centre request notifies KCCA Staff.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Provider Work Dashboard` or pending-request notification.
+* **Next page after success:** `Provider Request Details`.
+* **Alternative or failure paths:** Unavailable request returns to the refreshed list.
+* **Exit behaviour:** Return to `Provider Work Dashboard`.
+
+**Backend and data requirements:**
+
+* Verify provider approval and activation.
+* Return authorized pending and assigned requests.
+* Distinguish mobile-originated marketplace requests from Call Centre assignments.
+* Prevent stale or unauthorized acceptance.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 4–7.
+* Call Centre service-request process, steps 5–12.
+
+### Provider Request Details
+
+**Screen ID:** `REQ-SP-002`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Allows an approved Service Provider to inspect a pending request and take the action permitted for its origin.
+
+**Actors:**
+Approved Service Provider.
+
+**Entry points and preconditions:**
+
+* Opened from `Pending Service Requests`.
+* Request must still be Pending and visible to the authenticated Provider.
+* For a Call Centre request, the Provider must be the one selected by KCCA.
+
+**Processes covered:**
+
+* Viewing request details.
+* Calling the Client and conducting due diligence for a mobile-originated request.
+* Recording the agreed price and accepting a mobile-originated request.
+* Accepting or rejecting a Call Centre-assigned request.
+* Triggering the corresponding status and notifications.
+
+**Information displayed:**
+
+* Client name and telephone contact.
+* Email when the Client supplied one.
+* Service or request location and coordinates when recorded.
+* Toilet type when supplied.
+* Additional contact person and telephone contact when supplied.
+* Scheduled date and time when defined and recorded.
+* Request origin.
+* Current Pending status.
+* Assignment information for a Call Centre request.
+
+**Inputs and form fields:**
+
+* **Agreed Price:** Required before accepting a mobile-originated request after due diligence and discussion with the Client. Currency, numeric format, precision, and permitted range are not documented.
+* Call Centre-originated requests have no documented Provider-entered price field on this page.
+
+**User actions:**
+
+* **Call Client:** Starts or facilitates the documented due-diligence telephone call for a mobile-originated request.
+* **Accept Job:** For a mobile-originated request, requires the agreed price; changes the request to Accepted. For a Call Centre assignment, accepts the KCCA-selected request.
+* **Reject Request:** Available only for a Call Centre-assigned request; notifies KCCA Staff and ends the current assignment.
+* **Return Without Accepting:** Leaves a mobile-originated request Pending.
+
+**Business rules, decisions, and validations:**
+
+* Mobile-originated acceptance follows Client contact, due diligence, discussion, and agreed-price entry.
+* The source does not document rejection of an unassigned mobile-originated marketplace request; the Provider may leave without accepting it.
+* A selected Provider may accept or reject a Call Centre request.
+* Acceptance must be applied atomically so a request cannot be validly accepted by multiple Providers.
+* The request must still be Pending at the time the server processes the decision.
+* Provider rejection reasons are not documented and must not be made mandatory without approval.
+
+**Permissions and actor-specific behaviour:**
+
+* Only approved and active Providers may act.
+* Only the selected Provider may decide a Call Centre assignment.
+* The Provider must not edit Client-supplied request data.
+* KCCA Staff and Clients cannot use Provider actions.
+
+**Page states and feedback:**
+
+* Loading state.
+* Mobile-originated due-diligence state.
+* Call Centre-assignment state.
+* Agreed-price validation state.
+* Accepting or rejecting state.
+* Accepted success state.
+* Rejected-assignment success state.
+* Request-already-taken or no-longer-pending state.
+* Recoverable connectivity error.
+* Permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* Mobile-originated acceptance sends a push notification to the Client.
+* Call Centre acceptance sends the Client an SMS with when the Provider is coming.
+* Call Centre rejection notifies KCCA Staff and prompts them in the external system to select another Provider.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Pending Service Requests` or pending-request notification.
+* **Next page after success:** Acceptance → `My Jobs`; rejection → `Pending Service Requests`.
+* **Alternative or failure paths:** Stale request returns to the refreshed list; validation failure remains on the page.
+* **Exit behaviour:** Return to `Pending Service Requests` without changing an undecided request.
+
+**Backend and data requirements:**
+
+* Retrieve the complete authorized request.
+* Validate Provider eligibility and request visibility.
+* Persist the agreed price for a mobile-originated accepted request.
+* Apply accept or reject decisions atomically.
+* Assign the accepted request to the Provider.
+* Update status to Accepted on acceptance.
+* Send the appropriate push, SMS, or KCCA notification.
+* On Call Centre rejection, return the request to the external KCCA selection workflow.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 5–7.
+* Call Centre service-request process, steps 8–12.
+* Weyonje Service Request Form, fields 1–9.
+
+## Provider Job Management
+
+### My Jobs
+
+**Screen ID:** `JOB-SP-001`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Allows a Service Provider to find accepted, active, collection-completed, disposal-stage, and completed jobs.
+
+**Actors:**
+Approved Service Provider.
+
+**Entry points and preconditions:**
+
+* Opened from `Provider Work Dashboard`.
+* Provider must be authenticated, approved, and active.
+
+**Processes covered:**
+
+* Reopening accepted work.
+* Responding to approaching-date-and-time reminders.
+* Starting an accepted job.
+* Continuing collection and disposal workflows.
+
+**Information displayed:**
+
+* Provider-assigned job summaries.
+* Request origin.
+* Client or KCCA-associated request reference.
+* Service location.
+* Scheduled date and time when available.
+* Agreed price when recorded.
+* Current documented status.
+* Outstanding Provider action.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Open Job:** Opens `Provider Job Details`.
+* **Open Disposal Journey:** Opens `Disposal Journey Monitoring` when collection confirmation permits disposal.
+
+**Business rules, decisions, and validations:**
+
+* Only jobs assigned to the authenticated Provider may be displayed.
+* Actions depend on current status.
+* A job cannot enter disposal transport before the applicable collection confirmation is recorded.
+* No Provider cancellation or transfer workflow is documented.
+
+**Permissions and actor-specific behaviour:**
+
+* Provider-only page.
+* Pending or rejected Provider accounts have no access.
+
+**Page states and feedback:**
+
+* Loading state.
+* Empty state.
+* Accepted-job state.
+* Active-job state.
+* Awaiting-confirmation state.
+* Collection Completed state.
+* Completed state.
+* Recoverable data-loading error.
+* Account-restricted state.
+
+**Notifications and external-process effects:**
+
+* Reminders identify jobs whose selected date and time are approaching.
+* Client or KCCA confirmation unlocks the disposal stage.
+* KCCA or system updates may change displayed status.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Provider Work Dashboard`, request acceptance, or reminder notification.
+* **Next page after success:** `Provider Job Details` or `Disposal Journey Monitoring`.
+* **Alternative or failure paths:** Failed loading remains recoverable.
+* **Exit behaviour:** Return to `Provider Work Dashboard`.
+
+**Backend and data requirements:**
+
+* Retrieve only the Provider’s assigned jobs.
+* Return current status, origin, scheduling data, location, and outstanding action.
+* Enforce provider ownership and account eligibility.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 7–22.
+* Call Centre service-request process, steps 12–28.
+* Derived from the need to reopen accepted asynchronous jobs.
+
+### Provider Job Details
+
+**Screen ID:** `JOB-SP-002`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Provides the Service Provider’s operational page for initiating an accepted job, travelling to the request location, reporting collection completion, and waiting for collection confirmation.
+
+**Actors:**
+Approved Service Provider assigned to the job.
+
+**Entry points and preconditions:**
+
+* Opened from `My Jobs`, a reminder, or an operational notification.
+* Job must be assigned to the authenticated Provider.
+* Initiate Job requires an Accepted request and device location enabled.
+
+**Processes covered:**
+
+* Reviewing accepted job details.
+* Receiving approaching-date-and-time reminders.
+* Enabling location and initiating the job.
+* Updating status to Active.
+* Supporting location monitoring.
+* Receiving arrival feedback.
+* Reporting Collection Completed.
+* Waiting for Client or KCCA confirmation.
+* Enforcing the disposal-journey control.
+
+**Information displayed:**
+
+* Client and contact details available for the request.
+* Request location and coordinates.
+* Toilet type and additional contact details when recorded.
+* Scheduled date and time when available.
+* Agreed price when applicable.
+* Request origin.
+* Current status.
+* Location availability.
+* Collection-confirmation state.
+* Next permitted action.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Initiate Job:** Available while Accepted and location is enabled; changes status to Active and starts the monitored journey.
+* **Collection Completed:** Available after the Provider has finished collecting waste; reports completion and initiates Client or KCCA confirmation.
+* **Open Disposal Journey:** Available only after the required collection confirmation has been recorded.
+
+**Business rules, decisions, and validations:**
+
+* Device location must be turned on before Initiate Job.
+* Initiate Job changes status from Accepted to Active.
+* Collection Completed must not be accepted before the job is active and collection has been carried out.
+* For a mobile-originated request, the Client confirms work through the mobile Feedback Form.
+* For a Call Centre request, KCCA Staff confirm with the Client and complete feedback through the external system.
+* The Provider may not begin transport to the disposal site until the applicable confirmation is recorded.
+* Repeated or stale action submissions must not create duplicate transitions.
+
+**Permissions and actor-specific behaviour:**
+
+* Only the assigned Provider may initiate or update the job.
+* KCCA Staff and Clients cannot select Provider operational actions.
+* An ineligible Provider account must lose operational access.
+
+**Page states and feedback:**
+
+* Accepted and awaiting-start state.
+* Reminder state.
+* Location-disabled or permission-denied state.
+* Initiating state.
+* Active and travelling state.
+* Arrived-at-request state.
+* Collection-in-progress state.
+* Collection-reported state.
+* Awaiting-Client-confirmation state.
+* Awaiting-KCCA-confirmation state.
+* Collection Completed state.
+* Recoverable location, connectivity, or server error.
+* Completed or read-only state.
+
+**Notifications and external-process effects:**
+
+* Initiation notifies a mobile Client through the app or a Call Centre Client through SMS.
+* A mobile-originated arrival notifies Client and Provider.
+* A Call Centre-originated arrival notifies KCCA Staff.
+* Collection Completed notifies and prompts the Client or KCCA Staff according to request origin.
+* Client or KCCA feedback updates the request to Collection Completed and notifies the Provider.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `My Jobs`, reminder, or notification.
+* **Next page after success:** After initiation, remain on the Active job; after confirmed collection, open `Disposal Journey Monitoring`.
+* **Alternative or failure paths:** Location-disabled initiation remains blocked; collection awaiting confirmation remains on this page.
+* **Exit behaviour:** Return to `My Jobs` without changing the workflow state.
+
+**Backend and data requirements:**
+
+* Retrieve the complete Provider-owned job and its origin.
+* Verify account eligibility and job assignment.
+* Validate each status transition on the server.
+* Receive and make Provider location available to authorized monitors.
+* Generate Client, Provider, and KCCA notifications.
+* Record whether Client or KCCA confirmation has occurred.
+* Block disposal-stage access until confirmation.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 8–16 and control point.
+* Call Centre service-request process, steps 13–22 and control point.
+
+## Journey to the Request Location
+
+### Journey to Request Tracking
+
+**Screen ID:** `TRACK-001`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Allows the correct monitoring actor to view the Service Provider travelling to the service-request location.
+
+**Actors:**
+Client for a mobile-originated request; authorized KCCA Staff for a Call Centre-originated request.
+
+**Entry points and preconditions:**
+
+* Provider selected Initiate Job.
+* Request status is Active.
+* Provider location is available.
+* Client must own the mobile-originated request.
+* KCCA Staff must be authorized to monitor the Call Centre-originated request.
+
+**Processes covered:**
+
+* Real-time monitoring of the Service Provider.
+* Displaying progress toward the request location.
+* Reflecting arrival.
+* Separating Client and KCCA monitoring according to request origin.
+
+**Information displayed:**
+
+* Service Provider’s current location.
+* Request location.
+* Current Active status.
+* Relevant Provider and request details.
+* Arrival state.
+* Last successfully received location information where applicable.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Refresh or Resume Tracking:** Requests current tracking information.
+* **Open Request or Monitoring Details:** Returns to the actor-appropriate request or monitoring page.
+
+**Business rules, decisions, and validations:**
+
+* Clients may monitor only their own mobile-originated requests.
+* KCCA Staff use mobile tracking for Call Centre-originated journeys to the request location.
+* Tracking begins only after Initiate Job.
+* The source does not define location-update frequency, arrival radius, background-tracking behaviour, or stale-location thresholds.
+
+**Permissions and actor-specific behaviour:**
+
+* Mobile-originated request: Client monitors the Provider.
+* Call Centre-originated request: authorized KCCA Staff monitor the Provider.
+* A Call Centre Client does not use this page.
+* Providers do not use this monitoring page to control the job; they use `Provider Job Details`.
+
+**Page states and feedback:**
+
+* Loading map and location state.
+* Live-tracking state.
+* Provider-location-temporarily-unavailable state.
+* Connectivity error state.
+* Provider-arrived state.
+* Journey-no-longer-active state.
+* Permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* Mobile-originated arrival notifies Client and Provider.
+* Call Centre-originated arrival notifies KCCA Staff.
+* Provider location changes are reflected in real time.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Client Request Details`, `KCCA Monitoring Dashboard`, or a Provider-coming notification.
+* **Next page after success:** Arrival returns to `Client Request Details` or `KCCA Monitoring Dashboard`.
+* **Alternative or failure paths:** Temporary location loss remains on the page with last-known or unavailable feedback.
+* **Exit behaviour:** Return to the actor-appropriate request or dashboard page.
+
+**Backend and data requirements:**
+
+* Receive Provider location while the job is Active.
+* Authorize access by request ownership, origin, and staff permission.
+* Provide current or last available location and the request destination.
+* Determine or record arrival and generate the appropriate notifications.
+* Stop exposing active journey data when the monitoring phase ends.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 9–11.
+* Call Centre service-request process, steps 14–16 and the mobile-monitoring note.
+
+## Collection Confirmation and Feedback
+
+### Collection Confirmation and Feedback
+
+**Screen ID:** `FEED-001`
+
+**Requirement status:** Explicit Requirement.
+
+**Purpose:**
+Allows the Client in a mobile-originated request to confirm the status of the Provider’s work, provide mandatory feedback, and rate the service after the Provider reports collection completion.
+
+**Actors:**
+Client for a mobile-originated request.
+
+**Entry points and preconditions:**
+
+* Provider selected **Collection Completed**.
+* The Client owns the request.
+* Request is awaiting Client confirmation.
+* The Client received the collection-completion prompt or opened the action from the request.
+
+**Processes covered:**
+
+* Confirming work status.
+* Providing feedback.
+* Rating the service.
+* Updating the request after confirmation.
+* Unlocking the Provider’s disposal journey when the applicable confirmation is recorded.
+
+**Information displayed:**
+
+* Request and Service Provider summary.
+* Notice that the Provider reported collection complete.
+* Instruction to confirm the actual status of the work.
+* Mandatory-field indicators.
+
+**Inputs and form fields:**
+
+* **Status of Work:** Mandatory single-select field: `Completed`, `Left Incomplete`, or `Not Done at all`.
+* **Feedback:** Mandatory open-text field.
+* **Rate Service:** Mandatory rating. The source does not define the rating scale, control type, minimum, maximum, or labels.
+
+**User actions:**
+
+* **Submit Confirmation and Feedback:** Validates and records all fields.
+* **Return to Request:** Leaves the required action outstanding if the form has not been submitted.
+
+**Business rules, decisions, and validations:**
+
+* All three fields are mandatory.
+* The form is available only after the Provider reports collection completion.
+* The source’s process says submission updates the request to Collection Completed.
+* The form also permits `Left Incomplete` and `Not Done at all`, but the source does not define the resulting status, escalation, retry, dispute, or Provider action for those choices. This conflict must be resolved before negative responses are mapped to a workflow transition.
+* Until that conflict is resolved, an implementation must preserve the selected work status and must not silently treat a negative response as proof of successful collection.
+* The Provider cannot begin disposal transport until the required confirmation is recorded.
+
+**Permissions and actor-specific behaviour:**
+
+* Only the Client who owns a mobile-originated request may submit this mobile form.
+* For a Call Centre-originated request, KCCA Staff contact the Client and use the Feedback Form through the external system; no KCCA mobile feedback page is specified.
+* The Service Provider cannot submit or alter Client feedback.
+
+**Page states and feedback:**
+
+* Initial confirmation state.
+* Validation-error state.
+* Submission-in-progress state.
+* Recoverable connectivity or server error.
+* Successful-submission state.
+* Already-submitted read-only state.
+* Permission-restricted state.
+* Negative-work-status state requiring an approved workflow rule.
+
+**Notifications and external-process effects:**
+
+* Provider’s Collection Completed action opens this requirement and notifies the Client.
+* Successful applicable confirmation updates the request and notifies Client and Provider.
+* The system then notifies KCCA Staff that the Provider is proceeding toward the disposal site.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Client Request Details` or collection-completion notification.
+* **Next page after success:** `Client Request Details` in the resulting status.
+* **Alternative or failure paths:** Validation or submission failure remains on this page; negative status requires the unresolved business rule.
+* **Exit behaviour:** Return to the request while leaving the action outstanding if not submitted.
+
+**Backend and data requirements:**
+
+* Confirm Client ownership and correct request state.
+* Validate all mandatory fields.
+* Store the exact work-status selection, feedback text, and rating.
+* Apply the approved workflow transition.
+* Record collection confirmation before unlocking disposal transport.
+* Notify Client, Provider, and KCCA Staff as required.
+* Prevent duplicate or unauthorized feedback submissions.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 12–17 and control point.
+* KCCA Weyonje System Forms, Client Feedback Form, fields 1–3.
+* Call Centre service-request process, steps 17–23, for the corresponding external KCCA action.
+
+## Disposal Journey and Completion
+
+### Disposal Journey Monitoring
+
+**Screen ID:** `DISP-001`
+
+**Requirement status:** Derived Requirement.
+
+**Purpose:**
+Supports the monitored journey from the request location to the disposal site and allows the Service Provider to report final disposal completion.
+
+**Actors:**
+Assigned Service Provider and authorized KCCA Staff.
+
+**Entry points and preconditions:**
+
+* Waste collection was reported by the Provider.
+* The applicable Client or KCCA confirmation was recorded.
+* Request status is Collection Completed.
+* The assigned Provider is authorized to transport and complete the job.
+* KCCA Staff have permission to monitor the journey.
+
+**Processes covered:**
+
+* Enforcing the control that disposal transport begins only after collection confirmation.
+* Real-time monitoring of the Provider travelling to the disposal site.
+* Allowing KCCA Staff to view route and stopovers.
+* Notifying Provider and KCCA Staff on arrival at the disposal site.
+* Allowing the Provider to select Completed Disposing.
+* Updating the work to Completed.
+* Notifying Provider and KCCA Staff of final completion.
+
+**Information displayed:**
+
+* Service Provider’s current location.
+* Request location as journey origin.
+* Disposal site as destination.
+* Current workflow and journey status.
+* Live journey progress.
+* Travelled route and stopovers for KCCA Staff.
+* Disposal-site arrival state.
+* Final completion state.
+* The source does not define how the disposal site is selected, who supplies it, or what disposal-site data must be recorded.
+
+**Inputs and form fields:**
+
+None.
+
+**User actions:**
+
+* **Refresh or Resume Monitoring:** Retrieves current journey information.
+* **Completed Disposing:** Available only to the assigned Service Provider after arriving and successfully disposing of the waste.
+* **Return to Job or Dashboard:** Returns to the actor-appropriate page.
+
+**Business rules, decisions, and validations:**
+
+* Disposal transport must remain blocked until the applicable collection confirmation is recorded.
+* Only the assigned Provider may select Completed Disposing.
+* KCCA Staff have read-only monitoring access.
+* Completed Disposing changes the work status to Completed.
+* Route and stopover history must remain available to authorized KCCA Staff.
+* The source does not define arrival-detection rules, required disposal evidence, disposal-site selection, route-deviation rules, or stopover classifications.
+* Repeated completion submissions must not create duplicate transitions.
+
+**Permissions and actor-specific behaviour:**
+
+* Service Provider sees their own journey and the completion action.
+* KCCA Staff see live movement, route, stopovers, arrival, and completion but cannot complete disposal for the Provider.
+* Clients have no documented disposal-monitoring page.
+* Other Providers must not access the journey.
+
+**Page states and feedback:**
+
+* Waiting-for-collection-confirmation state.
+* Ready-to-begin-disposal-journey state.
+* Live-disposal-journey state.
+* Location temporarily unavailable state.
+* Route and stopover state for KCCA Staff.
+* Disposal-site arrival state.
+* Disposal-in-progress state.
+* Completing-disposal state.
+* Completed state.
+* Recoverable map, connectivity, location, or server error.
+* Permission-restricted state.
+
+**Notifications and external-process effects:**
+
+* After collection confirmation, KCCA Staff receive notification that the Provider is travelling to the disposal site.
+* Provider and KCCA Staff receive an arrival notification at the disposal site.
+* Provider selection of Completed Disposing notifies KCCA Staff.
+* The system changes the work to Completed and notifies Provider and KCCA Staff.
+
+**Navigation and workflow transitions:**
+
+* **Previous or entry page:** `Provider Job Details`, `My Jobs`, `KCCA Monitoring Dashboard`, or a disposal-journey notification.
+* **Next page after success:** Provider → `My Jobs` in Completed state; KCCA Staff → `KCCA Monitoring Dashboard` in Completed state.
+* **Alternative or failure paths:** Missing collection confirmation blocks the journey; temporary tracking failure remains recoverable.
+* **Exit behaviour:** Return to the relevant job list or monitoring dashboard without changing the current status.
+
+**Backend and data requirements:**
+
+* Verify that collection confirmation has been recorded.
+* Retrieve the authorized journey origin, disposal destination, Provider, and current status.
+* Receive and persist Provider journey positions.
+* Preserve route and stopover history for authorized KCCA review.
+* Determine or record disposal-site arrival and notify Provider and KCCA Staff.
+* Validate that only the assigned Provider may complete disposal.
+* Update the work to Completed exactly once.
+* Send final notifications to Provider and KCCA Staff.
+* The disposal-site source and selection process require a separate approved requirement.
+
+**Source traceability:**
+
+* Mobile service-request process, steps 15–22 and control point.
+* Call Centre service-request process, steps 21–28 and control point.
+* Both processes’ notes requiring KCCA visibility of route and stopovers.

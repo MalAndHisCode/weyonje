@@ -1,146 +1,119 @@
 # Weyonje Current System State
 
-> **Purpose:** This document is a concise, evidence-based snapshot of what is present in the Weyonje repository today. It describes implemented reality, not the target business processes or proposed technology stack.
+> **Purpose:** Evidence-based snapshot of implemented repository reality. Requirements and proposed architecture are not treated as implemented without code and validation evidence.
 
 ## Document control
 
 | Field | Value |
 | --- | --- |
-| Document version | 1.0 |
-| Last updated and verified | 2026-08-10 |
-| Verified against | Local repository at `D:\Dev\weyonje`; no commit or release exists |
-| Git state | Repository has no commits and `git ls-files` returns no tracked files; all visible project content is currently untracked |
-| System version | No system release; mobile package declares `0.1.0+1` |
-
-The repository files and working code were treated as primary evidence. `BUSINESS_PROCESS_SPECIFICATION.docx`, `TECHNOLOGY_STACK.md`, and `BRAND_IDENTITY_GUIDELINES.md` were used only as requirements, proposals, or design context.
+| Document version | 2.0 |
+| Last updated and verified | 2026-08-11 |
+| Verified against | Local repository at `D:\Dev\weyonje`, branch `main`; no deployment or external environment was changed |
+| System version | Mobile `0.1.0+1`; API and contracts `0.1.0` |
 
 ## Status legend
 
-| Status | Meaning in this document |
+| Status | Meaning |
 | --- | --- |
-| **Implemented** | Present and confirmed in current repository files. |
-| **Partially Implemented** | Some supporting code or configuration exists, but the capability is incomplete. |
+| **Implemented** | Present and validated in repository code. |
+| **Partially Implemented** | A safe bounded capability exists, while named downstream work remains. |
 | **Not Implemented** | No functioning implementation is present. |
-| **Deprecated** | Present but no longer intended for continued use. |
-| **Temporarily Disabled** | Intentionally inactive for a limited period. |
-| **Known Broken / Unstable** | Current evidence confirms that the implementation fails or cannot be used reliably. |
-| **Unknown / Not Yet Verified** | Repository evidence is insufficient to establish the state. |
+| **Known Broken / Unstable** | Current evidence confirms a defect. |
+| **Unknown / Not Yet Verified** | Repository evidence is insufficient or live external validation is unavailable. |
 
-## Current project summary and maturity
+## Current project summary
 
-Weyonje is at project initiation. The repository has a monorepo-shaped `apps/` structure and project-context documents, but only an Android-targeted Flutter application skeleton contains substantive application files. The skeleton includes generated Forui theme code and Android build scaffolding; it does not currently pass Dart analysis and has no completed product screens or business workflows.
+Weyonje now has a pnpm TypeScript workspace, an Android Flutter application, a NestJS/Fastify API, shared identity contracts, one PostgreSQL migration, OpenAPI generation, and focused automated tests. The implemented product slice is the secure entry and routing boundary for `AUTH-001`, bounded `AUTH-002`, and bounded `AUTH-003`.
 
-No backend, web portal, background worker, persistence layer, deployed environment, or operational system is implemented. The workflows in the business specification and the architecture and services in the technology stack remain context for future work unless separately evidenced by code.
+No registration forms, provider-approval workflow, service-request workflow, maps, notifications, role dashboard, web portal, worker, or deployment is implemented. Live mobile-to-Keycloak-to-API authentication remains **Unknown / Not Yet Verified** until authorized Keycloak, PostgreSQL, HTTPS API, and Android signing/environment configuration exist.
 
 ## Implemented functionality
 
-| Capability | Status | Current reality | Evidence |
-| --- | --- | --- | --- |
-| Flutter application entry point | **Partially Implemented** | `main()` attempts to start a `MaterialApp.router` wrapped with Forui theme, toaster, and tooltip providers. Router configuration is still a TODO. | `apps/mobile/lib/main.dart` |
-| Light and dark design tokens | **Partially Implemented** | The generated default/light Forui colour configuration now contains Weyonje's documented working semantic palette, including its blue accessibility-focus token. The separate generated dark colours remain the unapproved preset values. Neither scheme is usable by a running application while the theme library declarations are broken. | `apps/mobile/lib/theme/colors.dart`, `apps/mobile/lib/theme/style.dart` |
-| Weyonje logo asset | **Partially Implemented** | A 554 x 554 PNG exists under the mobile assets directory, but `pubspec.yaml` does not declare it as a Flutter asset and no code references it. | `apps/mobile/assets/branding/weyonje-logo.png`, `apps/mobile/pubspec.yaml` |
-| Product screens and navigation | **Not Implemented** | No feature screens, route definitions, or usable navigation are present. | `apps/mobile/lib/` |
-| Registration, verification, requests, assignments, journeys, disposal confirmation, feedback, ratings, roles, and permissions | **Not Implemented** | These are specified business processes only; no implementing client, API, data model, or test code exists. | Repository inspection; `BUSINESS_PROCESS_SPECIFICATION.docx` is requirements evidence only |
+| Capability | Status | Current reality |
+| --- | --- | --- |
+| `AUTH-001` welcome and account access | **Implemented** | Approved logo/copy, primary Create account and secondary Sign in actions, no KCCA registration, responsive scrolling, semantics, 48dp controls, and approved light theme. |
+| Launch/session bootstrap | **Implemented** | Explicit checking, unauthenticated, retryable transient error, invalid-session feedback, authenticated, restricted, and denied states. No stored session causes no network call. Obsolete lifecycle requests are cancelled and resume is revalidated without duplicate work. |
+| `AUTH-002` account type | **Partially Implemented** | Real Client/Service Provider selection and validation. Continue reaches a truthful boundary that collects no data because registration is not implemented. Invalid deep-link account types are rejected. |
+| `AUTH-003` sign in | **Partially Implemented** | Real system-browser Authorization Code Flow with PKCE through AppAuth, secure token storage, refresh-once handling, and authoritative current-actor resolution. Live identity integration awaits external setup. |
+| Role-aware navigation | **Implemented** | Central GoRouter guards prevent protected-content flash and cross-role destinations. Client, approved active Provider, permitted KCCA Staff, restricted Provider, and denied states resolve separately. |
+| Downstream role screens | **Not Implemented** | Role destinations are explicit unavailable boundaries; they claim only that session/access was verified and load no protected feature data. |
+| Current-actor API | **Implemented** | `GET /v1/actors/me` validates Keycloak token properties and returns the minimum actor/access/provider-status routing contract. |
+| Identity linkage/eligibility | **Implemented** | PostgreSQL entity and migration enforce unique `sub`, actor types, provider status, activation, and explicit KCCA mobile permission. Passwords/tokens are not persisted. |
 
-## Architecture and major component status
-
-| Component | Location | Status | Current boundary |
-| --- | --- | --- | --- |
-| Mobile application | `apps/mobile/` | **Known Broken / Unstable** | Flutter/Forui Android skeleton; static analysis fails before a runnable product experience is established. |
-| API | `apps/api/` | **Not Implemented** | Empty reserved directory. |
-| Web portal | `apps/web/` | **Not Implemented** | Empty reserved directory. |
-| Background worker | `apps/worker/` | **Not Implemented** | Empty reserved directory. |
-| Data and persistence | None | **Not Implemented** | No schemas, migrations, database client, cache, or local application data layer is present. |
-| Deployment and operations | None | **Not Implemented** | No CI workflow, container, infrastructure, deployment, monitoring, backup, or runbook implementation is present. |
-
-The modular monolith, React portal, NestJS API, BullMQ workers, PostgreSQL/PostGIS, Valkey, Keycloak, Render services, Google Maps, notifications, monitoring, and production infrastructure described in context documents are not current architecture components.
-
-## Repository structure and code organization
+## Architecture and structure
 
 ```text
+.github/workflows/identity-integration.yml
 apps/
-  api/                 # empty placeholder
-  mobile/              # Flutter project and Android platform scaffolding
-    android/
-    assets/branding/
-    lib/
-      main.dart
-      theme/
-  web/                 # empty placeholder
-  worker/              # empty placeholder
-docs/
-  brand/               # source brand asset
-  project-context/     # requirements, rules, stack, brand guidance, and state template
+  api/                    # NestJS/Fastify identity API, tests, migration, OpenAPI
+  mobile/                 # Flutter Android app, auth screens/state/routes/tests
+  web/                    # reserved; not implemented
+  worker/                 # reserved; not implemented
+packages/
+  contracts/              # shared TypeScript identity/access enums and errors
+docs/project-context/     # adopted requirements, rules, and this snapshot
 ```
 
-There is no root README, root `.gitignore`, workspace manifest, shared package area, repository command runner, or CI configuration. Future work should preserve clear ownership between the four application directories and avoid treating the empty placeholders or proposed cross-application architecture as already established.
+- Mobile: Forui light theme, Riverpod state, GoRouter guards, one Dio client, AppAuth, and secure storage.
+- API: strict TypeScript, NestJS/Fastify, JOSE verification, TypeORM/PostgreSQL, stable error codes, JSON logging, bounded request/body limits, Helmet, and non-production Swagger.
+- Contracts: actor types `CLIENT`, `SERVICE_PROVIDER`, `KCCA_STAFF`; access `ELIGIBLE`, `RESTRICTED`, `DENIED`; provider states `PENDING`, `APPROVED`, `REJECTED`, `INACTIVE`, `DISABLED`.
 
-## Current mobile application state
+## Identity and authorization behaviour
 
-- **Implemented:** Flutter project metadata identifies an application project created on the stable channel with only the root and Android platforms recorded. No iOS, web, Windows, macOS, or Linux Flutter platform project is present.
-- **Implemented:** Direct runtime dependencies are Flutter and Forui. The lockfile resolves Forui `0.25.0`; development dependencies include `flutter_test`, `flutter_lints 6.0.0`, and Forui CLI `0.25.0`.
-- **Partially Implemented:** Forui CLI configuration points generated snippets to `lib`, styles to `lib/theme/styles`, themes to `lib/theme/theme.dart`, and fonts to `assets/fonts`.
-- **Partially Implemented:** `lib/theme/colors.dart` centrally configures the default/light `FColors` values with Weyonje's documented working semantic palette. Forui `0.25.0` has no built-in focus colour field, so the blue `#0B65D8` focus token is carried by the generated `AppColors` extension and consumed by the existing global focus-outline style. These configured colours cannot currently be exercised by a running application because of the theme import and library-part errors below.
-- **Not Implemented:** No approved branded dark palette has been implemented. The separate generated dark scheme remains unchanged in its visible colour behaviour and must not be treated as approved Weyonje dark-mode branding.
-- **Known Broken / Unstable:** `lib/main.dart` imports `../theme.dart`, which does not exist. The available theme entry is `lib/theme/theme.dart`.
-- **Known Broken / Unstable:** `colors.dart`, `icons.dart`, `style.dart`, and `typography.dart` declare `part of 'lib/theme/theme.dart'`, which does not match the library declared by `theme.dart`; analysis reports `PART_OF_DIFFERENT_LIBRARY` and cascading undefined-symbol errors.
-- **Not Implemented:** There are no feature directories, screens, state management, API client, domain models, tests, localization content, permissions, or product workflows.
+Keycloak is authoritative for token validity and configured token role. Weyonje PostgreSQL is authoritative for subject linkage, actor type, activation, provider status, and KCCA mobile-monitoring permission. The API requires both authorities to agree and defaults to denial.
 
-## Confirmed configuration and development requirements
+- Client: active linked profile plus configured Client role is eligible.
+- Service Provider: configured Provider role plus linked, active, `APPROVED` profile is eligible. Pending, rejected, inactive, disabled, missing, and unknown states cannot reach provider work.
+- KCCA Staff: configured mobile-monitor role plus linked, active profile with `mobile_monitoring_permitted=true` is eligible.
+- Missing/invalid bearer tokens, bad signature/issuer/audience/algorithm/expiry/subject, unknown linkage, and role mismatch are rejected without profile enumeration.
 
-| Area | Confirmed state |
-| --- | --- |
-| Dart / Flutter | `pubspec.yaml` requires Dart `^3.12.2`; the resolved lockfile requires Flutter `>=3.44.0-0`. No repository-level Flutter version pin is present. |
-| Linting | `analysis_options.yaml` includes `package:flutter_lints/flutter.yaml`. |
-| Android identity | Namespace and application ID are both `ug.go.kcca.weyonje.weyonje`; the generated TODO to confirm a unique application ID remains. The application label is `weyonje`. |
-| Android SDK levels | `compileSdk`, `minSdk`, `targetSdk`, and NDK version inherit from the installed Flutter SDK rather than being fixed numerically in the repository. |
-| Java / Kotlin | Java source and target compatibility are 17; Kotlin JVM target is 17. |
-| Android build tools | Android Gradle Plugin `9.0.1`, Kotlin Android plugin `2.3.20`, and Gradle wrapper `9.1.0` are configured. |
-| Signing | Release builds temporarily use the debug signing configuration; production signing is not configured. |
-| Local SDK paths | Android and Flutter SDK paths are supplied through ignored, machine-specific `android/local.properties`; their values are not portable configuration. |
+The mobile app stores only access, refresh, ID token, and access-token expiry in Android encrypted storage. It clears unusable authentication material after unrecoverable invalidation, preserves it on temporary failures, and never places tokens in widgets or application logs.
 
-No environment-variable contract, non-secret environment template, secrets configuration, or feature-flag configuration exists.
+## Routes and API contract
 
-## External integrations and services
+Mobile route contracts: `/launch`, `/welcome`, `/account-type`, `/sign-in`, `/session-error`, `/access-denied`, `/provider-account-status`, `/register/:accountType/unavailable`, `/client`, `/provider`, and `/kcca-monitoring`.
 
-**Not Implemented.** No external service integration is present. In particular, there is no implemented identity provider, SMS, push notification, mapping, API, database, cache, queue, telemetry, monitoring, or deployment service. Forui is an application package dependency, not an operational external-service integration.
+API contract: bearer-authenticated `GET /v1/actors/me`; generated OpenAPI is committed at `apps/api/openapi/openapi.json`. Responses contain no names, phone numbers, email addresses, Keycloak subject, or mobile route names.
 
-## Validation and build status
+## Configuration and dependencies
 
-- On 2026-08-10, `dart analyze --format machine` was run from `apps/mobile` using the installed Flutter Dart SDK. It exited with code `3` and reported compile-time errors, beginning with `URI_DOES_NOT_EXIST` for `lib/main.dart` and `PART_OF_DIFFERENT_LIBRARY` for the generated theme parts.
-- On 2026-08-10, the default/light Forui colour update was statically verified against the required ARGB values, and the documented foreground/background pairs were checked against WCAG contrast thresholds. Text pairs passed at `5.12:1` or better, and the focus token passed at `4.78:1` or better against the configured light surfaces. The required `#D4DAD6` border reaches only `1.35:1` against the canvas and `1.42:1` against the white card, so it does not meet `3:1` when used as the sole meaningful control boundary. Dart formatting and post-change analysis were also run; every diagnostic remained a consequence of the pre-existing theme import and library-part failures, with no independent diagnostic attributable to the configured ARGB values or focus extension API. UI rendering remained blocked by those failures, and no theme tests were available because the repository has no `test/` directory.
-- Application builds and tests were not run: the analysis failure already establishes that the current source is not build-ready, and there is no `test/` directory.
-- No repository-provided documentation check was found.
-- Text and tables were extracted from `BUSINESS_PROCESS_SPECIFICATION.docx`. Visual rendering could not run because the required LibreOffice executable is unavailable; no current-state claim depends on its page layout.
+Root `.env.example` defines environment, API port, Keycloak issuer/JWKS/audience/algorithms/role names, and PostgreSQL connection values. Mobile `config/auth.example.json` defines HTTPS API base URL, HTTPS issuer, public client ID, and custom redirect URI. All values are placeholders; secrets belong in ignored local `.env` files or an approved deployment secret store.
 
-## Known issues, limitations, and technical debt
+Direct mobile additions are Dio, Flutter AppAuth, Riverpod, secure storage, and GoRouter alongside existing Forui. Direct API foundations are NestJS/Fastify, JOSE 5.x, TypeORM, PostgreSQL, class validation/transformation, Swagger, Jest, and strict TypeScript. The root uses pnpm `11.16.0` and Node `>=24`.
+
+Android minimum API inherits Flutter 3.44.8's default of 24, which also satisfies secure-storage requirements. The AppAuth redirect scheme is manifest-configured and defaults to `ug.go.kcca.weyonje.auth`. Release builds still use debug signing and the application-ID confirmation TODO remains.
+
+## Validation status
+
+Verified locally on 2026-08-11:
+
+- Dart formatting completed; `flutter analyze` reported no issues.
+- Flutter widget/model/visual regression tests passed, including launch states, both actions, role routing, every documented Provider restriction, lifecycle resume, duplicate retry, large text/small viewport, semantics, touch targets, and no protected flash.
+- `flutter build apk --debug` completed successfully and produced the ignored debug APK artifact.
+- Rendered golden states were inspected at 360x640 and 412x915; the unchanged approved logo is legible and controls remain reachable. Flutter's deterministic Ahem test font means golden text appears as blocks while layout and image rendering remain inspectable.
+- API Jest unit, guard, HTTP contract, token, service, and migration tests passed locally; external-service tests are skipped unless explicitly enabled.
+- API TypeScript typecheck/build and OpenAPI generation/drift check passed.
+- The Linux workflow is present but was not run from this local task. It is configured to use pinned Keycloak `26.6.4` and PostgreSQL `18.4-alpine`, verify OIDC discovery/JWKS with PKCE `S256`, and apply/reverse the real migration.
+- The Business Process DOCX text and tables were reviewed. Visual page rendering was unavailable because LibreOffice/`soffice` is not installed; no implementation claim depends on document page layout.
+
+## External services and remaining setup
+
+**Unknown / Not Yet Verified:** An authorized administrator must provide a non-production Keycloak realm/public PKCE client, exact redirect allow-list, roles/audience mapper, HTTPS JWKS/issuer access, PostgreSQL database and least-privilege API account, HTTPS API endpoint/network access, actor-profile records, and Android release signing. Until then, live browser sign-in and live role routing cannot be verified or used.
+
+The committed CI fixture contains no users, administrative credentials, or client secrets. It validates only an isolated realm's public discovery/signing-key surface and the PostgreSQL migration.
+
+## Known limitations and technical debt
 
 | Item | Status | Impact |
 | --- | --- | --- |
-| Missing theme import target in `main.dart` | **Known Broken / Unstable** | Prevents the application entry point from resolving `lightTheme` and `darkTheme`. |
-| Incorrect generated theme part declarations | **Known Broken / Unstable** | Prevents the theme files from forming one Dart library and causes cascading analyzer errors. |
-| Light border token has insufficient standalone contrast | **Known Broken / Unstable** | The required `#D4DAD6` border is below `3:1` against both the configured canvas and white card, so controls cannot rely on this border alone as their meaningful visual boundary. |
-| Router not configured | **Partially Implemented** | No screen can be reached through the `MaterialApp.router` skeleton. |
-| Release uses debug signing | **Partially Implemented** | Release builds are temporarily signed with the debug configuration; a production signing configuration does not exist. |
-| Application-identifier TODO remains | **Partially Implemented** | The current identifier is configured, but the template explicitly leaves uniqueness confirmation unresolved. |
-| Logo is not registered as a Flutter asset | **Partially Implemented** | The image is present but unavailable through the normal Flutter asset bundle. |
-| Repository has no tracked files or commits | **Known Broken / Unstable** | There is no versioned baseline against which repository state, history, or releases can be reliably compared. |
+| Registration/downstream workflows absent | **Not Implemented** | `AUTH-002` stops at a no-data-collected boundary; role destinations expose no downstream functionality. |
+| External identity/database/API environment absent | **Unknown / Not Yet Verified** | Live end-to-end sign-in cannot be claimed. |
+| Android release signing uses debug keys | **Known Broken / Unstable** | Not suitable for production distribution. |
+| Application ID uniqueness TODO | **Unknown / Not Yet Verified** | Must be confirmed before release/Keycloak redirect registration. |
+| No approved dark palette | **Not Implemented** | App intentionally uses the approved light scheme in all system modes. |
+| Border token has low standalone contrast | **Known limitation** | Controls use filled surfaces/focus treatment and do not rely on the border alone. |
+| Web, worker, operational workflows, telemetry, backup, and deployment | **Not Implemented** | Outside this authentication-entry slice. |
 
-No deprecated functionality or intentionally disabled feature was found.
+## Evidence and documentation boundary
 
-## Incomplete and not-yet-implemented areas
-
-The repository does not yet implement the product capabilities described by the business specification: account registration and phone verification, provider review, service requests from mobile or the KCCA Call Centre, provider assignment and acceptance, scheduled reminders, location-aware journeys, collection and disposal confirmation, feedback, ratings, notifications, or KCCA oversight.
-
-The proposed API, web portal, worker, data stores, identity, integrations, CI/CD, deployments, monitoring, security controls, backups, and production operations are also absent. Their exact implementation and operational status remain **Unknown / Not Yet Verified** until corresponding repository or deployed-system evidence exists.
-
-## References and evidence boundaries
-
-| Source | Use in this snapshot | Limitation |
-| --- | --- | --- |
-| Current repository files and analyzer output | Primary implementation evidence | No committed baseline exists. |
-| `CURRENT_SYSTEM_STATE_TEMPLATE.md` | Structure and status-reporting intent | Template instructions and unused sections were not copied. |
-| `AI_CODING_AGENT_RULES.md` | Adopted development and documentation rules | Rules do not prove implementation. |
-| `BUSINESS_PROCESS_SPECIFICATION.docx` | Business requirements baseline | Required workflows are not implemented merely because they are specified. |
-| `TECHNOLOGY_STACK.md` | Proposed architecture and technology baseline | Proposed technologies are not implemented unless present in code or configuration. |
-| `BRAND_IDENTITY_GUIDELINES.md` | Brand source and recommendations | Recommendations are not proof of implemented UI behaviour. |
+The master `CURRENT_SYSTEM_STATE_TEMPLATE.md` was read and remains unchanged. The expected Markdown screen-flow file was absent; the repository instead contains the pre-existing untracked `MOBILE_APPLICATION_SCREEN_FLOW_SPECIFICATION.txt`, which was reviewed and applied. Brand Identity Guidelines, Mobile UI/UX Design Rules, AI Coding Agent Rules, Business Process Specification, Technology Stack proposal, live repository, and the explicit task contract were applied in the required precedence order.
