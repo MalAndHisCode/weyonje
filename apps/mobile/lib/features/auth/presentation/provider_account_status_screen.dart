@@ -16,6 +16,7 @@ class ProviderAccountStatusScreen extends ConsumerWidget {
     final status = state is LaunchAuthenticated
         ? state.actor.providerStatus
         : null;
+    final actor = state is LaunchAuthenticated ? state.actor : null;
     final (title, message) = switch (status) {
       ProviderStatus.pending => (
         'Approval pending',
@@ -23,7 +24,9 @@ class ProviderAccountStatusScreen extends ConsumerWidget {
       ),
       ProviderStatus.rejected => (
         'Account rejected',
-        'KCCA did not approve this Service Provider account. Provider work is unavailable.',
+        actor?.providerRejectionReason == null
+            ? 'KCCA did not approve this Service Provider account. Provider work is unavailable.'
+            : 'KCCA did not approve this Service Provider account. Reason: ${actor!.providerRejectionReason}',
       ),
       ProviderStatus.inactive => (
         'Account inactive',
@@ -44,6 +47,13 @@ class ProviderAccountStatusScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           WeyonjeAlert(title: title, message: message),
+          if (actor?.providerNumber != null) ...[
+            const SizedBox(height: 16),
+            Semantics(
+              label: 'Service Provider number ${actor!.providerNumber}',
+              child: Text('Provider number: ${actor.providerNumber}'),
+            ),
+          ],
           const SizedBox(height: 24),
           WeyonjeButton(
             label: 'Sign out',

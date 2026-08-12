@@ -51,8 +51,15 @@ class WelcomeScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           WeyonjeButton(
             key: const Key('sign-in'),
-            label: 'Sign in',
+            label: 'Client sign in',
             kind: WeyonjeButtonKind.secondary,
+            onPressed: () => context.push('/sign-in/client'),
+          ),
+          const SizedBox(height: 12),
+          WeyonjeButton(
+            key: const Key('staff-sign-in'),
+            label: 'Provider or KCCA sign in',
+            kind: WeyonjeButtonKind.outline,
             onPressed: () => context.push('/sign-in'),
           ),
         ],

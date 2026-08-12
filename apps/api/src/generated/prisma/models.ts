@@ -9,6 +9,11 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/ClientProfile'
+export type * from './models/ServiceProviderProfile'
+export type * from './models/PhoneChallenge'
+export type * from './models/ProviderApprovalDecisionRecord'
+export type * from './models/RegistrationNotification'
 export type * from './models/AuthenticationSession'
 export type * from './models/RefreshToken'
 export type * from './models/LoginThrottle'

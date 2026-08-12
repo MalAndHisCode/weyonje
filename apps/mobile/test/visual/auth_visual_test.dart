@@ -51,9 +51,16 @@ void main() {
   }
 
   Future<void> openNativeSignIn(WidgetTester tester) async {
-    await tester.ensureVisible(find.byKey(const Key('sign-in')));
+    await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('sign-in')));
+    await tester.tap(find.byKey(const Key('staff-sign-in')));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> openAccountType(WidgetTester tester) async {
+    await tester.ensureVisible(find.byKey(const Key('create-account')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('create-account')));
     await tester.pumpAndSettle();
   }
 
@@ -89,7 +96,7 @@ void main() {
       size: const Size(640, 360),
       outcome: const NoStoredSession(),
     );
-    await tester.ensureVisible(find.byKey(const Key('sign-in')));
+    await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     await expectLater(
@@ -109,6 +116,89 @@ void main() {
     await expectLater(
       find.byType(WeyonjeApplication),
       matchesGoldenFile('goldens/session_error_compact.png'),
+    );
+  });
+
+  testWidgets('account choice is focused on a compact phone', (tester) async {
+    await render(
+      tester,
+      size: const Size(360, 640),
+      outcome: const NoStoredSession(),
+    );
+    await openAccountType(tester);
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/account_type_compact.png'),
+    );
+  });
+
+  testWidgets('account choice shows one selected option on a large phone', (
+    tester,
+  ) async {
+    await render(
+      tester,
+      size: const Size(412, 915),
+      outcome: const NoStoredSession(),
+    );
+    await openAccountType(tester);
+    await tester.tap(find.byKey(const Key('account-provider')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/account_type_selected_large.png'),
+    );
+  });
+
+  testWidgets('account choice validation remains adjacent and actionable', (
+    tester,
+  ) async {
+    await render(
+      tester,
+      size: const Size(360, 640),
+      outcome: const NoStoredSession(),
+    );
+    await openAccountType(tester);
+    await tester.tap(find.byKey(const Key('account-continue')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/account_type_error_compact.png'),
+    );
+  });
+
+  testWidgets('account choice remains reachable in landscape', (tester) async {
+    await render(
+      tester,
+      size: const Size(640, 360),
+      outcome: const NoStoredSession(),
+    );
+    await openAccountType(tester);
+    await tester.ensureVisible(find.byKey(const Key('account-continue')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/account_type_landscape.png'),
+    );
+  });
+
+  testWidgets('account choice remains readable with large text', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await render(
+      tester,
+      size: const Size(360, 640),
+      outcome: const NoStoredSession(),
+    );
+    await openAccountType(tester);
+    await tester.ensureVisible(find.byKey(const Key('account-continue')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/account_type_large_text.png'),
     );
   });
 

@@ -86,7 +86,7 @@ void main() {
         ),
       );
       final repository = NativeAuthRepository(config, store, dio);
-      final outcome = await repository.signIn(
+      final outcome = await repository.signInWithEmail(
         'account@example.test',
         'not-a-real-password',
         CancelToken(),
@@ -115,11 +115,11 @@ void main() {
           ),
         ),
       );
-      return NativeAuthRepository(
-        config,
-        store,
-        dio,
-      ).signIn('account@example.test', 'not-a-real-password', CancelToken());
+      return NativeAuthRepository(config, store, dio).signInWithEmail(
+        'account@example.test',
+        'not-a-real-password',
+        CancelToken(),
+      );
     }
 
     await expectLater(outcomeFor(401), completion(isA<InvalidSession>()));

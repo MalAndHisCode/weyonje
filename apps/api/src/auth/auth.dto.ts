@@ -1,11 +1,26 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
+  ClientCodeRequestContract,
   RefreshRequestContract,
   SessionCredentialsContract,
   SignInRequestContract,
   SignOutContract,
 } from "@weyonje/contracts";
-import { IsEmail, IsString, MaxLength, MinLength } from "class-validator";
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+} from "class-validator";
+
+export class ClientCodeRequestDto implements ClientCodeRequestContract {
+  @ApiProperty({ type: String, example: "+256 700 000000" })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(40)
+  phoneNumber!: string;
+}
 
 export class SignInDto implements SignInRequestContract {
   @ApiProperty({ type: String, example: "account@example.invalid" })

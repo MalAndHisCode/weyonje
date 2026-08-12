@@ -53,6 +53,122 @@
         ]
       }
     },
+    "/v1/auth/client-code/request": {
+      "post": {
+        "operationId": "AuthController_requestClientCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientCodeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Send a sign-in code to a Client phone number",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/v1/auth/client-code/verify": {
+      "post": {
+        "operationId": "AuthController_verifyClientCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCredentialsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Sign in a Client with a phone verification code",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/v1/auth/client-code/resend": {
+      "post": {
+        "operationId": "AuthController_resendClientCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendPhoneCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Replace and resend a Client sign-in code",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/v1/auth/refresh": {
       "post": {
         "operationId": "AuthController_refresh",
@@ -261,6 +377,83 @@
           "message"
         ]
       },
+      "ClientCodeRequestDto": {
+        "type": "object",
+        "properties": {
+          "phoneNumber": {
+            "type": "string",
+            "example": "+256 700 000000"
+          }
+        },
+        "required": [
+          "phoneNumber"
+        ]
+      },
+      "PhoneChallengeDto": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maskedPhone": {
+            "type": "string",
+            "example": "+256 •••••• 123"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resendAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": [
+              "SENT",
+              "FAILED"
+            ]
+          }
+        },
+        "required": [
+          "challengeId",
+          "maskedPhone",
+          "expiresAt",
+          "resendAvailableAt",
+          "deliveryStatus"
+        ]
+      },
+      "VerifyPhoneCodeDto": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "challengeId",
+          "code"
+        ]
+      },
+      "ResendPhoneCodeDto": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "challengeId"
+        ]
+      },
       "RefreshDto": {
         "type": "object",
         "properties": {
@@ -313,6 +506,14 @@
               "INACTIVE",
               "DISABLED"
             ]
+          },
+          "providerNumber": {
+            "type": "string",
+            "example": "WSP-4A8F90CD12E3"
+          },
+          "providerRejectionReason": {
+            "type": "string",
+            "example": "The submitted ESS licence could not be validated."
           }
         },
         "required": [

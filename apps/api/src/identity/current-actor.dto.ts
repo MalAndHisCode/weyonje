@@ -19,6 +19,15 @@ export class CurrentActorDto implements CurrentActorContract {
     enumName: "ProviderStatus",
   })
   providerStatus?: ProviderStatus;
+
+  @ApiPropertyOptional({ type: String, example: "WSP-4A8F90CD12E3" })
+  providerNumber?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: "The submitted ESS licence could not be validated.",
+  })
+  providerRejectionReason?: string;
 }
 
 export class ApiErrorDto {

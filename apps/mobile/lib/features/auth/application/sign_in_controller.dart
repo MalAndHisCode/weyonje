@@ -39,7 +39,7 @@ class SignInController extends Notifier<SignInState> {
     state = const SignInState(inProgress: true);
     final outcome = await ref
         .read(authRepositoryProvider)
-        .signIn(email, password, cancelToken);
+        .signInWithEmail(email, password, cancelToken);
     if (cancelToken.isCancelled) return;
     _inProgress = false;
     _cancelToken = null;

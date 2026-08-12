@@ -4,6 +4,7 @@ import '../config/app_config.dart';
 import 'current_actor.dart';
 import 'session_credentials.dart';
 import 'session_store.dart';
+import 'registration_models.dart';
 
 sealed class AuthOutcome {
   const AuthOutcome();
@@ -44,9 +45,39 @@ class CancelledSignIn extends AuthOutcome {
 
 abstract interface class AuthRepository {
   Future<AuthOutcome> resolveStoredSession(CancelToken cancelToken);
-  Future<AuthOutcome> signIn(
+  Future<AuthOutcome> signInWithEmail(
     String email,
     String password,
+    CancelToken cancelToken,
+  );
+  Future<ChallengeOutcome> requestClientCode(
+    String phoneNumber,
+    CancelToken cancelToken,
+  );
+  Future<AuthOutcome> verifyClientCode(
+    String challengeId,
+    String code,
+    CancelToken cancelToken,
+  );
+  Future<ChallengeOutcome> resendClientCode(
+    String challengeId,
+    CancelToken cancelToken,
+  );
+  Future<ChallengeOutcome> registerClient(
+    ClientRegistrationRequest request,
+    CancelToken cancelToken,
+  );
+  Future<ChallengeOutcome> registerServiceProvider(
+    ServiceProviderRegistrationRequest request,
+    CancelToken cancelToken,
+  );
+  Future<AuthOutcome> verifyRegistration(
+    String challengeId,
+    String code,
+    CancelToken cancelToken,
+  );
+  Future<ChallengeOutcome> resendRegistrationCode(
+    String challengeId,
     CancelToken cancelToken,
   );
   Future<void> signOut();
@@ -76,7 +107,7 @@ class NativeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthOutcome> signIn(
+  Future<AuthOutcome> signInWithEmail(
     String email,
     String password,
     CancelToken cancelToken,
@@ -120,6 +151,163 @@ class NativeAuthRepository implements AuthRepository {
     } catch (_) {
       return const TransientAuthFailure(
         'Weyonje could not sign you in. Check your connection and try again.',
+      );
+    }
+  }
+
+  @override
+  Future<ChallengeOutcome> requestClientCode(
+    String phoneNumber,
+    CancelToken cancelToken,
+  ) => _challengeRequest('/v1/auth/client-code/request', {
+    'phoneNumber': phoneNumber,
+  }, cancelToken);
+
+  @override
+  Future<AuthOutcome> verifyClientCode(
+    String challengeId,
+    String code,
+    CancelToken cancelToken,
+  ) => _verifyCode(
+    '/v1/auth/client-code/verify',
+    challengeId,
+    code,
+    cancelToken,
+  );
+
+  @override
+  Future<ChallengeOutcome> resendClientCode(
+    String challengeId,
+    CancelToken cancelToken,
+  ) => _challengeRequest('/v1/auth/client-code/resend', {
+    'challengeId': challengeId,
+  }, cancelToken);
+
+  @override
+  Future<ChallengeOutcome> registerClient(
+    ClientRegistrationRequest request,
+    CancelToken cancelToken,
+  ) => _challengeRequest(
+    '/v1/registrations/clients',
+    request.toJson(),
+    cancelToken,
+  );
+
+  @override
+  Future<ChallengeOutcome> registerServiceProvider(
+    ServiceProviderRegistrationRequest request,
+    CancelToken cancelToken,
+  ) => _challengeRequest(
+    '/v1/registrations/service-providers',
+    request.toJson(),
+    cancelToken,
+  );
+
+  @override
+  Future<AuthOutcome> verifyRegistration(
+    String challengeId,
+    String code,
+    CancelToken cancelToken,
+  ) => _verifyCode(
+    '/v1/registrations/verify-phone',
+    challengeId,
+    code,
+    cancelToken,
+  );
+
+  @override
+  Future<ChallengeOutcome> resendRegistrationCode(
+    String challengeId,
+    CancelToken cancelToken,
+  ) => _challengeRequest('/v1/registrations/resend-phone-code', {
+    'challengeId': challengeId,
+  }, cancelToken);
+
+  Future<ChallengeOutcome> _challengeRequest(
+    String path,
+    Map<String, Object> data,
+    CancelToken cancelToken,
+  ) async {
+    final configurationError = _config.validate();
+    if (configurationError != null) {
+      return ChallengeFailure(configurationError);
+    }
+    try {
+      final response = await _dio.post<Object?>(
+        path,
+        data: data,
+        cancelToken: cancelToken,
+      );
+      return ChallengeCreated(PhoneChallenge.fromJson(response.data));
+    } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) {
+        return const ChallengeFailure('The request was cancelled. Try again.');
+      }
+      final status = error.response?.statusCode;
+      if (status == 409) {
+        return const ChallengeFailure(
+          'These registration details are already in use. Sign in or correct the form.',
+        );
+      }
+      if (status == 429) {
+        return const ChallengeFailure(
+          'Too many verification codes were requested. Try again later.',
+          rateLimited: true,
+        );
+      }
+      if (status == 400) {
+        return const ChallengeFailure(
+          'Check the information you entered and try again.',
+        );
+      }
+      return const ChallengeFailure(
+        'Weyonje could not send a verification code. Check your connection and try again.',
+      );
+    } on FormatException {
+      return const ChallengeFailure(
+        'Weyonje returned an invalid verification response. Try again.',
+      );
+    }
+  }
+
+  Future<AuthOutcome> _verifyCode(
+    String path,
+    String challengeId,
+    String code,
+    CancelToken cancelToken,
+  ) async {
+    final configurationError = _config.validate();
+    if (configurationError != null) {
+      return TransientAuthFailure(configurationError);
+    }
+    try {
+      final response = await _dio.post<Object?>(
+        path,
+        data: {'challengeId': challengeId, 'code': code},
+        cancelToken: cancelToken,
+      );
+      final credentials = SessionCredentials.fromJson(response.data);
+      await _sessionStore.write(credentials);
+      return _resolve(credentials, cancelToken, allowRefresh: true);
+    } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) return const CancelledSignIn();
+      if (error.response?.statusCode == 401) {
+        return const InvalidSession(
+          'The verification code is incorrect, expired, or no longer usable.',
+        );
+      }
+      if (error.response?.statusCode == 429) {
+        return const RateLimitedAuthFailure(
+          'Too many verification attempts. Try again later.',
+        );
+      }
+      return const TransientAuthFailure(
+        'Weyonje could not verify the code. Check your connection and try again.',
+      );
+    } on FormatException {
+      await _sessionStore.clear();
+      return const InvalidSession(
+        'Verification returned an invalid session. Try again.',
       );
     }
   }

@@ -31,7 +31,58 @@ export type ProviderStatus = (typeof ProviderStatus)[keyof typeof ProviderStatus
 
 export const ThrottleScope = {
   EMAIL: 'EMAIL',
+  PHONE: 'PHONE',
   IP: 'IP'
 } as const
 
 export type ThrottleScope = (typeof ThrottleScope)[keyof typeof ThrottleScope]
+
+
+export const ClientType = {
+  INDIVIDUAL: 'INDIVIDUAL',
+  ORGANIZATION: 'ORGANIZATION'
+} as const
+
+export type ClientType = (typeof ClientType)[keyof typeof ClientType]
+
+
+export const ServiceProviderType = {
+  GULPER: 'GULPER',
+  EMPTIER: 'EMPTIER'
+} as const
+
+export type ServiceProviderType = (typeof ServiceProviderType)[keyof typeof ServiceProviderType]
+
+
+export const PhoneChallengePurpose = {
+  REGISTRATION: 'REGISTRATION',
+  CLIENT_SIGN_IN: 'CLIENT_SIGN_IN'
+} as const
+
+export type PhoneChallengePurpose = (typeof PhoneChallengePurpose)[keyof typeof PhoneChallengePurpose]
+
+
+export const PhoneChallengeDeliveryStatus = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED'
+} as const
+
+export type PhoneChallengeDeliveryStatus = (typeof PhoneChallengeDeliveryStatus)[keyof typeof PhoneChallengeDeliveryStatus]
+
+
+export const ProviderApprovalDecision = {
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type ProviderApprovalDecision = (typeof ProviderApprovalDecision)[keyof typeof ProviderApprovalDecision]
+
+
+export const NotificationType = {
+  PROVIDER_REVIEW_REQUIRED: 'PROVIDER_REVIEW_REQUIRED',
+  PROVIDER_APPROVED: 'PROVIDER_APPROVED',
+  PROVIDER_REJECTED: 'PROVIDER_REJECTED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

@@ -15,8 +15,16 @@ const USER_SELECT = {
   isActive: true,
   loginEnabled: true,
   emailVerifiedAt: true,
+  phoneVerifiedAt: true,
   mobileMonitoringPermitted: true,
+  providerApprovalPermitted: true,
   passwordVersion: true,
+  serviceProviderProfile: {
+    select: {
+      providerNumber: true,
+      latestRejectionReason: true,
+    },
+  },
 } as const;
 
 @Injectable()
@@ -79,7 +87,7 @@ export class SessionService {
       session.absoluteExpiresAt <= now ||
       session.passwordVersion !== session.user.passwordVersion ||
       !session.user.loginEnabled ||
-      session.user.emailVerifiedAt === null
+      !hasVerifiedCredential(session.user)
     ) {
       throw this.invalidSession();
     }
@@ -132,7 +140,7 @@ export class SessionService {
         current.session.passwordVersion !==
           current.session.user.passwordVersion ||
         !current.session.user.loginEnabled ||
-        current.session.user.emailVerifiedAt === null
+        !hasVerifiedCredential(current.session.user)
       ) {
         return { kind: "invalid" } as const;
       }
@@ -205,6 +213,13 @@ export class SessionService {
       message: "The session is invalid or has expired. Sign in again.",
     });
   }
+}
+
+function hasVerifiedCredential(user: {
+  emailVerifiedAt: Date | null;
+  phoneVerifiedAt: Date | null;
+}): boolean {
+  return user.emailVerifiedAt !== null || user.phoneVerifiedAt !== null;
 }
 
 type TransactionClient = Parameters<

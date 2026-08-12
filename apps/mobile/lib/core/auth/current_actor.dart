@@ -47,6 +47,8 @@ class CurrentActor {
     required this.actorType,
     required this.access,
     this.providerStatus,
+    this.providerNumber,
+    this.providerRejectionReason,
   });
 
   factory CurrentActor.fromJson(Object? value) {
@@ -65,10 +67,14 @@ class CurrentActor {
       actorType: actorType,
       access: ActorAccess.parse(value['access']),
       providerStatus: providerStatus,
+      providerNumber: value['providerNumber'] as String?,
+      providerRejectionReason: value['providerRejectionReason'] as String?,
     );
   }
 
   final ActorType actorType;
   final ActorAccess access;
   final ProviderStatus? providerStatus;
+  final String? providerNumber;
+  final String? providerRejectionReason;
 }

@@ -21,3 +21,26 @@ describe("Prisma native-authentication migration", () => {
     expect(sql).not.toMatch(/keycloak|actor_profiles/i);
   });
 });
+
+describe("Prisma registration and phone-authentication migration", () => {
+  const sql = readFileSync(
+    resolve(
+      __dirname,
+      "../prisma/migrations/20260812150000_registration_phone_auth/migration.sql",
+    ),
+    "utf8",
+  );
+
+  it("adds durable registration, OTP, approval, and notification records", () => {
+    expect(sql).toContain('CREATE TABLE "client_profiles"');
+    expect(sql).toContain('CREATE TABLE "service_provider_profiles"');
+    expect(sql).toContain('CREATE TABLE "phone_challenges"');
+    expect(sql).toContain('CREATE TABLE "provider_approval_decisions"');
+    expect(sql).toContain('CREATE TABLE "registration_notifications"');
+    expect(sql).toContain("ck_users_email_pair");
+    expect(sql).toContain("ck_users_phone_pair");
+    expect(sql).toContain("ck_phone_challenges_attempts");
+    expect(sql).toContain("uq_users_phone_lookup");
+    expect(sql).not.toMatch(/plaintext_(phone|code|password)/i);
+  });
+});

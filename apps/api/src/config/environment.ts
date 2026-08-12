@@ -15,6 +15,9 @@ const SECRET_FIELDS = [
   "EMAIL_LOOKUP_KEY",
   "REFRESH_TOKEN_HASH_KEY",
   "THROTTLE_HASH_KEY",
+  "PII_ENCRYPTION_KEY",
+  "PHONE_LOOKUP_KEY",
+  "OTP_HASH_KEY",
 ] as const;
 
 export class Environment {
@@ -78,6 +81,18 @@ export class Environment {
   @IsNotEmpty()
   THROTTLE_HASH_KEY!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  PII_ENCRYPTION_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  PHONE_LOOKUP_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  OTP_HASH_KEY!: string;
+
   @Transform(({ value }) => Number(value))
   @IsInt()
   @Min(3)
@@ -101,6 +116,30 @@ export class Environment {
   @Min(60)
   @Max(3600)
   AUTH_LOCK_SECONDS = 900;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(300)
+  @Max(1800)
+  OTP_TTL_SECONDS = 600;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(30)
+  @Max(300)
+  OTP_RESEND_SECONDS = 60;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(3)
+  @Max(10)
+  OTP_MAX_ATTEMPTS = 5;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(2)
+  @Max(20)
+  OTP_MAX_REQUESTS_PER_HOUR = 5;
 }
 
 export function validateEnvironment(
@@ -126,7 +165,10 @@ export function validateEnvironment(
     const decoded = decodeSecret(config[field], 32);
     if (!decoded || looksLikePlaceholder(config[field])) {
       invalid.add(field);
-    } else if (field === "EMAIL_ENCRYPTION_KEY" && decoded.length !== 32) {
+    } else if (
+      (field === "EMAIL_ENCRYPTION_KEY" || field === "PII_ENCRYPTION_KEY") &&
+      decoded.length !== 32
+    ) {
       invalid.add(field);
     } else {
       const fingerprint = decoded.toString("hex");

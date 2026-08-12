@@ -19,6 +19,7 @@ class ChooseAccountTypeScreen extends StatefulWidget {
 class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
   RegistrationAccountType? _selection;
   bool _showError = false;
+  bool _navigating = false;
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
@@ -28,42 +29,63 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Choose how you will use Weyonje.',
+          'Your choice determines which registration form and approval process applies.',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(height: 24),
-        FRadio(
-          key: const Key('account-client'),
-          value: _selection == RegistrationAccountType.client,
-          semanticsLabel: 'Client account',
-          label: const Text('Client'),
-          description: const Text('Request waste-collection services.'),
-          onChange: (_) => _select(RegistrationAccountType.client),
-        ),
-        const SizedBox(height: 16),
-        FRadio(
-          key: const Key('account-provider'),
-          value: _selection == RegistrationAccountType.serviceProvider,
-          semanticsLabel: 'Service Provider account',
-          label: const Text('Service Provider'),
-          description: const Text(
-            'Provide waste-collection services after KCCA approval.',
+        Semantics(
+          container: true,
+          explicitChildNodes: true,
+          label: 'Account type, required, single selection',
+          value: switch (_selection) {
+            RegistrationAccountType.client => 'Client selected',
+            RegistrationAccountType.serviceProvider =>
+              'Service Provider selected',
+            null => 'No account type selected',
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FRadio(
+                key: const Key('account-client'),
+                value: _selection == RegistrationAccountType.client,
+                semanticsLabel: 'Client. Request waste-collection services.',
+                label: const Text('Client'),
+                description: const Text('Request waste-collection services.'),
+                onChange: (_) => _select(RegistrationAccountType.client),
+              ),
+              const SizedBox(height: 16),
+              FRadio(
+                key: const Key('account-provider'),
+                value: _selection == RegistrationAccountType.serviceProvider,
+                semanticsLabel:
+                    'Service Provider. Receive and handle service requests after satisfying KCCA approval requirements.',
+                label: const Text('Service Provider'),
+                description: const Text(
+                  'Receive and handle service requests after satisfying KCCA approval requirements.',
+                ),
+                onChange: (_) =>
+                    _select(RegistrationAccountType.serviceProvider),
+              ),
+            ],
           ),
-          onChange: (_) => _select(RegistrationAccountType.serviceProvider),
         ),
         if (_showError) ...[
-          const SizedBox(height: 20),
-          const WeyonjeAlert(
-            title: 'Choose an account type',
-            message: 'Select Client or Service Provider before continuing.',
-            error: true,
+          const SizedBox(height: 12),
+          Semantics(
+            liveRegion: true,
+            child: const WeyonjeAlert(
+              title: 'Account type required',
+              message: 'Select an account type to continue.',
+              error: true,
+            ),
           ),
         ],
         const SizedBox(height: 32),
         WeyonjeButton(
           key: const Key('account-continue'),
           label: 'Continue',
-          onPressed: _continue,
+          onPressed: _navigating ? null : _continue,
         ),
       ],
     ),
@@ -75,15 +97,21 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
   });
 
   void _continue() {
+    if (_navigating) return;
     final selection = _selection;
     if (selection == null) {
       setState(() => _showError = true);
       return;
     }
-    context.push(
-      selection == RegistrationAccountType.client
-          ? '/register/client/unavailable'
-          : '/register/service-provider/unavailable',
-    );
+    setState(() => _navigating = true);
+    context
+        .push(
+          selection == RegistrationAccountType.client
+              ? '/register/client'
+              : '/register/service-provider',
+        )
+        .whenComplete(() {
+          if (mounted) setState(() => _navigating = false);
+        });
   }
 }

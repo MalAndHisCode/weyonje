@@ -16,8 +16,11 @@ function actor(
       isActive: true,
       loginEnabled: true,
       emailVerifiedAt: new Date(),
+      phoneVerifiedAt: null,
       mobileMonitoringPermitted: false,
+      providerApprovalPermitted: false,
       passwordVersion: 1,
+      serviceProviderProfile: null,
       ...overrides,
     },
   } as AuthenticatedActor;
@@ -50,9 +53,30 @@ describe("CurrentActorService", () => {
           actorType: ActorType.serviceProvider,
           providerStatus,
           isActive,
+          serviceProviderProfile: {
+            providerNumber: null,
+            latestRejectionReason: null,
+          },
         }),
       ),
     ).toEqual({ actorType: ActorType.serviceProvider, access, providerStatus });
+  });
+
+  it("returns provider approval details without exposing them to other actors", () => {
+    expect(
+      service.resolve(
+        actor({
+          actorType: ActorType.serviceProvider,
+          providerStatus: ProviderStatus.rejected,
+          serviceProviderProfile: {
+            providerNumber: null,
+            latestRejectionReason: "ESS licence could not be validated.",
+          },
+        }),
+      ),
+    ).toMatchObject({
+      providerRejectionReason: "ESS licence could not be validated.",
+    });
   });
 
   it.each([
@@ -81,6 +105,13 @@ describe("CurrentActorService", () => {
       providerStatus: ProviderStatus.pending,
     }),
     actor({ actorType: ActorType.client, mobileMonitoringPermitted: true }),
+    actor({
+      actorType: ActorType.client,
+      serviceProviderProfile: {
+        providerNumber: null,
+        latestRejectionReason: null,
+      },
+    }),
     actor({ actorType: "UNKNOWN" as never }),
   ])("fails closed for inconsistent or unknown records", (value) => {
     expect(() => service.resolve(value)).toThrow(ForbiddenException);

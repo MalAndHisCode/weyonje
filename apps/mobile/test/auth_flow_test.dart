@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:ui' show CheckedState;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:weyonje/app.dart';
 import 'package:weyonje/core/auth/auth_providers.dart';
 import 'package:weyonje/core/auth/auth_repository.dart';
 import 'package:weyonje/core/auth/current_actor.dart';
+import 'package:weyonje/core/auth/registration_models.dart';
 
 import 'support/fake_auth_repository.dart';
 
@@ -38,7 +42,8 @@ void main() {
         expect(find.byType(Image), findsOneWidget);
         expect(find.text('Welcome to Weyonje'), findsOneWidget);
         expect(find.text('Create account'), findsOneWidget);
-        expect(find.text('Sign in'), findsOneWidget);
+        expect(find.text('Client sign in'), findsOneWidget);
+        expect(find.text('Provider or KCCA sign in'), findsOneWidget);
         expect(find.textContaining('KCCA Staff'), findsNothing);
 
         final semantics = tester.getSemantics(find.byType(Image));
@@ -78,17 +83,300 @@ void main() {
 
       await tester.tap(find.byKey(const Key('account-continue')));
       await tester.pump();
-      expect(find.text('Choose an account type'), findsOneWidget);
+      expect(find.text('Account type required'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('account-client')));
       await tester.tap(find.byKey(const Key('account-continue')));
       await tester.pumpAndSettle();
-      expect(find.text('Registration is not available'), findsOneWidget);
-      expect(
-        find.textContaining('No account information has been collected'),
-        findsOneWidget,
-      );
+      expect(find.text('Client registration'), findsOneWidget);
+      expect(find.byKey(const Key('client-type-individual')), findsOneWidget);
+      expect(find.text('Email address (optional)'), findsOneWidget);
     });
+
+    testWidgets(
+      'AUTH-002 exposes two exclusive semantic choices and opens Provider registration',
+      (tester) async {
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+        );
+        await pumpApp(tester, repository);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create-account')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.bySemanticsLabel('Client. Request waste-collection services.'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel(
+            'Service Provider. Receive and handle service requests after satisfying KCCA approval requirements.',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          tester.widget<FRadio>(find.byKey(const Key('account-client'))).value,
+          isFalse,
+        );
+        expect(
+          tester
+              .widget<FRadio>(find.byKey(const Key('account-provider')))
+              .value,
+          isFalse,
+        );
+        expect(
+          tester.getSize(find.byKey(const Key('account-client'))).height,
+          greaterThanOrEqualTo(48),
+        );
+        expect(
+          tester.getSize(find.byKey(const Key('account-provider'))).height,
+          greaterThanOrEqualTo(48),
+        );
+        expect(
+          tester.getSize(find.byKey(const Key('account-continue'))).height,
+          greaterThanOrEqualTo(48),
+        );
+
+        await tester.tap(find.byKey(const Key('account-client')));
+        await tester.pump();
+        expect(
+          tester.widget<FRadio>(find.byKey(const Key('account-client'))).value,
+          isTrue,
+        );
+        final selectedClientSemantics = tester.getSemantics(
+          find.bySemanticsLabel('Client. Request waste-collection services.'),
+        );
+        expect(
+          selectedClientSemantics.flagsCollection.isChecked,
+          CheckedState.isTrue,
+        );
+        await tester.tap(find.byKey(const Key('account-provider')));
+        await tester.pump();
+        expect(
+          tester.widget<FRadio>(find.byKey(const Key('account-client'))).value,
+          isFalse,
+        );
+        expect(
+          tester
+              .widget<FRadio>(find.byKey(const Key('account-provider')))
+              .value,
+          isTrue,
+        );
+
+        await tester.tap(find.byKey(const Key('account-continue')));
+        await tester.pumpAndSettle();
+        expect(find.text('Service Provider registration'), findsOneWidget);
+        expect(find.text('Email address (required)'), findsOneWidget);
+        expect(find.text('Password (required)'), findsOneWidget);
+      },
+    );
+
+    testWidgets('AUTH-002 suppresses repeated Continue navigation', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('create-account')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('account-client')));
+      await tester.tap(find.byKey(const Key('account-continue')));
+      await tester.tap(find.byKey(const Key('account-continue')));
+      await tester.pumpAndSettle();
+      expect(find.text('Client registration'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('Choose account type'), findsOneWidget);
+    });
+
+    testWidgets('invalid verification route data fails safely', (tester) async {
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      GoRouter.of(
+        tester.element(find.text('Welcome to Weyonje')),
+      ).go('/verify-phone');
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome to Weyonje'), findsOneWidget);
+      expect(find.text('Verify phone number'), findsNothing);
+    });
+
+    testWidgets('Client sign in requests and verifies an SMS code', (
+      tester,
+    ) async {
+      final challenge = PhoneChallenge(
+        id: '73f3d97e-0f93-445d-bdbe-77abac7b42ac',
+        maskedPhone: '+256 •••••• 123',
+        expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+        resendAvailableAt: DateTime.now().toUtc(),
+        deliveryStatus: PhoneCodeDeliveryStatus.sent,
+      );
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onRequestClientCode: (_, _) async => ChallengeCreated(challenge),
+        onVerifyClientCode: (_, _, _) async => const ResolvedSession(
+          CurrentActor(
+            actorType: ActorType.client,
+            access: ActorAccess.eligible,
+          ),
+        ),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('sign-in')));
+      await tester.pumpAndSettle();
+      expect(find.text('Client sign in'), findsWidgets);
+      expect(find.text('Password'), findsNothing);
+      await tester.enterText(
+        find.byKey(const Key('client-sign-in-phone')),
+        '0700000123',
+      );
+      await tester.tap(find.byKey(const Key('request-client-code')));
+      await tester.pumpAndSettle();
+      expect(repository.requestClientCodeCalls, 1);
+      expect(find.text('Verify phone number'), findsOneWidget);
+      expect(find.textContaining('+256'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('verification-code')),
+        '123456',
+      );
+      await tester.tap(find.byKey(const Key('verify-phone')));
+      await tester.pumpAndSettle();
+      expect(repository.verifyClientCodeCalls, 1);
+      expect(find.text('Client dashboard unavailable'), findsWidgets);
+    });
+
+    testWidgets(
+      'Client registration preserves optional email and reaches verification',
+      (tester) async {
+        ClientRegistrationRequest? submitted;
+        final challenge = PhoneChallenge(
+          id: '3efeb8db-3692-47ab-85f1-3890339ac322',
+          maskedPhone: '+256 •••••• 123',
+          expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+          resendAvailableAt: DateTime.now().toUtc(),
+          deliveryStatus: PhoneCodeDeliveryStatus.sent,
+        );
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+          onRegisterClient: (request, _) async {
+            submitted = request;
+            return ChallengeCreated(challenge);
+          },
+        );
+        await pumpApp(tester, repository);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create-account')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('account-client')));
+        await tester.tap(find.byKey(const Key('account-continue')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('client-type-individual')));
+        await tester.pump();
+        await tester.enterText(
+          find.byKey(const Key('client-first-name')),
+          'Amina',
+        );
+        await tester.enterText(find.byKey(const Key('client-last-name')), 'N.');
+        await tester.enterText(
+          find.byKey(const Key('client-phone')),
+          '0700000123',
+        );
+        await tester.ensureVisible(
+          find.byKey(const Key('submit-client-registration')),
+        );
+        await tester.tap(find.byKey(const Key('submit-client-registration')));
+        await tester.pumpAndSettle();
+        expect(repository.registerClientCalls, 1);
+        expect(submitted?.email, isNull);
+        expect(submitted?.clientType, ClientType.individual);
+        expect(find.text('Verify phone number'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Provider registration requires email and submits the full approval profile',
+      (tester) async {
+        ServiceProviderRegistrationRequest? submitted;
+        final challenge = PhoneChallenge(
+          id: '90a62e5a-4c95-4cd1-ab43-bb18ed3c7402',
+          maskedPhone: '+256 •••••• 123',
+          expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+          resendAvailableAt: DateTime.now().toUtc(),
+          deliveryStatus: PhoneCodeDeliveryStatus.sent,
+        );
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+          onRegisterServiceProvider: (request, _) async {
+            submitted = request;
+            return ChallengeCreated(challenge);
+          },
+        );
+        await pumpApp(tester, repository);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create-account')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('account-provider')));
+        await tester.tap(find.byKey(const Key('account-continue')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('provider-ess-license')),
+          'ESS-42',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-company-name')),
+          'Clean Kampala Ltd',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-phone')),
+          '0700000123',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-email')),
+          'ops@example.test',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-password')),
+          'a-long-test-password',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-confirm-password')),
+          'a-long-test-password',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-work-address')),
+          'Nakawa',
+        );
+        await tester.ensureVisible(find.byKey(const Key('provider-type')));
+        await tester.tap(find.byKey(const Key('provider-type')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Gulper').last);
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('provider-contact-name')),
+          'Amina',
+        );
+        await tester.enterText(
+          find.byKey(const Key('provider-contact-phone')),
+          '0701000123',
+        );
+        await tester.ensureVisible(
+          find.byKey(const Key('submit-provider-registration')),
+        );
+        await tester.tap(find.byKey(const Key('submit-provider-registration')));
+        await tester.pumpAndSettle();
+
+        expect(repository.registerServiceProviderCalls, 1);
+        expect(submitted?.email, 'ops@example.test');
+        expect(submitted?.providerType, ServiceProviderType.gulper);
+        expect(find.text('Verify phone number'), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'opens native AUTH-003 and completes sign-in through the repository boundary',
@@ -97,14 +385,17 @@ void main() {
           onResolve: (_) async => const NoStoredSession(),
           onSignIn: (_, _, _) async => const ResolvedSession(
             CurrentActor(
-              actorType: ActorType.client,
+              actorType: ActorType.serviceProvider,
               access: ActorAccess.eligible,
+              providerStatus: ProviderStatus.approved,
             ),
           ),
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('sign-in')));
+        await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('staff-sign-in')));
         await tester.pumpAndSettle();
 
         expect(find.text('Email address'), findsOneWidget);
@@ -129,7 +420,7 @@ void main() {
         await tester.tap(find.byKey(const Key('submit-sign-in')));
         await tester.pumpAndSettle();
         expect(repository.signInCalls, 1);
-        expect(find.text('Client dashboard unavailable'), findsWidgets);
+        expect(find.text('Provider work dashboard unavailable'), findsWidgets);
       },
     );
 
@@ -148,9 +439,9 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const Key('sign-in')));
+      await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('sign-in')));
+      await tester.tap(find.byKey(const Key('staff-sign-in')));
       await tester.pumpAndSettle();
 
       await tester.showKeyboard(find.byKey(const Key('sign-in-password')));
@@ -173,7 +464,9 @@ void main() {
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('sign-in')));
+        await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('staff-sign-in')));
         await tester.pumpAndSettle();
         await tester.enterText(
           find.byKey(const Key('sign-in-email')),
@@ -214,7 +507,9 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('sign-in')));
+      await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staff-sign-in')));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('sign-in-email')),
@@ -350,6 +645,26 @@ void main() {
   });
 
   group('role and provider eligibility routing', () {
+    testWidgets('authenticated users cannot enter AUTH-002', (tester) async {
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const ResolvedSession(
+          CurrentActor(
+            actorType: ActorType.client,
+            access: ActorAccess.eligible,
+          ),
+        ),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      final context = tester.element(
+        find.text('Client dashboard unavailable').first,
+      );
+      GoRouter.of(context).go('/account-type');
+      await tester.pumpAndSettle();
+      expect(find.text('Choose account type'), findsNothing);
+      expect(find.text('Client dashboard unavailable'), findsWidgets);
+    });
+
     testWidgets(
       'routes eligible Client and KCCA sessions to their authorized boundaries',
       (tester) async {
@@ -440,6 +755,27 @@ void main() {
         expect(find.textContaining('Provider work dashboard'), findsNothing);
       });
     }
+
+    testWidgets('shows the KCCA rejection reason to a rejected Provider', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const ResolvedSession(
+          CurrentActor(
+            actorType: ActorType.serviceProvider,
+            access: ActorAccess.restricted,
+            providerStatus: ProviderStatus.rejected,
+            providerRejectionReason: 'ESS licence could not be validated.',
+          ),
+        ),
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('ESS licence could not be validated.'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets(

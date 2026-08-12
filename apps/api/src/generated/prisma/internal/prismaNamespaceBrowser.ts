@@ -52,6 +52,11 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  ClientProfile: 'ClientProfile',
+  ServiceProviderProfile: 'ServiceProviderProfile',
+  PhoneChallenge: 'PhoneChallenge',
+  ProviderApprovalDecisionRecord: 'ProviderApprovalDecisionRecord',
+  RegistrationNotification: 'RegistrationNotification',
   AuthenticationSession: 'AuthenticationSession',
   RefreshToken: 'RefreshToken',
   LoginThrottle: 'LoginThrottle'
@@ -78,12 +83,16 @@ export const UserScalarFieldEnum = {
   encryptedEmail: 'encryptedEmail',
   emailLookup: 'emailLookup',
   passwordHash: 'passwordHash',
+  encryptedPhone: 'encryptedPhone',
+  phoneLookup: 'phoneLookup',
   actorType: 'actorType',
   providerStatus: 'providerStatus',
   isActive: 'isActive',
   loginEnabled: 'loginEnabled',
   emailVerifiedAt: 'emailVerifiedAt',
+  phoneVerifiedAt: 'phoneVerifiedAt',
   mobileMonitoringPermitted: 'mobileMonitoringPermitted',
+  providerApprovalPermitted: 'providerApprovalPermitted',
   passwordChangedAt: 'passwordChangedAt',
   passwordVersion: 'passwordVersion',
   failedLoginCount: 'failedLoginCount',
@@ -93,6 +102,83 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const ClientProfileScalarFieldEnum = {
+  userId: 'userId',
+  clientNumber: 'clientNumber',
+  clientType: 'clientType',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  organizationName: 'organizationName',
+  contactPersonName: 'contactPersonName',
+  encryptedContactPhone: 'encryptedContactPhone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientProfileScalarFieldEnum = (typeof ClientProfileScalarFieldEnum)[keyof typeof ClientProfileScalarFieldEnum]
+
+
+export const ServiceProviderProfileScalarFieldEnum = {
+  userId: 'userId',
+  providerNumber: 'providerNumber',
+  essLicenseNumber: 'essLicenseNumber',
+  companyName: 'companyName',
+  workAddress: 'workAddress',
+  providerType: 'providerType',
+  contactPersonName: 'contactPersonName',
+  encryptedContactPhone: 'encryptedContactPhone',
+  latestRejectionReason: 'latestRejectionReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceProviderProfileScalarFieldEnum = (typeof ServiceProviderProfileScalarFieldEnum)[keyof typeof ServiceProviderProfileScalarFieldEnum]
+
+
+export const PhoneChallengeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  phoneLookup: 'phoneLookup',
+  encryptedPhone: 'encryptedPhone',
+  purpose: 'purpose',
+  codeHash: 'codeHash',
+  expiresAt: 'expiresAt',
+  resendAvailableAt: 'resendAvailableAt',
+  attemptsRemaining: 'attemptsRemaining',
+  consumedAt: 'consumedAt',
+  deliveryStatus: 'deliveryStatus',
+  providerMessageId: 'providerMessageId',
+  createdAt: 'createdAt'
+} as const
+
+export type PhoneChallengeScalarFieldEnum = (typeof PhoneChallengeScalarFieldEnum)[keyof typeof PhoneChallengeScalarFieldEnum]
+
+
+export const ProviderApprovalDecisionRecordScalarFieldEnum = {
+  id: 'id',
+  providerUserId: 'providerUserId',
+  decidedByUserId: 'decidedByUserId',
+  decision: 'decision',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ProviderApprovalDecisionRecordScalarFieldEnum = (typeof ProviderApprovalDecisionRecordScalarFieldEnum)[keyof typeof ProviderApprovalDecisionRecordScalarFieldEnum]
+
+
+export const RegistrationNotificationScalarFieldEnum = {
+  id: 'id',
+  recipientUserId: 'recipientUserId',
+  recipientActorType: 'recipientActorType',
+  type: 'type',
+  subjectUserId: 'subjectUserId',
+  createdAt: 'createdAt',
+  readAt: 'readAt'
+} as const
+
+export type RegistrationNotificationScalarFieldEnum = (typeof RegistrationNotificationScalarFieldEnum)[keyof typeof RegistrationNotificationScalarFieldEnum]
 
 
 export const AuthenticationSessionScalarFieldEnum = {

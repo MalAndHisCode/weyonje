@@ -31,7 +31,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(signInControllerProvider);
     return WeyonjePage(
-      title: 'Sign in',
+      title: 'Provider or KCCA sign in',
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -42,7 +42,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Enter the email and password for your existing Weyonje account.',
+                  'Enter the email and password for your Service Provider or KCCA account.',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 24),

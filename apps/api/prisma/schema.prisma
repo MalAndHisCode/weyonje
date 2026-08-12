@@ -28,32 +28,171 @@ enum ProviderStatus {
 
 enum ThrottleScope {
   EMAIL
+  PHONE
   IP
 
   @@map("throttle_scope")
 }
 
+enum ClientType {
+  INDIVIDUAL
+  ORGANIZATION
+
+  @@map("client_type")
+}
+
+enum ServiceProviderType {
+  GULPER
+  EMPTIER
+
+  @@map("service_provider_type")
+}
+
+enum PhoneChallengePurpose {
+  REGISTRATION
+  CLIENT_SIGN_IN
+
+  @@map("phone_challenge_purpose")
+}
+
+enum PhoneChallengeDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+
+  @@map("phone_challenge_delivery_status")
+}
+
+enum ProviderApprovalDecision {
+  APPROVED
+  REJECTED
+
+  @@map("provider_approval_decision")
+}
+
+enum NotificationType {
+  PROVIDER_REVIEW_REQUIRED
+  PROVIDER_APPROVED
+  PROVIDER_REJECTED
+
+  @@map("notification_type")
+}
+
 model User {
-  id                        String                  @id @default(uuid()) @db.Uuid
-  encryptedEmail            String                  @map("encrypted_email") @db.VarChar(1024)
-  emailLookup               String                  @unique(map: "uq_users_email_lookup") @map("email_lookup") @db.VarChar(64)
-  passwordHash              String                  @map("password_hash") @db.VarChar(512)
-  actorType                 ActorType               @map("actor_type")
-  providerStatus            ProviderStatus?         @map("provider_status")
-  isActive                  Boolean                 @default(true) @map("is_active")
-  loginEnabled              Boolean                 @default(true) @map("login_enabled")
-  emailVerifiedAt           DateTime?               @map("email_verified_at") @db.Timestamptz(3)
-  mobileMonitoringPermitted Boolean                 @default(false) @map("mobile_monitoring_permitted")
-  passwordChangedAt         DateTime                @default(now()) @map("password_changed_at") @db.Timestamptz(3)
-  passwordVersion           Int                     @default(1) @map("password_version")
-  failedLoginCount          Int                     @default(0) @map("failed_login_count")
-  authenticationLockedUntil DateTime?               @map("authentication_locked_until") @db.Timestamptz(3)
-  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                        String                           @id @default(uuid()) @db.Uuid
+  encryptedEmail            String?                          @map("encrypted_email") @db.VarChar(1024)
+  emailLookup               String?                          @unique(map: "uq_users_email_lookup") @map("email_lookup") @db.VarChar(64)
+  passwordHash              String?                          @map("password_hash") @db.VarChar(512)
+  encryptedPhone            String?                          @map("encrypted_phone") @db.VarChar(1024)
+  phoneLookup               String?                          @unique(map: "uq_users_phone_lookup") @map("phone_lookup") @db.VarChar(64)
+  actorType                 ActorType                        @map("actor_type")
+  providerStatus            ProviderStatus?                  @map("provider_status")
+  isActive                  Boolean                          @default(true) @map("is_active")
+  loginEnabled              Boolean                          @default(true) @map("login_enabled")
+  emailVerifiedAt           DateTime?                        @map("email_verified_at") @db.Timestamptz(3)
+  phoneVerifiedAt           DateTime?                        @map("phone_verified_at") @db.Timestamptz(3)
+  mobileMonitoringPermitted Boolean                          @default(false) @map("mobile_monitoring_permitted")
+  providerApprovalPermitted Boolean                          @default(false) @map("provider_approval_permitted")
+  passwordChangedAt         DateTime                         @default(now()) @map("password_changed_at") @db.Timestamptz(3)
+  passwordVersion           Int                              @default(1) @map("password_version")
+  failedLoginCount          Int                              @default(0) @map("failed_login_count")
+  authenticationLockedUntil DateTime?                        @map("authentication_locked_until") @db.Timestamptz(3)
+  createdAt                 DateTime                         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                 DateTime                         @updatedAt @map("updated_at") @db.Timestamptz(3)
   sessions                  AuthenticationSession[]
+  clientProfile             ClientProfile?
+  serviceProviderProfile    ServiceProviderProfile?
+  phoneChallenges           PhoneChallenge[]
+  approvalDecisionsMade     ProviderApprovalDecisionRecord[] @relation("ApprovalDecisionMaker")
+  providerApprovalDecisions ProviderApprovalDecisionRecord[] @relation("ApprovalSubject")
+  notifications             RegistrationNotification[]
 
   @@index([actorType], map: "ix_users_actor_type")
   @@map("users")
+}
+
+model ClientProfile {
+  userId                String     @id @map("user_id") @db.Uuid
+  clientNumber          String?    @unique(map: "uq_client_profiles_client_number") @map("client_number") @db.VarChar(32)
+  clientType            ClientType @map("client_type")
+  firstName             String?    @map("first_name") @db.VarChar(100)
+  lastName              String?    @map("last_name") @db.VarChar(100)
+  organizationName      String?    @map("organization_name") @db.VarChar(200)
+  contactPersonName     String?    @map("contact_person_name") @db.VarChar(200)
+  encryptedContactPhone String?    @map("encrypted_contact_phone") @db.VarChar(1024)
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("client_profiles")
+}
+
+model ServiceProviderProfile {
+  userId                String              @id @map("user_id") @db.Uuid
+  providerNumber        String?             @unique(map: "uq_service_provider_profiles_provider_number") @map("provider_number") @db.VarChar(32)
+  essLicenseNumber      String              @map("ess_license_number") @db.VarChar(100)
+  companyName           String              @map("company_name") @db.VarChar(200)
+  workAddress           String              @map("work_address") @db.VarChar(500)
+  providerType          ServiceProviderType @map("provider_type")
+  contactPersonName     String              @map("contact_person_name") @db.VarChar(200)
+  encryptedContactPhone String              @map("encrypted_contact_phone") @db.VarChar(1024)
+  latestRejectionReason String?             @map("latest_rejection_reason") @db.VarChar(1000)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([essLicenseNumber], map: "ix_service_provider_profiles_ess_license")
+  @@map("service_provider_profiles")
+}
+
+model PhoneChallenge {
+  id                String                       @id @db.Uuid
+  userId            String?                      @map("user_id") @db.Uuid
+  phoneLookup       String                       @map("phone_lookup") @db.VarChar(64)
+  encryptedPhone    String                       @map("encrypted_phone") @db.VarChar(1024)
+  purpose           PhoneChallengePurpose
+  codeHash          String                       @map("code_hash") @db.VarChar(64)
+  expiresAt         DateTime                     @map("expires_at") @db.Timestamptz(3)
+  resendAvailableAt DateTime                     @map("resend_available_at") @db.Timestamptz(3)
+  attemptsRemaining Int                          @default(5) @map("attempts_remaining")
+  consumedAt        DateTime?                    @map("consumed_at") @db.Timestamptz(3)
+  deliveryStatus    PhoneChallengeDeliveryStatus @default(PENDING) @map("delivery_status")
+  providerMessageId String?                      @map("provider_message_id") @db.VarChar(255)
+  createdAt         DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  user              User?                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([phoneLookup, purpose, createdAt], map: "ix_phone_challenges_phone_purpose_created")
+  @@index([expiresAt], map: "ix_phone_challenges_expiry")
+  @@map("phone_challenges")
+}
+
+model ProviderApprovalDecisionRecord {
+  id              String                   @id @default(uuid()) @db.Uuid
+  providerUserId  String                   @map("provider_user_id") @db.Uuid
+  decidedByUserId String                   @map("decided_by_user_id") @db.Uuid
+  decision        ProviderApprovalDecision
+  reason          String?                  @db.VarChar(1000)
+  createdAt       DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  provider        User                     @relation("ApprovalSubject", fields: [providerUserId], references: [id], onDelete: Cascade)
+  decidedBy       User                     @relation("ApprovalDecisionMaker", fields: [decidedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([providerUserId, createdAt], map: "ix_provider_approval_decisions_subject_created")
+  @@map("provider_approval_decisions")
+}
+
+model RegistrationNotification {
+  id                 String           @id @default(uuid()) @db.Uuid
+  recipientUserId    String?          @map("recipient_user_id") @db.Uuid
+  recipientActorType ActorType?       @map("recipient_actor_type")
+  type               NotificationType
+  subjectUserId      String           @map("subject_user_id") @db.Uuid
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  readAt             DateTime?        @map("read_at") @db.Timestamptz(3)
+  recipient          User?            @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+
+  @@index([recipientActorType, createdAt], map: "ix_registration_notifications_actor_created")
+  @@index([recipientUserId, createdAt], map: "ix_registration_notifications_user_created")
+  @@map("registration_notifications")
 }
 
 model AuthenticationSession {

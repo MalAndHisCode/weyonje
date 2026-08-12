@@ -9,7 +9,13 @@ export interface AuthenticatedActor {
     isActive: boolean;
     loginEnabled: boolean;
     emailVerifiedAt: Date | null;
+    phoneVerifiedAt: Date | null;
     mobileMonitoringPermitted: boolean;
+    providerApprovalPermitted: boolean;
     passwordVersion: number;
+    serviceProviderProfile: {
+      providerNumber: string | null;
+      latestRejectionReason: string | null;
+    } | null;
   };
 }

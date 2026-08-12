@@ -15,7 +15,11 @@ export class CurrentActorService {
     const user = actor.user;
     switch (user.actorType as string) {
       case ActorType.client:
-        if (user.providerStatus !== null || user.mobileMonitoringPermitted) {
+        if (
+          user.providerStatus !== null ||
+          user.mobileMonitoringPermitted ||
+          user.serviceProviderProfile !== null
+        ) {
           throw this.inconsistent();
         }
         return {
@@ -28,7 +32,8 @@ export class CurrentActorService {
           user.mobileMonitoringPermitted ||
           !Object.values(ProviderStatus).includes(
             user.providerStatus as ProviderStatus,
-          )
+          ) ||
+          user.serviceProviderProfile === null
         ) {
           throw this.inconsistent();
         }
@@ -39,9 +44,23 @@ export class CurrentActorService {
               ? ActorAccess.eligible
               : ActorAccess.restricted,
           providerStatus: user.providerStatus as ProviderStatus,
+          ...(user.serviceProviderProfile.providerNumber
+            ? { providerNumber: user.serviceProviderProfile.providerNumber }
+            : {}),
+          ...(user.serviceProviderProfile.latestRejectionReason
+            ? {
+                providerRejectionReason:
+                  user.serviceProviderProfile.latestRejectionReason,
+              }
+            : {}),
         };
       case ActorType.kccaStaff:
-        if (user.providerStatus !== null) throw this.inconsistent();
+        if (
+          user.providerStatus !== null ||
+          user.serviceProviderProfile !== null
+        ) {
+          throw this.inconsistent();
+        }
         return {
           actorType: ActorType.kccaStaff,
           access:

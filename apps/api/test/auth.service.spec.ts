@@ -6,6 +6,8 @@ import { LoginThrottleService } from "../src/auth/login-throttle.service";
 import { PasswordService } from "../src/auth/password.service";
 import { SessionService } from "../src/auth/session.service";
 import { PrismaService } from "../src/database/prisma.service";
+import { PhoneChallengeService } from "../src/registration/phone-challenge.service";
+import { PhoneSecurityService } from "../src/registration/phone-security.service";
 
 function harness(user: object | null, passwordValid = false) {
   const prisma = {
@@ -32,8 +34,18 @@ function harness(user: object | null, passwordValid = false) {
   const sessions = {
     create: jest.fn().mockResolvedValue({ accessToken: "not-logged" }),
   } as unknown as SessionService;
+  const phones = {} as PhoneSecurityService;
+  const challenges = {} as PhoneChallengeService;
   return {
-    service: new AuthService(prisma, emails, passwords, throttles, sessions),
+    service: new AuthService(
+      prisma,
+      emails,
+      passwords,
+      throttles,
+      sessions,
+      phones,
+      challenges,
+    ),
     passwords,
     throttles,
     sessions,
@@ -45,8 +57,10 @@ describe("AuthService", () => {
     id: "user-1",
     passwordHash: "argon2-hash",
     passwordVersion: 1,
+    actorType: "SERVICE_PROVIDER",
     loginEnabled: true,
     emailVerifiedAt: new Date(),
+    phoneVerifiedAt: null,
     authenticationLockedUntil: null,
   };
 

@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/auth/current_actor.dart';
+import '../core/auth/registration_models.dart';
 import '../features/auth/application/launch_controller.dart';
 import '../features/auth/presentation/access_denied_screen.dart';
 import '../features/auth/presentation/authorized_destination_unavailable_screen.dart';
 import '../features/auth/presentation/choose_account_type_screen.dart';
+import '../features/auth/presentation/client_phone_sign_in_screen.dart';
+import '../features/auth/presentation/client_registration_screen.dart';
+import '../features/auth/presentation/phone_verification_screen.dart';
 import '../features/auth/presentation/provider_account_status_screen.dart';
-import '../features/auth/presentation/registration_unavailable_screen.dart';
+import '../features/auth/presentation/service_provider_registration_screen.dart';
 import '../features/auth/presentation/session_check_screen.dart';
 import '../features/auth/presentation/session_error_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
@@ -19,6 +23,10 @@ abstract final class AppRoutes {
   static const welcome = '/welcome';
   static const chooseAccountType = '/account-type';
   static const signIn = '/sign-in';
+  static const clientSignIn = '/sign-in/client';
+  static const clientRegistration = '/register/client';
+  static const serviceProviderRegistration = '/register/service-provider';
+  static const phoneVerification = '/verify-phone';
   static const sessionError = '/session-error';
   static const accessDenied = '/access-denied';
   static const providerAccountStatus = '/provider-account-status';
@@ -54,6 +62,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SignInScreen(),
       ),
       GoRoute(
+        path: AppRoutes.clientSignIn,
+        builder: (context, state) => const ClientPhoneSignInScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.clientRegistration,
+        builder: (context, state) => const ClientRegistrationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.serviceProviderRegistration,
+        builder: (context, state) => const ServiceProviderRegistrationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.phoneVerification,
+        redirect: (context, state) => state.extra is PhoneVerificationArguments
+            ? null
+            : AppRoutes.welcome,
+        builder: (context, state) => PhoneVerificationScreen(
+          arguments: state.extra! as PhoneVerificationArguments,
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.sessionError,
         builder: (context, state) => const SessionErrorScreen(),
       ),
@@ -64,23 +93,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.providerAccountStatus,
         builder: (context, state) => const ProviderAccountStatusScreen(),
-      ),
-      GoRoute(
-        path: '/register/:accountType/unavailable',
-        redirect: (context, state) {
-          final type = state.pathParameters['accountType'];
-          return type == 'client' || type == 'service-provider'
-              ? null
-              : AppRoutes.chooseAccountType;
-        },
-        builder: (context, state) {
-          final type = state.pathParameters['accountType'];
-          return RegistrationUnavailableScreen(
-            accountLabel: type == 'service-provider'
-                ? 'Service Provider'
-                : 'Client',
-          );
-        },
       ),
       GoRoute(
         path: AppRoutes.clientHome,
@@ -124,7 +136,10 @@ bool _isUnauthenticatedPath(String path) =>
     path == AppRoutes.welcome ||
     path == AppRoutes.chooseAccountType ||
     path == AppRoutes.signIn ||
-    path.startsWith('/register/');
+    path == AppRoutes.clientSignIn ||
+    path == AppRoutes.phoneVerification ||
+    path == AppRoutes.clientRegistration ||
+    path == AppRoutes.serviceProviderRegistration;
 
 String? _authenticatedRedirect(CurrentActor actor, String path) {
   final destination = switch ((actor.actorType, actor.access)) {
