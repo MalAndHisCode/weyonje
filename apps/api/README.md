@@ -27,6 +27,8 @@ Access tokens are short-lived HS256 JWTs containing only internal user and sessi
 
 Startup rejects missing/malformed/placeholder connection values, insecure issuer configuration, undersized keys, secret reuse, unsafe TTL/limit values, and inconsistent production environment selection. Secrets are never generated at startup.
 
+`SMS_PROVIDER=FAKE` is the default outside `WEYONJE_ENVIRONMENT=production`. It returns the generated one-time code in the development-only challenge field so the mobile verification screen can display and prefill it without an external SMS account. The fake is prohibited in the Weyonje production environment. Use `SMS_PROVIDER=AFRICAS_TALKING` only after the corresponding credentials and non-production resources have been authorised and configured; that adapter never returns the code in an API response.
+
 ## Prisma and migration checks
 
 ```text

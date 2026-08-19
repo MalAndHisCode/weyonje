@@ -1,6 +1,12 @@
 import { Module } from "@nestjs/common";
+import { ConfigType } from "@nestjs/config";
 
-import { AfricasTalkingSmsGateway, SmsGateway } from "./sms-gateway";
+import { smsConfig } from "../config/sms.config";
+import {
+  AfricasTalkingSmsGateway,
+  DevelopmentFakeSmsGateway,
+  SmsGateway,
+} from "./sms-gateway";
 import { PhoneChallengeService } from "./phone-challenge.service";
 import { PhoneSecurityService } from "./phone-security.service";
 
@@ -9,7 +15,20 @@ import { PhoneSecurityService } from "./phone-security.service";
     PhoneChallengeService,
     PhoneSecurityService,
     AfricasTalkingSmsGateway,
-    { provide: SmsGateway, useExisting: AfricasTalkingSmsGateway },
+    DevelopmentFakeSmsGateway,
+    {
+      provide: SmsGateway,
+      inject: [
+        smsConfig.KEY,
+        AfricasTalkingSmsGateway,
+        DevelopmentFakeSmsGateway,
+      ],
+      useFactory: (
+        config: ConfigType<typeof smsConfig>,
+        africasTalking: AfricasTalkingSmsGateway,
+        fake: DevelopmentFakeSmsGateway,
+      ) => (config.provider === "AFRICAS_TALKING" ? africasTalking : fake),
+    },
   ],
   exports: [PhoneChallengeService, PhoneSecurityService],
 })

@@ -1,6 +1,7 @@
 import { registerAs } from "@nestjs/config";
 
 export interface SmsConfig {
+  provider: "FAKE" | "AFRICAS_TALKING";
   username: string;
   apiKey: string;
   senderId: string;
@@ -9,6 +10,30 @@ export interface SmsConfig {
 }
 
 export const smsConfig = registerAs("sms", (): SmsConfig => {
+  const environment = process.env.WEYONJE_ENVIRONMENT?.trim();
+  const provider = (
+    process.env.SMS_PROVIDER ?? (environment === "production" ? "" : "FAKE")
+  )
+    .trim()
+    .toUpperCase();
+  if (provider !== "FAKE" && provider !== "AFRICAS_TALKING") {
+    throw new Error("Invalid or missing configuration: SMS_PROVIDER");
+  }
+  if (provider === "FAKE") {
+    if (environment === "production") {
+      throw new Error(
+        "Invalid configuration: SMS_PROVIDER=FAKE is prohibited in production",
+      );
+    }
+    return {
+      provider,
+      username: "",
+      apiKey: "",
+      senderId: "",
+      baseUrl: "",
+      timeoutMilliseconds: 8_000,
+    };
+  }
   const baseUrl = process.env.AFRICASTALKING_API_BASE_URL ?? "";
   if (
     baseUrl !== "https://api.africastalking.com" &&
@@ -22,6 +47,7 @@ export const smsConfig = registerAs("sms", (): SmsConfig => {
   const apiKey = required("AFRICASTALKING_API_KEY");
   const senderId = required("AFRICASTALKING_SENDER_ID");
   return {
+    provider,
     username,
     apiKey,
     senderId,

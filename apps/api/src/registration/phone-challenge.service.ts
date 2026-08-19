@@ -20,6 +20,7 @@ import {
 } from "node:crypto";
 
 import { authConfig } from "../config/auth.config";
+import { smsConfig } from "../config/sms.config";
 import { PrismaService } from "../database/prisma.service";
 import {
   PhoneChallengeDeliveryStatus,
@@ -36,6 +37,8 @@ export class PhoneChallengeService {
     private readonly sms: SmsGateway,
     @Inject(authConfig.KEY)
     private readonly config: ConfigType<typeof authConfig>,
+    @Inject(smsConfig.KEY)
+    private readonly smsConfiguration: ConfigType<typeof smsConfig>,
   ) {}
 
   async create(
@@ -115,6 +118,10 @@ export class PhoneChallengeService {
       expiresAt: expiresAt.toISOString(),
       resendAvailableAt: resendAvailableAt.toISOString(),
       deliveryStatus,
+      ...(this.smsConfiguration.provider === "FAKE" &&
+      deliveryStatus === PhoneCodeDeliveryStatus.sent
+        ? { developmentVerificationCode: code }
+        : {}),
     };
   }
 

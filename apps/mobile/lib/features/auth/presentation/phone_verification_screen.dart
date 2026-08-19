@@ -31,6 +31,7 @@ class _PhoneVerificationScreenState
   void initState() {
     super.initState();
     _challenge = widget.arguments.challenge;
+    _applyDevelopmentCode();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && !_canResend) setState(() {});
     });
@@ -75,6 +76,14 @@ class _PhoneVerificationScreenState
                   message:
                       'The SMS provider did not accept the message. Your information was kept; request another code to retry.',
                   error: true,
+                ),
+              ],
+              if (_challenge.developmentVerificationCode != null) ...[
+                const SizedBox(height: 20),
+                WeyonjeAlert(
+                  title: 'Development SMS mode',
+                  message:
+                      'No SMS was sent. Use test code ${_challenge.developmentVerificationCode}; it has been filled in below.',
                 ),
               ],
               const SizedBox(height: 24),
@@ -154,7 +163,13 @@ class _PhoneVerificationScreenState
         .read(phoneVerificationControllerProvider.notifier)
         .resend(arguments);
     if (!mounted || challenge == null) return;
-    _code.clear();
-    setState(() => _challenge = challenge);
+    setState(() {
+      _challenge = challenge;
+      _applyDevelopmentCode();
+    });
+  }
+
+  void _applyDevelopmentCode() {
+    _code.text = _challenge.developmentVerificationCode ?? '';
   }
 }

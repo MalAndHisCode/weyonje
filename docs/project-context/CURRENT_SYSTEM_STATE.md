@@ -17,7 +17,7 @@ Weyonje is an Android Flutter application backed by a NestJS/Fastify modular-mon
 
 The implemented development slice now includes service-request creation, marketplace/Call Centre ingress, atomic Provider acceptance, Provider jobs, collection confirmation and 1–5 feedback, separate negative follow-up cases, KCCA-controlled disposal-site assignment, disposal completion, persisted journey positions, in-app notifications/outbox, authenticated Socket.IO update hints, and REST reconciliation. The committed OpenAPI is generated from authentication, registration, actor, and workflow controllers.
 
-This is still a development implementation. Railway is the user-confirmed deployment target, connected directly to GitHub with the service rooted at the repository root. Its live settings, deployment health, logs, migration state, WebSocket behaviour, and capacity were not inspected in this task. Neon remains an unverified database target. Google Maps, FCM/push, Africa's Talking operational delivery, production background tracking, outbox processing, scheduled reminders, retention purge, production load, and production operations have not been authorised or validated.
+This is still a development implementation. Railway is the user-confirmed deployment target, connected directly to GitHub with the service rooted at the repository root. On 2026-08-19, the live service configuration and crash logs were inspected: three existing shared cryptographic variables were linked to the API, and the subsequent unauthorised Africa's Talking startup dependency was replaced locally with the guarded development fake described below. Migration state, WebSocket behaviour, and capacity remain unverified. Neon remains an unverified database target. Google Maps, FCM/push, Africa's Talking operational delivery, production background tracking, outbox processing, scheduled reminders, retention purge, production load, and production operations have not been authorised or validated.
 
 `AI_CODING_AGENT_RULES.md` still contains historical Koyeb-specific guidance. The user's Railway correction supersedes those hosting assumptions for current work; the supplied source document is intentionally left unchanged and should be revised separately by its owner.
 
@@ -45,7 +45,7 @@ This is still a development implementation. Railway is the user-confirmed deploy
 - Permission-protected Call Centre APIs use `callCentreOperationsPermitted`, valid only for KCCA Staff. Local provisioning supports `--call-centre-operations`.
 - KCCA controls the active disposal-site catalogue and request assignment. Providers may view assigned sites but cannot choose or change them.
 - Important state transitions create audit/status records and durable notifications/outbox records in the same database transaction.
-- Push and operational-SMS boundaries are provider-neutral and deliberately unconfigured. Existing registration/Client-login verification SMS remains behind the Africa's Talking adapter.
+- Push and operational-SMS boundaries are provider-neutral and deliberately unconfigured. Registration/Client-login verification SMS uses a provider-selected boundary: the development fake is allowed only outside the Weyonje production environment and returns the one-time code in the development challenge response for mobile display/prefill; Africa's Talking remains separately configured and unverified and never returns the code.
 - Socket.IO authenticates the native API access token/session, joins only actor/permission rooms, emits participant/KCCA update hints, and directs clients to reconcile authoritative state through REST.
 - No Valkey, Redis, BullMQ, or separate worker is introduced in this slice.
 
@@ -104,10 +104,10 @@ The mobile app stops its active tracking subscriptions when the tracking screen 
 | Integration | Repository boundary | Verification state |
 | --- | --- | --- |
 | Neon PostgreSQL | Prisma pooled runtime/direct migration configuration | **Unverified development target.** No project/database was accessed; migration not applied. |
-| Railway | GitHub-connected service rooted at repository root | **Configured externally, user-confirmed.** This task did not inspect or change the Railway project, Variables, build/start settings, domain, logs, migration state, health, WebSocket behaviour, or capacity. |
+| Railway | GitHub-connected service rooted at repository root | **Development deployment inspected 2026-08-19.** Public domain: `weyonje-api-production.up.railway.app`; `WEYONJE_ENVIRONMENT=development`. Shared `OTP_HASH_KEY`, `PHONE_LOOKUP_KEY`, and `PII_ENCRYPTION_KEY` were linked to the service. The service then exposed the separate SMS-provider configuration failure. Migration state, WebSocket behaviour, and capacity remain unverified. |
 | Google Maps | Explicit mobile map-selection boundary | **Unconfigured/unverified.** No project, key, billing, SDK metadata, or live call. |
 | FCM / push | Provider-neutral server gateway with unconfigured implementation | **Unconfigured/unverified.** No Firebase resource or credential. |
-| Africa's Talking | Existing verification SMS adapter; operational SMS boundary disabled | **Unverified.** No credential or live delivery used in this implementation pass. |
+| Africa's Talking | Provider-selected verification SMS adapter; operational SMS boundary disabled | **Unverified.** No credential or live delivery used in this implementation pass. Development uses `SMS_PROVIDER=FAKE`; the API prohibits that fake when `WEYONJE_ENVIRONMENT=production`. |
 | Call Centre | Permission-protected REST contract | **Synthetic only.** No external caller or credential configured. |
 | Socket.IO hosting | Authenticated in-process gateway | **Locally compiled only.** No Railway runtime or multi-instance validation in this task. |
 

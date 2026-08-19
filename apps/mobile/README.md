@@ -24,6 +24,7 @@ flutter run --dart-define-from-file=config/auth.local.json
 
 ## Operational flows
 
+- When the API uses its guarded development fake SMS provider, the phone-verification screen displays and prefills the generated one-time code. No Africa's Talking account is required. The API prohibits this response field in the Weyonje production environment.
 - Clients can create ASAP or scheduled requests, view history/details, track journeys, and submit 1–5 collection feedback.
 - Approved active Providers can see eligible marketplace requests with minimal pre-acceptance information, atomically accept work, manage jobs, report collection, and complete KCCA-assigned disposal.
 - Permitted KCCA users have read-only monitoring and notifications; Call Centre/disposal administration remains API-only.

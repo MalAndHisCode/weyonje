@@ -1323,6 +1323,11 @@
               "SENT",
               "FAILED"
             ]
+          },
+          "developmentVerificationCode": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "Returned only by the guarded development fake SMS adapter; never present in production."
           }
         },
         "required": [

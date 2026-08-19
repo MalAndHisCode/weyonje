@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { ConfigType } from "@nestjs/config";
 import { ApiErrorCode } from "@weyonje/contracts";
+import { randomUUID } from "node:crypto";
 
 import { smsConfig } from "../config/sms.config";
 
@@ -78,5 +79,15 @@ export class AfricasTalkingSmsGateway implements SmsGateway {
     } finally {
       clearTimeout(timeout);
     }
+  }
+}
+
+@Injectable()
+export class DevelopmentFakeSmsGateway implements SmsGateway {
+  async sendVerificationCode(
+    _phoneNumber: string,
+    _code: string,
+  ): Promise<string> {
+    return `fake-${randomUUID()}`;
   }
 }

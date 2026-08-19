@@ -11,7 +11,11 @@ import { SmsGateway } from "../src/registration/sms-gateway";
 import { testAuthConfig } from "./support/auth-config";
 
 describe("PhoneChallengeService", () => {
-  function harness({ recent = 0, deliveryFails = false } = {}) {
+  function harness({
+    recent = 0,
+    deliveryFails = false,
+    fakeSms = false,
+  } = {}) {
     let stored: Record<string, unknown> | null = null;
     let deliveredCode: string | null = null;
     const phoneChallenge = {
@@ -56,8 +60,22 @@ describe("PhoneChallengeService", () => {
       }),
     } as unknown as SmsGateway;
     const config = testAuthConfig();
+    const smsConfiguration = {
+      provider: fakeSms ? "FAKE" : "AFRICAS_TALKING",
+      username: "",
+      apiKey: "",
+      senderId: "",
+      baseUrl: "",
+      timeoutMilliseconds: 8_000,
+    } as const;
     return {
-      service: new PhoneChallengeService(prisma, phones, sms, config),
+      service: new PhoneChallengeService(
+        prisma,
+        phones,
+        sms,
+        config,
+        smsConfiguration,
+      ),
       phoneChallenge,
       sms,
       config,
@@ -94,6 +112,17 @@ describe("PhoneChallengeService", () => {
         where: expect.objectContaining({ consumedAt: null }),
       }),
     );
+  });
+
+  it("returns the code only when the guarded development fake is selected", async () => {
+    const value = harness({ fakeSms: true });
+    const challenge = await value.service.create(
+      "+256700000123",
+      PhoneChallengePurpose.REGISTRATION,
+      "user-1",
+    );
+
+    expect(challenge.developmentVerificationCode).toBe(value.deliveredCode);
   });
 
   it("returns a truthful failed-delivery state and rejects verification", async () => {

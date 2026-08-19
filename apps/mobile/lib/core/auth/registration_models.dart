@@ -13,6 +13,7 @@ class PhoneChallenge {
     required this.expiresAt,
     required this.resendAvailableAt,
     required this.deliveryStatus,
+    this.developmentVerificationCode,
   });
 
   final String id;
@@ -20,6 +21,7 @@ class PhoneChallenge {
   final DateTime expiresAt;
   final DateTime resendAvailableAt;
   final PhoneCodeDeliveryStatus deliveryStatus;
+  final String? developmentVerificationCode;
 
   factory PhoneChallenge.fromJson(Object? value) {
     if (value is! Map<String, dynamic>) {
@@ -32,11 +34,15 @@ class PhoneChallenge {
       value['resendAvailableAt'] as String? ?? '',
     );
     final delivery = value['deliveryStatus'];
+    final developmentCode = value['developmentVerificationCode'];
     if (id is! String ||
         maskedPhone is! String ||
         expiresAt == null ||
         resendAt == null ||
-        (delivery != 'SENT' && delivery != 'FAILED')) {
+        (delivery != 'SENT' && delivery != 'FAILED') ||
+        (developmentCode != null &&
+            (developmentCode is! String ||
+                !RegExp(r'^\d{6}$').hasMatch(developmentCode)))) {
       throw const FormatException('Invalid phone challenge.');
     }
     return PhoneChallenge(
@@ -47,6 +53,7 @@ class PhoneChallenge {
       deliveryStatus: delivery == 'SENT'
           ? PhoneCodeDeliveryStatus.sent
           : PhoneCodeDeliveryStatus.failed,
+      developmentVerificationCode: developmentCode as String?,
     );
   }
 }
