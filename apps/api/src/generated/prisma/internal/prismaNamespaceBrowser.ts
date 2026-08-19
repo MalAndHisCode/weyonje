@@ -59,7 +59,21 @@ export const ModelName = {
   RegistrationNotification: 'RegistrationNotification',
   AuthenticationSession: 'AuthenticationSession',
   RefreshToken: 'RefreshToken',
-  LoginThrottle: 'LoginThrottle'
+  LoginThrottle: 'LoginThrottle',
+  ServiceRequest: 'ServiceRequest',
+  RequestAssignment: 'RequestAssignment',
+  RequestStatusHistory: 'RequestStatusHistory',
+  Journey: 'Journey',
+  JourneyPosition: 'JourneyPosition',
+  CollectionReport: 'CollectionReport',
+  ServiceFeedback: 'ServiceFeedback',
+  FollowUpCase: 'FollowUpCase',
+  DisposalSite: 'DisposalSite',
+  DisposalAssignment: 'DisposalAssignment',
+  OperationalNotification: 'OperationalNotification',
+  OutboxEvent: 'OutboxEvent',
+  IdempotencyRecord: 'IdempotencyRecord',
+  AuditEvent: 'AuditEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -93,6 +107,7 @@ export const UserScalarFieldEnum = {
   phoneVerifiedAt: 'phoneVerifiedAt',
   mobileMonitoringPermitted: 'mobileMonitoringPermitted',
   providerApprovalPermitted: 'providerApprovalPermitted',
+  callCentreOperationsPermitted: 'callCentreOperationsPermitted',
   passwordChangedAt: 'passwordChangedAt',
   passwordVersion: 'passwordVersion',
   failedLoginCount: 'failedLoginCount',
@@ -224,12 +239,238 @@ export const LoginThrottleScalarFieldEnum = {
 export type LoginThrottleScalarFieldEnum = (typeof LoginThrottleScalarFieldEnum)[keyof typeof LoginThrottleScalarFieldEnum]
 
 
+export const ServiceRequestScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  origin: 'origin',
+  status: 'status',
+  clientUserId: 'clientUserId',
+  createdByUserId: 'createdByUserId',
+  acceptedProviderUserId: 'acceptedProviderUserId',
+  clientName: 'clientName',
+  encryptedClientPhone: 'encryptedClientPhone',
+  encryptedClientEmail: 'encryptedClientEmail',
+  locationKind: 'locationKind',
+  locationText: 'locationText',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  toiletType: 'toiletType',
+  additionalContactName: 'additionalContactName',
+  encryptedAdditionalPhone: 'encryptedAdditionalPhone',
+  scheduleMode: 'scheduleMode',
+  requestedServiceAt: 'requestedServiceAt',
+  agreedPriceUgx: 'agreedPriceUgx',
+  acceptedAt: 'acceptedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceRequestScalarFieldEnum = (typeof ServiceRequestScalarFieldEnum)[keyof typeof ServiceRequestScalarFieldEnum]
+
+
+export const RequestAssignmentScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  providerUserId: 'providerUserId',
+  assignedByUserId: 'assignedByUserId',
+  status: 'status',
+  createdAt: 'createdAt',
+  decidedAt: 'decidedAt'
+} as const
+
+export type RequestAssignmentScalarFieldEnum = (typeof RequestAssignmentScalarFieldEnum)[keyof typeof RequestAssignmentScalarFieldEnum]
+
+
+export const RequestStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  actorUserId: 'actorUserId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type RequestStatusHistoryScalarFieldEnum = (typeof RequestStatusHistoryScalarFieldEnum)[keyof typeof RequestStatusHistoryScalarFieldEnum]
+
+
+export const JourneyScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  providerUserId: 'providerUserId',
+  phase: 'phase',
+  status: 'status',
+  startedAt: 'startedAt',
+  arrivedAt: 'arrivedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type JourneyScalarFieldEnum = (typeof JourneyScalarFieldEnum)[keyof typeof JourneyScalarFieldEnum]
+
+
+export const JourneyPositionScalarFieldEnum = {
+  id: 'id',
+  journeyId: 'journeyId',
+  sampleId: 'sampleId',
+  deviceTimestamp: 'deviceTimestamp',
+  receivedAt: 'receivedAt',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  accuracyMetres: 'accuracyMetres',
+  acceptedForArrival: 'acceptedForArrival'
+} as const
+
+export type JourneyPositionScalarFieldEnum = (typeof JourneyPositionScalarFieldEnum)[keyof typeof JourneyPositionScalarFieldEnum]
+
+
+export const CollectionReportScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  reportedByProviderId: 'reportedByProviderId',
+  reportedAt: 'reportedAt'
+} as const
+
+export type CollectionReportScalarFieldEnum = (typeof CollectionReportScalarFieldEnum)[keyof typeof CollectionReportScalarFieldEnum]
+
+
+export const ServiceFeedbackScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  submittedByUserId: 'submittedByUserId',
+  outcome: 'outcome',
+  feedback: 'feedback',
+  rating: 'rating',
+  wasteCollected: 'wasteCollected',
+  submittedAt: 'submittedAt'
+} as const
+
+export type ServiceFeedbackScalarFieldEnum = (typeof ServiceFeedbackScalarFieldEnum)[keyof typeof ServiceFeedbackScalarFieldEnum]
+
+
+export const FollowUpCaseScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  status: 'status',
+  outcome: 'outcome',
+  openedAt: 'openedAt',
+  resolvedAt: 'resolvedAt',
+  resolution: 'resolution'
+} as const
+
+export type FollowUpCaseScalarFieldEnum = (typeof FollowUpCaseScalarFieldEnum)[keyof typeof FollowUpCaseScalarFieldEnum]
+
+
+export const DisposalSiteScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  address: 'address',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  active: 'active',
+  approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DisposalSiteScalarFieldEnum = (typeof DisposalSiteScalarFieldEnum)[keyof typeof DisposalSiteScalarFieldEnum]
+
+
+export const DisposalAssignmentScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  disposalSiteId: 'disposalSiteId',
+  assignedByUserId: 'assignedByUserId',
+  assignedAt: 'assignedAt'
+} as const
+
+export type DisposalAssignmentScalarFieldEnum = (typeof DisposalAssignmentScalarFieldEnum)[keyof typeof DisposalAssignmentScalarFieldEnum]
+
+
+export const OperationalNotificationScalarFieldEnum = {
+  id: 'id',
+  recipientUserId: 'recipientUserId',
+  requestId: 'requestId',
+  type: 'type',
+  title: 'title',
+  message: 'message',
+  createdAt: 'createdAt',
+  readAt: 'readAt'
+} as const
+
+export type OperationalNotificationScalarFieldEnum = (typeof OperationalNotificationScalarFieldEnum)[keyof typeof OperationalNotificationScalarFieldEnum]
+
+
+export const OutboxEventScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  recipientUserId: 'recipientUserId',
+  channel: 'channel',
+  eventType: 'eventType',
+  deduplicationKey: 'deduplicationKey',
+  payload: 'payload',
+  status: 'status',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  deliveredAt: 'deliveredAt',
+  lastErrorCode: 'lastErrorCode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OutboxEventScalarFieldEnum = (typeof OutboxEventScalarFieldEnum)[keyof typeof OutboxEventScalarFieldEnum]
+
+
+export const IdempotencyRecordScalarFieldEnum = {
+  id: 'id',
+  actorUserId: 'actorUserId',
+  operation: 'operation',
+  key: 'key',
+  fingerprint: 'fingerprint',
+  response: 'response',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type IdempotencyRecordScalarFieldEnum = (typeof IdempotencyRecordScalarFieldEnum)[keyof typeof IdempotencyRecordScalarFieldEnum]
+
+
+export const AuditEventScalarFieldEnum = {
+  id: 'id',
+  actorUserId: 'actorUserId',
+  action: 'action',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  requestId: 'requestId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -246,4 +487,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

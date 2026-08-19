@@ -1,6 +1,7 @@
 import { plainToInstance, Transform } from "class-transformer";
 import {
   IsIn,
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsString,
@@ -140,6 +141,46 @@ export class Environment {
   @Min(2)
   @Max(20)
   OTP_MAX_REQUESTS_PER_HOUR = 5;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(5)
+  @Max(300)
+  LOCATION_SAMPLE_INTERVAL_SECONDS = 15;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  LOCATION_SAMPLE_DISTANCE_METRES = 25;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(10)
+  @Max(1000)
+  LOCATION_ARRIVAL_RADIUS_METRES = 75;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(5)
+  @Max(1000)
+  LOCATION_ARRIVAL_MAX_ACCURACY_METRES = 50;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(15)
+  @Max(3600)
+  LOCATION_STALE_AFTER_SECONDS = 60;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(3650)
+  LOCATION_RETENTION_DAYS = 90;
+
+  @Transform(({ value }) => value === true || value === "true")
+  @IsBoolean()
+  LOCATION_BACKGROUND_TRACKING_ENABLED = true;
 }
 
 export function validateEnvironment(

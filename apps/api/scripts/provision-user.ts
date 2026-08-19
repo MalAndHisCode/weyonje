@@ -20,6 +20,7 @@ interface ProvisioningOptions {
   actorType: ActorType;
   providerStatus: ProviderStatus | null;
   mobileMonitoringPermitted: boolean;
+  callCentreOperationsPermitted: boolean;
   emailVerified: boolean;
   active: boolean;
   loginEnabled: boolean;
@@ -58,6 +59,7 @@ async function main(): Promise<void> {
           loginEnabled: options.loginEnabled,
           emailVerifiedAt: options.emailVerified ? new Date() : null,
           mobileMonitoringPermitted: options.mobileMonitoringPermitted,
+          callCentreOperationsPermitted: options.callCentreOperationsPermitted,
         },
         select: { id: true },
       });
@@ -95,9 +97,17 @@ function parseOptions(args: string[]): ProvisioningOptions {
     throw new Error("Only Service Providers may have --provider-status.");
   }
   const mobileMonitoringPermitted = args.includes("--kcca-mobile-monitoring");
+  const callCentreOperationsPermitted = args.includes(
+    "--call-centre-operations",
+  );
   if (mobileMonitoringPermitted && actorType !== ActorType.KCCA_STAFF) {
     throw new Error(
       "Mobile monitoring permission is only valid for KCCA Staff.",
+    );
+  }
+  if (callCentreOperationsPermitted && actorType !== ActorType.KCCA_STAFF) {
+    throw new Error(
+      "Call Centre operations permission is only valid for KCCA Staff.",
     );
   }
   return {
@@ -105,6 +115,7 @@ function parseOptions(args: string[]): ProvisioningOptions {
     providerStatus:
       actorType === ActorType.SERVICE_PROVIDER ? providerStatus! : null,
     mobileMonitoringPermitted,
+    callCentreOperationsPermitted,
     emailVerified: args.includes("--email-verified"),
     active: !args.includes("--inactive"),
     loginEnabled: !args.includes("--login-disabled"),

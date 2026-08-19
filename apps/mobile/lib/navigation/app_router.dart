@@ -6,7 +6,6 @@ import '../core/auth/current_actor.dart';
 import '../core/auth/registration_models.dart';
 import '../features/auth/application/launch_controller.dart';
 import '../features/auth/presentation/access_denied_screen.dart';
-import '../features/auth/presentation/authorized_destination_unavailable_screen.dart';
 import '../features/auth/presentation/choose_account_type_screen.dart';
 import '../features/auth/presentation/client_phone_sign_in_screen.dart';
 import '../features/auth/presentation/client_registration_screen.dart';
@@ -17,6 +16,10 @@ import '../features/auth/presentation/session_check_screen.dart';
 import '../features/auth/presentation/session_error_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
+import '../features/workflows/presentation/client_request_screens.dart';
+import '../features/workflows/presentation/dashboard_screens.dart';
+import '../features/workflows/presentation/provider_screens.dart';
+import '../features/workflows/presentation/tracking_screen.dart';
 
 abstract final class AppRoutes {
   static const launch = '/launch';
@@ -33,6 +36,12 @@ abstract final class AppRoutes {
   static const clientHome = '/client';
   static const providerHome = '/provider';
   static const kccaMonitoring = '/kcca-monitoring';
+  static const clientRequestNew = '/client/requests/new';
+  static const clientRequests = '/client/requests';
+  static const locationPicker = '/client/location-picker';
+  static const providerPending = '/provider/requests/pending';
+  static const providerJobs = '/provider/jobs';
+  static const notifications = '/notifications';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -96,24 +105,71 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.clientHome,
-        builder: (context, state) =>
-            const AuthorizedDestinationUnavailableScreen(
-              destinationName: 'Client dashboard',
-            ),
+        builder: (context, state) => const ClientDashboardScreen(),
       ),
       GoRoute(
         path: AppRoutes.providerHome,
-        builder: (context, state) =>
-            const AuthorizedDestinationUnavailableScreen(
-              destinationName: 'Provider work dashboard',
-            ),
+        builder: (context, state) => const ProviderDashboardScreen(),
       ),
       GoRoute(
         path: AppRoutes.kccaMonitoring,
-        builder: (context, state) =>
-            const AuthorizedDestinationUnavailableScreen(
-              destinationName: 'KCCA monitoring dashboard',
-            ),
+        builder: (context, state) => const KccaMonitoringDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.clientRequestNew,
+        builder: (context, state) => const RequestServiceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.locationPicker,
+        builder: (context, state) => const RequestLocationPickerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.clientRequests,
+        builder: (context, state) => const ClientRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/client/requests/:requestId',
+        builder: (context, state) => ClientRequestDetailsScreen(
+          requestId: state.pathParameters['requestId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/client/requests/:requestId/feedback',
+        builder: (context, state) => CollectionFeedbackScreen(
+          requestId: state.pathParameters['requestId']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.providerPending,
+        builder: (context, state) => const PendingServiceRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/provider/requests/:requestId',
+        builder: (context, state) => ProviderRequestDetailsScreen(
+          requestId: state.pathParameters['requestId']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.providerJobs,
+        builder: (context, state) => const ProviderJobsScreen(),
+      ),
+      GoRoute(
+        path: '/provider/jobs/:requestId',
+        builder: (context, state) => ProviderJobDetailsScreen(
+          requestId: state.pathParameters['requestId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/tracking/:requestId',
+        builder: (context, state) => JourneyTrackingScreen(
+          requestId: state.pathParameters['requestId']!,
+          phase: state.uri.queryParameters['phase'] ?? 'TO_REQUEST',
+          providerMode: state.uri.queryParameters['provider'] == 'true',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );
@@ -151,7 +207,24 @@ String? _authenticatedRedirect(CurrentActor actor, String path) {
     (ActorType.kccaStaff, ActorAccess.eligible) => AppRoutes.kccaMonitoring,
     _ => AppRoutes.accessDenied,
   };
-  return path == destination ? null : destination;
+  final allowed = switch (actor.actorType) {
+    ActorType.client =>
+      path == AppRoutes.clientHome ||
+          path.startsWith('/client/') ||
+          path.startsWith('/tracking/') ||
+          path == AppRoutes.notifications,
+    ActorType.serviceProvider =>
+      path == AppRoutes.providerHome ||
+          path.startsWith('/provider/') ||
+          path.startsWith('/tracking/') ||
+          path == AppRoutes.notifications ||
+          path == AppRoutes.providerAccountStatus,
+    ActorType.kccaStaff =>
+      path == AppRoutes.kccaMonitoring ||
+          path.startsWith('/tracking/') ||
+          path == AppRoutes.notifications,
+  };
+  return allowed ? null : destination;
 }
 
 class _RouterRefresh extends ChangeNotifier {

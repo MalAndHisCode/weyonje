@@ -86,3 +86,134 @@ export const NotificationType = {
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
+export const ServiceRequestOrigin = {
+  MOBILE_APP: 'MOBILE_APP',
+  CALL_CENTRE: 'CALL_CENTRE'
+} as const
+
+export type ServiceRequestOrigin = (typeof ServiceRequestOrigin)[keyof typeof ServiceRequestOrigin]
+
+
+export const ServiceRequestStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  ACTIVE: 'ACTIVE',
+  COLLECTION_REPORTED: 'COLLECTION_REPORTED',
+  COLLECTION_COMPLETED: 'COLLECTION_COMPLETED',
+  FOLLOW_UP_REQUIRED: 'FOLLOW_UP_REQUIRED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type ServiceRequestStatus = (typeof ServiceRequestStatus)[keyof typeof ServiceRequestStatus]
+
+
+export const RequestLocationKind = {
+  CURRENT: 'CURRENT',
+  MAP_PIN: 'MAP_PIN',
+  TEXT: 'TEXT'
+} as const
+
+export type RequestLocationKind = (typeof RequestLocationKind)[keyof typeof RequestLocationKind]
+
+
+export const ToiletType = {
+  PIT_LATRINE: 'PIT_LATRINE',
+  SEPTIC_TANK: 'SEPTIC_TANK'
+} as const
+
+export type ToiletType = (typeof ToiletType)[keyof typeof ToiletType]
+
+
+export const ScheduleMode = {
+  AS_SOON_AS_POSSIBLE: 'AS_SOON_AS_POSSIBLE',
+  SCHEDULED: 'SCHEDULED'
+} as const
+
+export type ScheduleMode = (typeof ScheduleMode)[keyof typeof ScheduleMode]
+
+
+export const RequestAssignmentStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  SUPERSEDED: 'SUPERSEDED'
+} as const
+
+export type RequestAssignmentStatus = (typeof RequestAssignmentStatus)[keyof typeof RequestAssignmentStatus]
+
+
+export const JourneyPhase = {
+  TO_REQUEST: 'TO_REQUEST',
+  TO_DISPOSAL: 'TO_DISPOSAL'
+} as const
+
+export type JourneyPhase = (typeof JourneyPhase)[keyof typeof JourneyPhase]
+
+
+export const JourneyStatus = {
+  READY: 'READY',
+  ACTIVE: 'ACTIVE',
+  ARRIVED: 'ARRIVED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type JourneyStatus = (typeof JourneyStatus)[keyof typeof JourneyStatus]
+
+
+export const CollectionOutcome = {
+  COMPLETED: 'COMPLETED',
+  LEFT_INCOMPLETE: 'LEFT_INCOMPLETE',
+  NOT_DONE_AT_ALL: 'NOT_DONE_AT_ALL'
+} as const
+
+export type CollectionOutcome = (typeof CollectionOutcome)[keyof typeof CollectionOutcome]
+
+
+export const FollowUpStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED'
+} as const
+
+export type FollowUpStatus = (typeof FollowUpStatus)[keyof typeof FollowUpStatus]
+
+
+export const OperationalNotificationType = {
+  REQUEST_CREATED: 'REQUEST_CREATED',
+  REQUEST_ASSIGNED: 'REQUEST_ASSIGNED',
+  REQUEST_ACCEPTED: 'REQUEST_ACCEPTED',
+  REQUEST_REJECTED: 'REQUEST_REJECTED',
+  JOURNEY_STARTED: 'JOURNEY_STARTED',
+  PROVIDER_ARRIVED: 'PROVIDER_ARRIVED',
+  COLLECTION_REPORTED: 'COLLECTION_REPORTED',
+  COLLECTION_CONFIRMED: 'COLLECTION_CONFIRMED',
+  FOLLOW_UP_REQUIRED: 'FOLLOW_UP_REQUIRED',
+  DISPOSAL_READY: 'DISPOSAL_READY',
+  DISPOSAL_STARTED: 'DISPOSAL_STARTED',
+  DISPOSAL_ARRIVED: 'DISPOSAL_ARRIVED',
+  DISPOSAL_COMPLETED: 'DISPOSAL_COMPLETED',
+  REMINDER: 'REMINDER'
+} as const
+
+export type OperationalNotificationType = (typeof OperationalNotificationType)[keyof typeof OperationalNotificationType]
+
+
+export const NotificationDeliveryChannel = {
+  IN_APP: 'IN_APP',
+  SMS: 'SMS',
+  PUSH: 'PUSH'
+} as const
+
+export type NotificationDeliveryChannel = (typeof NotificationDeliveryChannel)[keyof typeof NotificationDeliveryChannel]
+
+
+export const OutboxStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  DELIVERED: 'DELIVERED',
+  FAILED: 'FAILED'
+} as const
+
+export type OutboxStatus = (typeof OutboxStatus)[keyof typeof OutboxStatus]

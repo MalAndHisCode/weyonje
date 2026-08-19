@@ -1,3 +1,4 @@
 {
-  "WEYONJE_API_BASE_URL": "https://api.example.invalid"
+  "WEYONJE_API_BASE_URL": "https://api.example.invalid",
+  "WEYONJE_GOOGLE_MAPS_ENABLED": false
 }

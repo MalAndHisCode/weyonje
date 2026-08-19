@@ -18,6 +18,7 @@ const USER_SELECT = {
   phoneVerifiedAt: true,
   mobileMonitoringPermitted: true,
   providerApprovalPermitted: true,
+  callCentreOperationsPermitted: true,
   passwordVersion: true,
   serviceProviderProfile: {
     select: {

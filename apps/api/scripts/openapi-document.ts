@@ -12,13 +12,42 @@ import { AuthService } from "../src/auth/auth.service";
 import { SessionService } from "../src/auth/session.service";
 import { ActorsController } from "../src/identity/actors.controller";
 import { CurrentActorService } from "../src/identity/current-actor.service";
+import {
+  ProviderRegistrationController,
+  RegistrationController,
+} from "../src/registration/registration.controller";
+import { RegistrationService } from "../src/registration/registration.service";
+import {
+  CallCentreWorkflowController,
+  ClientWorkflowController,
+  JourneyController,
+  KccaWorkflowController,
+  NotificationController,
+  ProviderWorkflowController,
+  WorkflowConfigController,
+} from "../src/workflows/workflow.controller";
+import { WorkflowService } from "../src/workflows/workflow.service";
 
 @Module({
-  controllers: [AuthController, ActorsController],
+  controllers: [
+    AuthController,
+    ActorsController,
+    RegistrationController,
+    ProviderRegistrationController,
+    WorkflowConfigController,
+    ClientWorkflowController,
+    ProviderWorkflowController,
+    CallCentreWorkflowController,
+    KccaWorkflowController,
+    JourneyController,
+    NotificationController,
+  ],
   providers: [
     { provide: AuthService, useValue: {} },
     { provide: SessionService, useValue: {} },
     { provide: CurrentActorService, useValue: { resolve: () => undefined } },
+    { provide: RegistrationService, useValue: {} },
+    { provide: WorkflowService, useValue: {} },
     { provide: AccessTokenGuard, useValue: { canActivate: () => true } },
   ],
 })

@@ -78,34 +78,164 @@ enum NotificationType {
   @@map("notification_type")
 }
 
+enum ServiceRequestOrigin {
+  MOBILE_APP
+  CALL_CENTRE
+
+  @@map("service_request_origin")
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  ACCEPTED
+  ACTIVE
+  COLLECTION_REPORTED
+  COLLECTION_COMPLETED
+  FOLLOW_UP_REQUIRED
+  COMPLETED
+  CANCELLED
+
+  @@map("service_request_status")
+}
+
+enum RequestLocationKind {
+  CURRENT
+  MAP_PIN
+  TEXT
+
+  @@map("request_location_kind")
+}
+
+enum ToiletType {
+  PIT_LATRINE
+  SEPTIC_TANK
+
+  @@map("toilet_type")
+}
+
+enum ScheduleMode {
+  AS_SOON_AS_POSSIBLE
+  SCHEDULED
+
+  @@map("schedule_mode")
+}
+
+enum RequestAssignmentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  SUPERSEDED
+
+  @@map("request_assignment_status")
+}
+
+enum JourneyPhase {
+  TO_REQUEST
+  TO_DISPOSAL
+
+  @@map("journey_phase")
+}
+
+enum JourneyStatus {
+  READY
+  ACTIVE
+  ARRIVED
+  COMPLETED
+
+  @@map("journey_status")
+}
+
+enum CollectionOutcome {
+  COMPLETED
+  LEFT_INCOMPLETE
+  NOT_DONE_AT_ALL
+
+  @@map("collection_outcome")
+}
+
+enum FollowUpStatus {
+  OPEN
+  RESOLVED
+
+  @@map("follow_up_status")
+}
+
+enum OperationalNotificationType {
+  REQUEST_CREATED
+  REQUEST_ASSIGNED
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+  JOURNEY_STARTED
+  PROVIDER_ARRIVED
+  COLLECTION_REPORTED
+  COLLECTION_CONFIRMED
+  FOLLOW_UP_REQUIRED
+  DISPOSAL_READY
+  DISPOSAL_STARTED
+  DISPOSAL_ARRIVED
+  DISPOSAL_COMPLETED
+  REMINDER
+
+  @@map("operational_notification_type")
+}
+
+enum NotificationDeliveryChannel {
+  IN_APP
+  SMS
+  PUSH
+
+  @@map("notification_delivery_channel")
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  FAILED
+
+  @@map("outbox_status")
+}
+
 model User {
-  id                        String                           @id @default(uuid()) @db.Uuid
-  encryptedEmail            String?                          @map("encrypted_email") @db.VarChar(1024)
-  emailLookup               String?                          @unique(map: "uq_users_email_lookup") @map("email_lookup") @db.VarChar(64)
-  passwordHash              String?                          @map("password_hash") @db.VarChar(512)
-  encryptedPhone            String?                          @map("encrypted_phone") @db.VarChar(1024)
-  phoneLookup               String?                          @unique(map: "uq_users_phone_lookup") @map("phone_lookup") @db.VarChar(64)
-  actorType                 ActorType                        @map("actor_type")
-  providerStatus            ProviderStatus?                  @map("provider_status")
-  isActive                  Boolean                          @default(true) @map("is_active")
-  loginEnabled              Boolean                          @default(true) @map("login_enabled")
-  emailVerifiedAt           DateTime?                        @map("email_verified_at") @db.Timestamptz(3)
-  phoneVerifiedAt           DateTime?                        @map("phone_verified_at") @db.Timestamptz(3)
-  mobileMonitoringPermitted Boolean                          @default(false) @map("mobile_monitoring_permitted")
-  providerApprovalPermitted Boolean                          @default(false) @map("provider_approval_permitted")
-  passwordChangedAt         DateTime                         @default(now()) @map("password_changed_at") @db.Timestamptz(3)
-  passwordVersion           Int                              @default(1) @map("password_version")
-  failedLoginCount          Int                              @default(0) @map("failed_login_count")
-  authenticationLockedUntil DateTime?                        @map("authentication_locked_until") @db.Timestamptz(3)
-  createdAt                 DateTime                         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                 DateTime                         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  sessions                  AuthenticationSession[]
-  clientProfile             ClientProfile?
-  serviceProviderProfile    ServiceProviderProfile?
-  phoneChallenges           PhoneChallenge[]
-  approvalDecisionsMade     ProviderApprovalDecisionRecord[] @relation("ApprovalDecisionMaker")
-  providerApprovalDecisions ProviderApprovalDecisionRecord[] @relation("ApprovalSubject")
-  notifications             RegistrationNotification[]
+  id                            String                           @id @default(uuid()) @db.Uuid
+  encryptedEmail                String?                          @map("encrypted_email") @db.VarChar(1024)
+  emailLookup                   String?                          @unique(map: "uq_users_email_lookup") @map("email_lookup") @db.VarChar(64)
+  passwordHash                  String?                          @map("password_hash") @db.VarChar(512)
+  encryptedPhone                String?                          @map("encrypted_phone") @db.VarChar(1024)
+  phoneLookup                   String?                          @unique(map: "uq_users_phone_lookup") @map("phone_lookup") @db.VarChar(64)
+  actorType                     ActorType                        @map("actor_type")
+  providerStatus                ProviderStatus?                  @map("provider_status")
+  isActive                      Boolean                          @default(true) @map("is_active")
+  loginEnabled                  Boolean                          @default(true) @map("login_enabled")
+  emailVerifiedAt               DateTime?                        @map("email_verified_at") @db.Timestamptz(3)
+  phoneVerifiedAt               DateTime?                        @map("phone_verified_at") @db.Timestamptz(3)
+  mobileMonitoringPermitted     Boolean                          @default(false) @map("mobile_monitoring_permitted")
+  providerApprovalPermitted     Boolean                          @default(false) @map("provider_approval_permitted")
+  callCentreOperationsPermitted Boolean                          @default(false) @map("call_centre_operations_permitted")
+  passwordChangedAt             DateTime                         @default(now()) @map("password_changed_at") @db.Timestamptz(3)
+  passwordVersion               Int                              @default(1) @map("password_version")
+  failedLoginCount              Int                              @default(0) @map("failed_login_count")
+  authenticationLockedUntil     DateTime?                        @map("authentication_locked_until") @db.Timestamptz(3)
+  createdAt                     DateTime                         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                     DateTime                         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sessions                      AuthenticationSession[]
+  clientProfile                 ClientProfile?
+  serviceProviderProfile        ServiceProviderProfile?
+  phoneChallenges               PhoneChallenge[]
+  approvalDecisionsMade         ProviderApprovalDecisionRecord[] @relation("ApprovalDecisionMaker")
+  providerApprovalDecisions     ProviderApprovalDecisionRecord[] @relation("ApprovalSubject")
+  notifications                 RegistrationNotification[]
+  clientRequests                ServiceRequest[]                 @relation("ClientRequests")
+  requestsCreated               ServiceRequest[]                 @relation("CreatedRequests")
+  acceptedRequests              ServiceRequest[]                 @relation("AcceptedProviderRequests")
+  providerAssignments           RequestAssignment[]              @relation("ProviderAssignments")
+  assignmentsMade               RequestAssignment[]              @relation("AssignmentsMade")
+  providerJourneys              Journey[]                        @relation("ProviderJourneys")
+  collectionReports             CollectionReport[]               @relation("ProviderCollectionReports")
+  feedbackSubmissions           ServiceFeedback[]                @relation("FeedbackSubmitter")
+  disposalAssignmentsMade       DisposalAssignment[]             @relation("DisposalAssignmentsMade")
+  operationalNotifications      OperationalNotification[]
+  auditEvents                   AuditEvent[]
 
   @@index([actorType], map: "ix_users_actor_type")
   @@map("users")
@@ -245,4 +375,252 @@ model LoginThrottle {
   @@unique([scope, keyHash], map: "uq_login_throttles_scope_key")
   @@index([expiresAt], map: "ix_login_throttles_expiry")
   @@map("login_throttles")
+}
+
+model ServiceRequest {
+  id                       String                    @id @default(uuid()) @db.Uuid
+  reference                String                    @unique(map: "uq_service_requests_reference") @db.VarChar(32)
+  origin                   ServiceRequestOrigin
+  status                   ServiceRequestStatus      @default(PENDING)
+  clientUserId             String?                   @map("client_user_id") @db.Uuid
+  createdByUserId          String?                   @map("created_by_user_id") @db.Uuid
+  acceptedProviderUserId   String?                   @map("accepted_provider_user_id") @db.Uuid
+  clientName               String                    @map("client_name") @db.VarChar(240)
+  encryptedClientPhone     String                    @map("encrypted_client_phone") @db.VarChar(1024)
+  encryptedClientEmail     String?                   @map("encrypted_client_email") @db.VarChar(1024)
+  locationKind             RequestLocationKind       @map("location_kind")
+  locationText             String?                   @map("location_text") @db.VarChar(500)
+  latitude                 Decimal?                  @db.Decimal(9, 6)
+  longitude                Decimal?                  @db.Decimal(9, 6)
+  toiletType               ToiletType?               @map("toilet_type")
+  additionalContactName    String?                   @map("additional_contact_name") @db.VarChar(200)
+  encryptedAdditionalPhone String?                   @map("encrypted_additional_phone") @db.VarChar(1024)
+  scheduleMode             ScheduleMode              @map("schedule_mode")
+  requestedServiceAt       DateTime?                 @map("requested_service_at") @db.Timestamptz(3)
+  agreedPriceUgx           Int?                      @map("agreed_price_ugx")
+  acceptedAt               DateTime?                 @map("accepted_at") @db.Timestamptz(3)
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  client                   User?                     @relation("ClientRequests", fields: [clientUserId], references: [id], onDelete: Restrict)
+  createdBy                User?                     @relation("CreatedRequests", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  acceptedProvider         User?                     @relation("AcceptedProviderRequests", fields: [acceptedProviderUserId], references: [id], onDelete: Restrict)
+  assignments              RequestAssignment[]
+  statusHistory            RequestStatusHistory[]
+  journeys                 Journey[]
+  collectionReport         CollectionReport?
+  feedback                 ServiceFeedback?
+  followUpCase             FollowUpCase?
+  disposalAssignment       DisposalAssignment?
+  notifications            OperationalNotification[]
+  outboxEvents             OutboxEvent[]
+
+  @@index([clientUserId, createdAt], map: "ix_service_requests_client_created")
+  @@index([acceptedProviderUserId, updatedAt], map: "ix_service_requests_provider_updated")
+  @@index([origin, status, createdAt], map: "ix_service_requests_origin_status_created")
+  @@map("service_requests")
+}
+
+model RequestAssignment {
+  id               String                  @id @default(uuid()) @db.Uuid
+  requestId        String                  @map("request_id") @db.Uuid
+  providerUserId   String                  @map("provider_user_id") @db.Uuid
+  assignedByUserId String?                 @map("assigned_by_user_id") @db.Uuid
+  status           RequestAssignmentStatus @default(PENDING)
+  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  decidedAt        DateTime?               @map("decided_at") @db.Timestamptz(3)
+  request          ServiceRequest          @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  provider         User                    @relation("ProviderAssignments", fields: [providerUserId], references: [id], onDelete: Restrict)
+  assignedBy       User?                   @relation("AssignmentsMade", fields: [assignedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([providerUserId, status, createdAt], map: "ix_request_assignments_provider_status")
+  @@index([requestId, status], map: "ix_request_assignments_request_status")
+  @@map("request_assignments")
+}
+
+model RequestStatusHistory {
+  id          String                @id @default(uuid()) @db.Uuid
+  requestId   String                @map("request_id") @db.Uuid
+  fromStatus  ServiceRequestStatus? @map("from_status")
+  toStatus    ServiceRequestStatus  @map("to_status")
+  actorUserId String?               @map("actor_user_id") @db.Uuid
+  reason      String?               @db.VarChar(500)
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  request     ServiceRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt], map: "ix_request_status_history_request_created")
+  @@map("request_status_history")
+}
+
+model Journey {
+  id             String            @id @default(uuid()) @db.Uuid
+  requestId      String            @map("request_id") @db.Uuid
+  providerUserId String            @map("provider_user_id") @db.Uuid
+  phase          JourneyPhase
+  status         JourneyStatus     @default(READY)
+  startedAt      DateTime?         @map("started_at") @db.Timestamptz(3)
+  arrivedAt      DateTime?         @map("arrived_at") @db.Timestamptz(3)
+  completedAt    DateTime?         @map("completed_at") @db.Timestamptz(3)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  request        ServiceRequest    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  provider       User              @relation("ProviderJourneys", fields: [providerUserId], references: [id], onDelete: Restrict)
+  positions      JourneyPosition[]
+
+  @@unique([requestId, phase], map: "uq_journeys_request_phase")
+  @@index([providerUserId, status], map: "ix_journeys_provider_status")
+  @@map("journeys")
+}
+
+model JourneyPosition {
+  id                 String   @id @default(uuid()) @db.Uuid
+  journeyId          String   @map("journey_id") @db.Uuid
+  sampleId           String   @map("sample_id") @db.Uuid
+  deviceTimestamp    DateTime @map("device_timestamp") @db.Timestamptz(3)
+  receivedAt         DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+  latitude           Decimal  @db.Decimal(9, 6)
+  longitude          Decimal  @db.Decimal(9, 6)
+  accuracyMetres     Decimal  @map("accuracy_metres") @db.Decimal(8, 2)
+  acceptedForArrival Boolean  @default(false) @map("accepted_for_arrival")
+  journey            Journey  @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+
+  @@unique([journeyId, sampleId], map: "uq_journey_positions_sample")
+  @@index([journeyId, deviceTimestamp], map: "ix_journey_positions_journey_time")
+  @@index([receivedAt], map: "ix_journey_positions_received")
+  @@map("journey_positions")
+}
+
+model CollectionReport {
+  id                   String         @id @default(uuid()) @db.Uuid
+  requestId            String         @unique(map: "uq_collection_reports_request") @map("request_id") @db.Uuid
+  reportedByProviderId String         @map("reported_by_provider_id") @db.Uuid
+  reportedAt           DateTime       @default(now()) @map("reported_at") @db.Timestamptz(3)
+  request              ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  provider             User           @relation("ProviderCollectionReports", fields: [reportedByProviderId], references: [id], onDelete: Restrict)
+
+  @@map("collection_reports")
+}
+
+model ServiceFeedback {
+  id                String            @id @default(uuid()) @db.Uuid
+  requestId         String            @unique(map: "uq_service_feedback_request") @map("request_id") @db.Uuid
+  submittedByUserId String?           @map("submitted_by_user_id") @db.Uuid
+  outcome           CollectionOutcome
+  feedback          String            @db.VarChar(2000)
+  rating            Int
+  wasteCollected    Boolean           @map("waste_collected")
+  submittedAt       DateTime          @default(now()) @map("submitted_at") @db.Timestamptz(3)
+  request           ServiceRequest    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  submittedBy       User?             @relation("FeedbackSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+
+  @@map("service_feedback")
+}
+
+model FollowUpCase {
+  id         String            @id @default(uuid()) @db.Uuid
+  requestId  String            @unique(map: "uq_follow_up_cases_request") @map("request_id") @db.Uuid
+  status     FollowUpStatus    @default(OPEN)
+  outcome    CollectionOutcome
+  openedAt   DateTime          @default(now()) @map("opened_at") @db.Timestamptz(3)
+  resolvedAt DateTime?         @map("resolved_at") @db.Timestamptz(3)
+  resolution String?           @db.VarChar(1000)
+  request    ServiceRequest    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([status, openedAt], map: "ix_follow_up_cases_status_opened")
+  @@map("follow_up_cases")
+}
+
+model DisposalSite {
+  id          String               @id @default(uuid()) @db.Uuid
+  name        String               @db.VarChar(200)
+  address     String               @db.VarChar(500)
+  latitude    Decimal              @db.Decimal(9, 6)
+  longitude   Decimal              @db.Decimal(9, 6)
+  active      Boolean              @default(true)
+  approvedAt  DateTime             @default(now()) @map("approved_at") @db.Timestamptz(3)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  assignments DisposalAssignment[]
+
+  @@index([active, name], map: "ix_disposal_sites_active_name")
+  @@map("disposal_sites")
+}
+
+model DisposalAssignment {
+  id               String         @id @default(uuid()) @db.Uuid
+  requestId        String         @unique(map: "uq_disposal_assignments_request") @map("request_id") @db.Uuid
+  disposalSiteId   String         @map("disposal_site_id") @db.Uuid
+  assignedByUserId String         @map("assigned_by_user_id") @db.Uuid
+  assignedAt       DateTime       @default(now()) @map("assigned_at") @db.Timestamptz(3)
+  request          ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  disposalSite     DisposalSite   @relation(fields: [disposalSiteId], references: [id], onDelete: Restrict)
+  assignedBy       User           @relation("DisposalAssignmentsMade", fields: [assignedByUserId], references: [id], onDelete: Restrict)
+
+  @@map("disposal_assignments")
+}
+
+model OperationalNotification {
+  id              String                      @id @default(uuid()) @db.Uuid
+  recipientUserId String                      @map("recipient_user_id") @db.Uuid
+  requestId       String?                     @map("request_id") @db.Uuid
+  type            OperationalNotificationType
+  title           String                      @db.VarChar(200)
+  message         String                      @db.VarChar(1000)
+  createdAt       DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  readAt          DateTime?                   @map("read_at") @db.Timestamptz(3)
+  recipient       User                        @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+  request         ServiceRequest?             @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([recipientUserId, createdAt], map: "ix_operational_notifications_recipient_created")
+  @@map("operational_notifications")
+}
+
+model OutboxEvent {
+  id               String                      @id @default(uuid()) @db.Uuid
+  requestId        String?                     @map("request_id") @db.Uuid
+  recipientUserId  String?                     @map("recipient_user_id") @db.Uuid
+  channel          NotificationDeliveryChannel
+  eventType        OperationalNotificationType @map("event_type")
+  deduplicationKey String                      @unique(map: "uq_outbox_events_deduplication") @map("deduplication_key") @db.VarChar(200)
+  payload          Json
+  status           OutboxStatus                @default(PENDING)
+  attempts         Int                         @default(0)
+  nextAttemptAt    DateTime                    @default(now()) @map("next_attempt_at") @db.Timestamptz(3)
+  deliveredAt      DateTime?                   @map("delivered_at") @db.Timestamptz(3)
+  lastErrorCode    String?                     @map("last_error_code") @db.VarChar(100)
+  createdAt        DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  request          ServiceRequest?             @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt], map: "ix_outbox_events_status_next")
+  @@map("outbox_events")
+}
+
+model IdempotencyRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String   @map("actor_user_id") @db.Uuid
+  operation   String   @db.VarChar(100)
+  key         String   @db.VarChar(100)
+  fingerprint String   @db.VarChar(64)
+  response    Json
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz(3)
+
+  @@unique([actorUserId, operation, key], map: "uq_idempotency_actor_operation_key")
+  @@index([expiresAt], map: "ix_idempotency_records_expiry")
+  @@map("idempotency_records")
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String   @db.VarChar(100)
+  targetType  String   @map("target_type") @db.VarChar(100)
+  targetId    String   @map("target_id") @db.Uuid
+  requestId   String?  @map("request_id") @db.Uuid
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([targetType, targetId, createdAt], map: "ix_audit_events_target_created")
+  @@map("audit_events")
 }

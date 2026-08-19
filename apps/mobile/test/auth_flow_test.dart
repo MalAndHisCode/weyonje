@@ -247,7 +247,7 @@ void main() {
       await tester.tap(find.byKey(const Key('verify-phone')));
       await tester.pumpAndSettle();
       expect(repository.verifyClientCodeCalls, 1);
-      expect(find.text('Client dashboard unavailable'), findsWidgets);
+      expect(find.text('Client dashboard'), findsWidgets);
     });
 
     testWidgets(
@@ -420,7 +420,7 @@ void main() {
         await tester.tap(find.byKey(const Key('submit-sign-in')));
         await tester.pumpAndSettle();
         expect(repository.signInCalls, 1);
-        expect(find.text('Provider work dashboard unavailable'), findsWidgets);
+        expect(find.text('Provider work dashboard'), findsWidgets);
       },
     );
 
@@ -656,13 +656,11 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      final context = tester.element(
-        find.text('Client dashboard unavailable').first,
-      );
+      final context = tester.element(find.text('Client dashboard').first);
       GoRouter.of(context).go('/account-type');
       await tester.pumpAndSettle();
       expect(find.text('Choose account type'), findsNothing);
-      expect(find.text('Client dashboard unavailable'), findsWidgets);
+      expect(find.text('Client dashboard'), findsWidgets);
     });
 
     testWidgets(
@@ -686,8 +684,8 @@ void main() {
           expect(
             find.text(
               actor.actorType == ActorType.client
-                  ? 'Client dashboard unavailable'
-                  : 'KCCA monitoring dashboard unavailable',
+                  ? 'Client dashboard'
+                  : 'KCCA monitoring',
             ),
             findsWidgets,
           );
@@ -710,7 +708,7 @@ void main() {
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        expect(find.text('Provider work dashboard unavailable'), findsWidgets);
+        expect(find.text('Provider work dashboard'), findsWidgets);
       },
     );
 

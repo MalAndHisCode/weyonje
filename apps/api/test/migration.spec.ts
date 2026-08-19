@@ -44,3 +44,30 @@ describe("Prisma registration and phone-authentication migration", () => {
     expect(sql).not.toMatch(/plaintext_(phone|code|password)/i);
   });
 });
+
+describe("Prisma service workflow migration", () => {
+  const sql = readFileSync(
+    resolve(
+      __dirname,
+      "../prisma/migrations/20260819120000_service_workflows/migration.sql",
+    ),
+    "utf8",
+  );
+
+  it("enforces workflow ownership, scheduling, UGX, feedback, and location invariants", () => {
+    expect(sql).toContain('CREATE TABLE "service_requests"');
+    expect(sql).toContain('CREATE TABLE "journey_positions"');
+    expect(sql).toContain('CREATE TABLE "service_feedback"');
+    expect(sql).toContain('CREATE TABLE "follow_up_cases"');
+    expect(sql).toContain('CREATE TABLE "disposal_assignments"');
+    expect(sql).toContain('CREATE TABLE "outbox_events"');
+    expect(sql).toContain('CREATE TABLE "idempotency_records"');
+    expect(sql).toContain("ck_users_call_centre_operations");
+    expect(sql).toContain("ck_service_requests_schedule");
+    expect(sql).toContain("ck_service_requests_price");
+    expect(sql).toContain("ck_service_feedback_rating");
+    expect(sql).toContain("ck_service_feedback_waste");
+    expect(sql).toContain("uq_request_assignments_active");
+    expect(sql).toContain("uq_journey_positions_sample");
+  });
+});

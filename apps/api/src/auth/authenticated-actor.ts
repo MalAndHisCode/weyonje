@@ -12,6 +12,7 @@ export interface AuthenticatedActor {
     phoneVerifiedAt: Date | null;
     mobileMonitoringPermitted: boolean;
     providerApprovalPermitted: boolean;
+    callCentreOperationsPermitted: boolean;
     passwordVersion: number;
     serviceProviderProfile: {
       providerNumber: string | null;

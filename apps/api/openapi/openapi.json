@@ -294,6 +294,915 @@
           "actors"
         ]
       }
+    },
+    "/v1/registrations/clients": {
+      "post": {
+        "operationId": "RegistrationController_registerClient",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Submit a Client registration and send a phone code",
+        "tags": [
+          "registration"
+        ]
+      }
+    },
+    "/v1/registrations/service-providers": {
+      "post": {
+        "operationId": "RegistrationController_registerServiceProvider",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Submit a Service Provider registration and send a phone code",
+        "tags": [
+          "registration"
+        ]
+      }
+    },
+    "/v1/registrations/verify-phone": {
+      "post": {
+        "operationId": "RegistrationController_verifyPhone",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationVerificationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify a registration phone number",
+        "tags": [
+          "registration"
+        ]
+      }
+    },
+    "/v1/registrations/resend-phone-code": {
+      "post": {
+        "operationId": "RegistrationController_resendPhoneCode",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Replace and resend a registration phone code",
+        "tags": [
+          "registration"
+        ]
+      }
+    },
+    "/v1/provider-registrations/pending": {
+      "get": {
+        "operationId": "ProviderRegistrationController_pending",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PendingProviderRegistrationDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List phone-verified Provider registrations awaiting review",
+        "tags": [
+          "provider registration review"
+        ]
+      }
+    },
+    "/v1/provider-registrations/{providerUserId}/decision": {
+      "post": {
+        "operationId": "ProviderRegistrationController_decide",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderRegistrationStatusDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve or reject a pending Provider registration",
+        "tags": [
+          "provider registration review"
+        ]
+      }
+    },
+    "/v1/provider-registrations/me/status": {
+      "get": {
+        "operationId": "ProviderRegistrationController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderRegistrationStatusDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the current Provider registration status",
+        "tags": [
+          "provider registration review"
+        ]
+      }
+    },
+    "/v1/config/location-policy": {
+      "get": {
+        "operationId": "WorkflowConfigController_locationPolicy",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationPolicyDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read the provisional, configurable location policy",
+        "tags": [
+          "configuration"
+        ]
+      }
+    },
+    "/v1/client/dashboard": {
+      "get": {
+        "operationId": "ClientWorkflowController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "client workflows"
+        ]
+      }
+    },
+    "/v1/client/requests": {
+      "post": {
+        "operationId": "ClientWorkflowController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "client workflows"
+        ]
+      },
+      "get": {
+        "operationId": "ClientWorkflowController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceRequestSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "client workflows"
+        ]
+      }
+    },
+    "/v1/client/requests/{requestId}": {
+      "get": {
+        "operationId": "ClientWorkflowController_detail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "client workflows"
+        ]
+      }
+    },
+    "/v1/client/requests/{requestId}/feedback": {
+      "post": {
+        "operationId": "ClientWorkflowController_feedback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "client workflows"
+        ]
+      }
+    },
+    "/v1/provider/dashboard": {
+      "get": {
+        "operationId": "ProviderWorkflowController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/requests/pending": {
+      "get": {
+        "operationId": "ProviderWorkflowController_pending",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderPendingRequestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/requests/{requestId}": {
+      "get": {
+        "operationId": "ProviderWorkflowController_requestDetail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/requests/{requestId}/accept": {
+      "post": {
+        "operationId": "ProviderWorkflowController_accept",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/requests/{requestId}/reject": {
+      "post": {
+        "operationId": "ProviderWorkflowController_reject",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/jobs": {
+      "get": {
+        "operationId": "ProviderWorkflowController_jobs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceRequestSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/jobs/{requestId}": {
+      "get": {
+        "operationId": "ProviderWorkflowController_job",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/jobs/{requestId}/journeys/{phase}/start": {
+      "post": {
+        "operationId": "ProviderWorkflowController_startJourney",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/jobs/{requestId}/positions": {
+      "post": {
+        "operationId": "ProviderWorkflowController_positions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneySnapshotDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/jobs/{requestId}/collection-completed": {
+      "post": {
+        "operationId": "ProviderWorkflowController_collection",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/provider/jobs/{requestId}/disposal-completed": {
+      "post": {
+        "operationId": "ProviderWorkflowController_disposal",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider workflows"
+        ]
+      }
+    },
+    "/v1/call-centre/requests": {
+      "post": {
+        "operationId": "CallCentreWorkflowController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
+      }
+    },
+    "/v1/call-centre/requests/{requestId}": {
+      "get": {
+        "operationId": "CallCentreWorkflowController_detail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
+      }
+    },
+    "/v1/call-centre/requests/{requestId}/assignment": {
+      "post": {
+        "operationId": "CallCentreWorkflowController_assign",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
+      }
+    },
+    "/v1/call-centre/requests/{requestId}/feedback": {
+      "post": {
+        "operationId": "CallCentreWorkflowController_feedback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
+      }
+    },
+    "/v1/kcca/monitoring": {
+      "get": {
+        "operationId": "KccaWorkflowController_monitoring",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "KCCA operations"
+        ]
+      }
+    },
+    "/v1/kcca/disposal-sites": {
+      "get": {
+        "operationId": "KccaWorkflowController_sites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "KCCA operations"
+        ]
+      },
+      "put": {
+        "operationId": "KccaWorkflowController_site",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "KCCA operations"
+        ]
+      }
+    },
+    "/v1/kcca/requests/{requestId}/disposal-site": {
+      "post": {
+        "operationId": "KccaWorkflowController_assignSite",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "KCCA operations"
+        ]
+      }
+    },
+    "/v1/journeys/{requestId}": {
+      "get": {
+        "operationId": "JourneyController_tracking",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneySnapshotDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "journey tracking"
+        ]
+      }
+    },
+    "/v1/notifications": {
+      "get": {
+        "operationId": "NotificationController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OperationalNotificationDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/{notificationId}/read": {
+      "post": {
+        "operationId": "NotificationController_read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
     }
   },
   "info": {
@@ -519,6 +1428,553 @@
         "required": [
           "actorType",
           "access"
+        ]
+      },
+      "RegistrationVerificationDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "accessTokenExpiresAt",
+          "refreshTokenExpiresAt"
+        ]
+      },
+      "PendingProviderRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "providerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "essLicenseNumber": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "workAddress": {
+            "type": "string"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "GULPER",
+              "EMPTIER"
+            ]
+          },
+          "contactPersonName": {
+            "type": "string"
+          },
+          "contactPersonPhone": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "providerUserId",
+          "essLicenseNumber",
+          "companyName",
+          "phoneNumber",
+          "email",
+          "workAddress",
+          "providerType",
+          "contactPersonName",
+          "contactPersonPhone",
+          "submittedAt"
+        ]
+      },
+      "ProviderRegistrationStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "INACTIVE",
+              "DISABLED"
+            ]
+          },
+          "providerNumber": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "LocationPolicyDto": {
+        "type": "object",
+        "properties": {
+          "provisional": {
+            "type": "boolean",
+            "example": true
+          },
+          "sampleIntervalSeconds": {
+            "type": "number"
+          },
+          "sampleDistanceMetres": {
+            "type": "number"
+          },
+          "arrivalRadiusMetres": {
+            "type": "number"
+          },
+          "arrivalMaximumAccuracyMetres": {
+            "type": "number"
+          },
+          "staleAfterSeconds": {
+            "type": "number"
+          },
+          "retentionDays": {
+            "type": "number"
+          },
+          "backgroundTrackingEnabled": {
+            "type": "boolean"
+          },
+          "approvalNotice": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "provisional",
+          "sampleIntervalSeconds",
+          "sampleDistanceMetres",
+          "arrivalRadiusMetres",
+          "arrivalMaximumAccuracyMetres",
+          "staleAfterSeconds",
+          "retentionDays",
+          "backgroundTrackingEnabled",
+          "approvalNotice"
+        ]
+      },
+      "GeoPointDto": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ]
+      },
+      "ServiceRequestDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "MOBILE_APP",
+              "CALL_CENTRE"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "ACTIVE",
+              "COLLECTION_REPORTED",
+              "COLLECTION_COMPLETED",
+              "FOLLOW_UP_REQUIRED",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "locationLabel": {
+            "type": "string"
+          },
+          "scheduleMode": {
+            "type": "string",
+            "enum": [
+              "AS_SOON_AS_POSSIBLE",
+              "SCHEDULED"
+            ]
+          },
+          "requestedServiceAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "agreedPriceUgx": {
+            "type": "number"
+          },
+          "outstandingAction": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "clientPhone": {
+            "type": "string"
+          },
+          "clientEmail": {
+            "type": "string"
+          },
+          "locationKind": {
+            "type": "string",
+            "enum": [
+              "CURRENT",
+              "MAP_PIN",
+              "TEXT"
+            ]
+          },
+          "location": {
+            "$ref": "#/components/schemas/GeoPointDto"
+          },
+          "toiletType": {
+            "type": "string",
+            "enum": [
+              "PIT_LATRINE",
+              "SEPTIC_TANK"
+            ]
+          },
+          "additionalContactName": {
+            "type": "string"
+          },
+          "additionalContactPhone": {
+            "type": "string"
+          },
+          "providerUserId": {
+            "type": "string"
+          },
+          "providerPhone": {
+            "type": "string"
+          },
+          "collectionOutcome": {
+            "type": "string",
+            "enum": [
+              "COMPLETED",
+              "LEFT_INCOMPLETE",
+              "NOT_DONE_AT_ALL"
+            ]
+          },
+          "wasteCollected": {
+            "type": "boolean"
+          },
+          "followUpStatus": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "RESOLVED"
+            ]
+          },
+          "journeyToRequest": {
+            "type": "object"
+          },
+          "disposalJourney": {
+            "type": "object"
+          },
+          "disposalSite": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "origin",
+          "status",
+          "locationLabel",
+          "scheduleMode",
+          "updatedAt",
+          "clientName",
+          "locationKind",
+          "createdAt"
+        ]
+      },
+      "ServiceRequestSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "MOBILE_APP",
+              "CALL_CENTRE"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "ACTIVE",
+              "COLLECTION_REPORTED",
+              "COLLECTION_COMPLETED",
+              "FOLLOW_UP_REQUIRED",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "locationLabel": {
+            "type": "string"
+          },
+          "scheduleMode": {
+            "type": "string",
+            "enum": [
+              "AS_SOON_AS_POSSIBLE",
+              "SCHEDULED"
+            ]
+          },
+          "requestedServiceAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "agreedPriceUgx": {
+            "type": "number"
+          },
+          "outstandingAction": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "origin",
+          "status",
+          "locationLabel",
+          "scheduleMode",
+          "updatedAt"
+        ]
+      },
+      "ProviderPendingRequestDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "MOBILE_APP",
+              "CALL_CENTRE"
+            ]
+          },
+          "assignmentStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "SUPERSEDED"
+            ]
+          },
+          "locationLabel": {
+            "type": "string"
+          },
+          "toiletType": {
+            "type": "string",
+            "enum": [
+              "PIT_LATRINE",
+              "SEPTIC_TANK"
+            ]
+          },
+          "scheduleMode": {
+            "type": "string",
+            "enum": [
+              "AS_SOON_AS_POSSIBLE",
+              "SCHEDULED"
+            ]
+          },
+          "requestedServiceAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "origin",
+          "locationLabel",
+          "scheduleMode",
+          "createdAt"
+        ]
+      },
+      "JourneySnapshotDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "TO_REQUEST",
+              "TO_DISPOSAL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "ACTIVE",
+              "ARRIVED",
+              "COMPLETED"
+            ]
+          },
+          "destination": {
+            "$ref": "#/components/schemas/GeoPointDto"
+          },
+          "latestPosition": {
+            "type": "object"
+          },
+          "latestPositionReceivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "arrivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "positionCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "phase",
+          "status",
+          "destination",
+          "stale",
+          "positionCount"
+        ]
+      },
+      "OperationalNotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PROVIDER_REVIEW_REQUIRED",
+              "PROVIDER_APPROVED",
+              "PROVIDER_REJECTED",
+              "REQUEST_CREATED",
+              "REQUEST_ASSIGNED",
+              "REQUEST_ACCEPTED",
+              "REQUEST_REJECTED",
+              "JOURNEY_STARTED",
+              "PROVIDER_ARRIVED",
+              "COLLECTION_REPORTED",
+              "COLLECTION_CONFIRMED",
+              "FOLLOW_UP_REQUIRED",
+              "DISPOSAL_READY",
+              "DISPOSAL_STARTED",
+              "DISPOSAL_ARRIVED",
+              "DISPOSAL_COMPLETED",
+              "REMINDER"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "title",
+          "message",
+          "createdAt"
         ]
       }
     }

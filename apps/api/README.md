@@ -1,6 +1,6 @@
-# Weyonje API native authentication foundation
+# Weyonje API
 
-The NestJS/Fastify API owns authentication, sessions, actor roles, Provider eligibility, and KCCA mobile-monitoring permission. Prisma is its only persistence layer. PostgreSQL stores Argon2id password hashes, AES-256-GCM encrypted normalized email payloads, separate HMAC-SHA-256 email lookup values, sessions, hashed refresh tokens, and durable login throttles. Raw passwords and tokens are never persisted.
+The NestJS/Fastify API owns authentication, sessions, actor roles, Provider eligibility, Client/Provider/KCCA workflows, Call Centre permissions, journey state, feedback/follow-up, disposal control, notifications/outbox, and authenticated Socket.IO hints. Prisma/PostgreSQL is the authoritative persistence layer.
 
 Endpoints:
 
@@ -8,6 +8,11 @@ Endpoints:
 - `POST /v1/auth/refresh`: atomic refresh-token rotation; reuse revokes the session family.
 - `POST /v1/auth/sign-out`: bearer-authenticated, idempotent current-session revocation.
 - `GET /v1/actors/me`: current database-backed `actorType`, `access`, and Provider `providerStatus` when applicable.
+- `/v1/client/*`: Client dashboard, request creation/history/detail, and feedback.
+- `/v1/provider/*`: marketplace, atomic acceptance/rejection, jobs, journeys, positions, collection, and disposal.
+- `/v1/call-centre/*`: separately permissioned Call Centre request/assignment/feedback ingress.
+- `/v1/kcca/*`: permitted monitoring and KCCA-controlled disposal-site catalogue/assignment.
+- `/v1/journeys/*`, `/v1/notifications/*`, and Socket.IO namespace `/journeys`: authorised reconciliation and durable notification access.
 
 Access tokens are short-lived HS256 JWTs containing only internal user and session identifiers. Every protected request verifies algorithm, signature, issuer, audience, issue/expiry times, current server session, password version, login permission, and verification state. Roles and business eligibility are loaded from Prisma rather than trusted as token claims.
 
@@ -15,7 +20,7 @@ Access tokens are short-lived HS256 JWTs containing only internal user and sessi
 
 1. Copy the root `.env.example` to an ignored `.env` and replace every placeholder.
 2. Put Neon's pooled connection in `DATABASE_URL` and its direct connection in `DIRECT_URL`.
-3. Generate each base64 secret independently. On a trusted workstation, run `openssl rand -base64 32` or the PowerShell command `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))` separately for every key. Store output only in the ignored local file or Koyeb secret settings. `EMAIL_ENCRYPTION_KEY` must decode to exactly 32 bytes; the other keys must decode to at least 32 bytes.
+3. Generate each base64 secret independently. On a trusted workstation, run `openssl rand -base64 32` or the PowerShell command `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))` separately for every key. Store output only in the ignored local file or Railway Variables. `EMAIL_ENCRYPTION_KEY` must decode to exactly 32 bytes; the other keys must decode to at least 32 bytes.
 4. Install with `pnpm install --frozen-lockfile` from the repository root.
 5. Apply migrations with `pnpm --filter @weyonje/api migration:deploy` (Prisma uses `DIRECT_URL`).
 6. Start locally with `pnpm --filter @weyonje/api start:dev`.
@@ -43,19 +48,20 @@ The command refuses `WEYONJE_ENVIRONMENT=production`, connects through `DIRECT_U
 pnpm --filter @weyonje/api provision:user -- --actor-type CLIENT --email-verified
 pnpm --filter @weyonje/api provision:user -- --actor-type SERVICE_PROVIDER --provider-status APPROVED --email-verified
 pnpm --filter @weyonje/api provision:user -- --actor-type KCCA_STAFF --kcca-mobile-monitoring --email-verified
+pnpm --filter @weyonje/api provision:user -- --actor-type KCCA_STAFF --kcca-mobile-monitoring --call-centre-operations --email-verified
 ```
 
 Provider status is mandatory only for Service Providers. `--inactive` and `--login-disabled` create negative test cases. Omitting `--email-verified` creates an account that must fail sign-in generically. No default administrator or fixed credential exists.
 
-## Koyeb Free development service
+## Railway GitHub deployment
 
-Native Koyeb Node builds support this pnpm/Node 24 monorepo; no Dockerfile is required. Create one Free Web Service from the private GitHub repository with repository working directory `/`, region Frankfurt (`fra`) when available and suitable, and:
+The Railway service is user-confirmed as connected directly to GitHub and rooted at the repository root. The repository supports a native pnpm/Node 24 build; no Dockerfile is required. Configure the root service with:
 
 - Build command: `pnpm install --frozen-lockfile && pnpm --filter @weyonje/contracts build && pnpm --filter @weyonje/api prisma:generate && pnpm --filter @weyonje/api build`
 - Run command: `pnpm --filter @weyonje/api start`
-- Port: Koyeb-supplied `PORT`; the API binds `0.0.0.0`.
-- Environment: all root `.env.example` names entered privately in Koyeb settings; `NODE_ENV=production` and `WEYONJE_ENVIRONMENT=development` for this non-production service.
+- Port: Railway-supplied `PORT`; the API binds `0.0.0.0`.
+- Environment: all root `.env.example` names entered privately in Railway Variables; use `NODE_ENV=production` and set `WEYONJE_ENVIRONMENT` to the actual environment classification.
 
-Use no persistent disk or worker. Durable state belongs in Neon. A Free instance sleeps after inactivity and can cold-start; Neon compute can also suspend. This environment has no production uptime guarantee. No deployment or cloud resource is created by repository commands.
+Use no persistent disk or worker in this slice. Durable state belongs in PostgreSQL. This slice intentionally has no Valkey/BullMQ processor: outbox records persist, but reliable dispatch, scheduled reminders, dead-letter handling, and multi-instance Socket.IO require a production architecture decision. The live Railway deployment, Variables, domain, build settings, migration state, and service health were not inspected or changed by this implementation task.
 
 Swagger UI is exposed at `/internal/docs` only when `NODE_ENV` is not production. Generate and check the committed safe contract with `pnpm openapi:generate` and `pnpm openapi:check`.

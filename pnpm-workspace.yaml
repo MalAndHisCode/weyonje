@@ -4,6 +4,7 @@ packages:
 
 overrides:
   js-yaml@5.2.1: 5.2.3
+  deepmerge-ts: 8.0.1
 
 allowBuilds:
   argon2: true
