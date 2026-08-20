@@ -253,6 +253,7 @@ export type DisposalSiteWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"DisposalSite"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DisposalSite"> | Date | string
   assignments?: Prisma.DisposalAssignmentListRelationFilter
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryListRelationFilter
 }
 
 export type DisposalSiteOrderByWithRelationInput = {
@@ -266,6 +267,7 @@ export type DisposalSiteOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   assignments?: Prisma.DisposalAssignmentOrderByRelationAggregateInput
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryOrderByRelationAggregateInput
 }
 
 export type DisposalSiteWhereUniqueInput = Prisma.AtLeast<{
@@ -282,6 +284,7 @@ export type DisposalSiteWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"DisposalSite"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DisposalSite"> | Date | string
   assignments?: Prisma.DisposalAssignmentListRelationFilter
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryListRelationFilter
 }, "id">
 
 export type DisposalSiteOrderByWithAggregationInput = {
@@ -327,6 +330,7 @@ export type DisposalSiteCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   assignments?: Prisma.DisposalAssignmentCreateNestedManyWithoutDisposalSiteInput
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutDisposalSiteInput
 }
 
 export type DisposalSiteUncheckedCreateInput = {
@@ -340,6 +344,7 @@ export type DisposalSiteUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   assignments?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutDisposalSiteInput
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutDisposalSiteInput
 }
 
 export type DisposalSiteUpdateInput = {
@@ -353,6 +358,7 @@ export type DisposalSiteUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   assignments?: Prisma.DisposalAssignmentUpdateManyWithoutDisposalSiteNestedInput
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutDisposalSiteNestedInput
 }
 
 export type DisposalSiteUncheckedUpdateInput = {
@@ -366,6 +372,7 @@ export type DisposalSiteUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   assignments?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutDisposalSiteNestedInput
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutDisposalSiteNestedInput
 }
 
 export type DisposalSiteCreateManyInput = {
@@ -469,6 +476,20 @@ export type DisposalSiteUpdateOneRequiredWithoutAssignmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DisposalSiteUpdateToOneWithWhereWithoutAssignmentsInput, Prisma.DisposalSiteUpdateWithoutAssignmentsInput>, Prisma.DisposalSiteUncheckedUpdateWithoutAssignmentsInput>
 }
 
+export type DisposalSiteCreateNestedOneWithoutAssignmentHistoryInput = {
+  create?: Prisma.XOR<Prisma.DisposalSiteCreateWithoutAssignmentHistoryInput, Prisma.DisposalSiteUncheckedCreateWithoutAssignmentHistoryInput>
+  connectOrCreate?: Prisma.DisposalSiteCreateOrConnectWithoutAssignmentHistoryInput
+  connect?: Prisma.DisposalSiteWhereUniqueInput
+}
+
+export type DisposalSiteUpdateOneRequiredWithoutAssignmentHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.DisposalSiteCreateWithoutAssignmentHistoryInput, Prisma.DisposalSiteUncheckedCreateWithoutAssignmentHistoryInput>
+  connectOrCreate?: Prisma.DisposalSiteCreateOrConnectWithoutAssignmentHistoryInput
+  upsert?: Prisma.DisposalSiteUpsertWithoutAssignmentHistoryInput
+  connect?: Prisma.DisposalSiteWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DisposalSiteUpdateToOneWithWhereWithoutAssignmentHistoryInput, Prisma.DisposalSiteUpdateWithoutAssignmentHistoryInput>, Prisma.DisposalSiteUncheckedUpdateWithoutAssignmentHistoryInput>
+}
+
 export type DisposalSiteCreateWithoutAssignmentsInput = {
   id?: string
   name: string
@@ -479,6 +500,7 @@ export type DisposalSiteCreateWithoutAssignmentsInput = {
   approvedAt?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutDisposalSiteInput
 }
 
 export type DisposalSiteUncheckedCreateWithoutAssignmentsInput = {
@@ -491,6 +513,7 @@ export type DisposalSiteUncheckedCreateWithoutAssignmentsInput = {
   approvedAt?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutDisposalSiteInput
 }
 
 export type DisposalSiteCreateOrConnectWithoutAssignmentsInput = {
@@ -519,6 +542,7 @@ export type DisposalSiteUpdateWithoutAssignmentsInput = {
   approvedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutDisposalSiteNestedInput
 }
 
 export type DisposalSiteUncheckedUpdateWithoutAssignmentsInput = {
@@ -531,6 +555,75 @@ export type DisposalSiteUncheckedUpdateWithoutAssignmentsInput = {
   approvedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutDisposalSiteNestedInput
+}
+
+export type DisposalSiteCreateWithoutAssignmentHistoryInput = {
+  id?: string
+  name: string
+  address: string
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  active?: boolean
+  approvedAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  assignments?: Prisma.DisposalAssignmentCreateNestedManyWithoutDisposalSiteInput
+}
+
+export type DisposalSiteUncheckedCreateWithoutAssignmentHistoryInput = {
+  id?: string
+  name: string
+  address: string
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  active?: boolean
+  approvedAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  assignments?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutDisposalSiteInput
+}
+
+export type DisposalSiteCreateOrConnectWithoutAssignmentHistoryInput = {
+  where: Prisma.DisposalSiteWhereUniqueInput
+  create: Prisma.XOR<Prisma.DisposalSiteCreateWithoutAssignmentHistoryInput, Prisma.DisposalSiteUncheckedCreateWithoutAssignmentHistoryInput>
+}
+
+export type DisposalSiteUpsertWithoutAssignmentHistoryInput = {
+  update: Prisma.XOR<Prisma.DisposalSiteUpdateWithoutAssignmentHistoryInput, Prisma.DisposalSiteUncheckedUpdateWithoutAssignmentHistoryInput>
+  create: Prisma.XOR<Prisma.DisposalSiteCreateWithoutAssignmentHistoryInput, Prisma.DisposalSiteUncheckedCreateWithoutAssignmentHistoryInput>
+  where?: Prisma.DisposalSiteWhereInput
+}
+
+export type DisposalSiteUpdateToOneWithWhereWithoutAssignmentHistoryInput = {
+  where?: Prisma.DisposalSiteWhereInput
+  data: Prisma.XOR<Prisma.DisposalSiteUpdateWithoutAssignmentHistoryInput, Prisma.DisposalSiteUncheckedUpdateWithoutAssignmentHistoryInput>
+}
+
+export type DisposalSiteUpdateWithoutAssignmentHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  approvedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignments?: Prisma.DisposalAssignmentUpdateManyWithoutDisposalSiteNestedInput
+}
+
+export type DisposalSiteUncheckedUpdateWithoutAssignmentHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  approvedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignments?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutDisposalSiteNestedInput
 }
 
 
@@ -540,10 +633,12 @@ export type DisposalSiteUncheckedUpdateWithoutAssignmentsInput = {
 
 export type DisposalSiteCountOutputType = {
   assignments: number
+  assignmentHistory: number
 }
 
 export type DisposalSiteCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   assignments?: boolean | DisposalSiteCountOutputTypeCountAssignmentsArgs
+  assignmentHistory?: boolean | DisposalSiteCountOutputTypeCountAssignmentHistoryArgs
 }
 
 /**
@@ -563,6 +658,13 @@ export type DisposalSiteCountOutputTypeCountAssignmentsArgs<ExtArgs extends runt
   where?: Prisma.DisposalAssignmentWhereInput
 }
 
+/**
+ * DisposalSiteCountOutputType without action
+ */
+export type DisposalSiteCountOutputTypeCountAssignmentHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DisposalAssignmentHistoryWhereInput
+}
+
 
 export type DisposalSiteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -575,6 +677,7 @@ export type DisposalSiteSelect<ExtArgs extends runtime.Types.Extensions.Internal
   createdAt?: boolean
   updatedAt?: boolean
   assignments?: boolean | Prisma.DisposalSite$assignmentsArgs<ExtArgs>
+  assignmentHistory?: boolean | Prisma.DisposalSite$assignmentHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.DisposalSiteCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["disposalSite"]>
 
@@ -617,6 +720,7 @@ export type DisposalSiteSelectScalar = {
 export type DisposalSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "address" | "latitude" | "longitude" | "active" | "approvedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["disposalSite"]>
 export type DisposalSiteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   assignments?: boolean | Prisma.DisposalSite$assignmentsArgs<ExtArgs>
+  assignmentHistory?: boolean | Prisma.DisposalSite$assignmentHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.DisposalSiteCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DisposalSiteIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -626,6 +730,7 @@ export type $DisposalSitePayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "DisposalSite"
   objects: {
     assignments: Prisma.$DisposalAssignmentPayload<ExtArgs>[]
+    assignmentHistory: Prisma.$DisposalAssignmentHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1032,6 +1137,7 @@ readonly fields: DisposalSiteFieldRefs;
 export interface Prisma__DisposalSiteClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   assignments<T extends Prisma.DisposalSite$assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DisposalSite$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisposalAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assignmentHistory<T extends Prisma.DisposalSite$assignmentHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DisposalSite$assignmentHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisposalAssignmentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1484,6 +1590,30 @@ export type DisposalSite$assignmentsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.DisposalAssignmentScalarFieldEnum | Prisma.DisposalAssignmentScalarFieldEnum[]
+}
+
+/**
+ * DisposalSite.assignmentHistory
+ */
+export type DisposalSite$assignmentHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DisposalAssignmentHistory
+   */
+  select?: Prisma.DisposalAssignmentHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DisposalAssignmentHistory
+   */
+  omit?: Prisma.DisposalAssignmentHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DisposalAssignmentHistoryInclude<ExtArgs> | null
+  where?: Prisma.DisposalAssignmentHistoryWhereInput
+  orderBy?: Prisma.DisposalAssignmentHistoryOrderByWithRelationInput | Prisma.DisposalAssignmentHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.DisposalAssignmentHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DisposalAssignmentHistoryScalarFieldEnum | Prisma.DisposalAssignmentHistoryScalarFieldEnum[]
 }
 
 /**

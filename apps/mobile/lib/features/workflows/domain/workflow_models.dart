@@ -280,6 +280,9 @@ class DisposalSite {
     required this.id,
     required this.name,
     required this.address,
+    this.latitude,
+    this.longitude,
+    this.active = true,
   });
   factory DisposalSite.fromJson(Object? value) {
     final map = jsonObject(value);
@@ -287,11 +290,17 @@ class DisposalSite {
       id: map['id'] as String,
       name: map['name'] as String,
       address: map['address'] as String,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      active: map['active'] as bool? ?? true,
     );
   }
   final String id;
   final String name;
   final String address;
+  final double? latitude;
+  final double? longitude;
+  final bool active;
 }
 
 class OperationalNotification {
@@ -344,4 +353,118 @@ class LocationPolicy {
   final double sampleDistanceMetres;
   final bool backgroundTrackingEnabled;
   final String approvalNotice;
+}
+
+class ProviderAdministration {
+  const ProviderAdministration({
+    required this.userId,
+    required this.companyName,
+    required this.essLicenseNumber,
+    required this.phoneNumber,
+    required this.email,
+    required this.workAddress,
+    required this.status,
+    required this.active,
+    required this.history,
+  });
+  factory ProviderAdministration.fromJson(Object? value) {
+    final map = jsonObject(value);
+    return ProviderAdministration(
+      userId: map['providerUserId'] as String,
+      companyName: map['companyName'] as String,
+      essLicenseNumber: map['essLicenseNumber'] as String,
+      phoneNumber: map['phoneNumber'] as String,
+      email: map['email'] as String,
+      workAddress: map['workAddress'] as String,
+      status: map['status'] as String,
+      active: map['active'] as bool? ?? false,
+      history: jsonList(map['statusHistory'] ?? const <Object>[]),
+    );
+  }
+  final String userId;
+  final String companyName;
+  final String essLicenseNumber;
+  final String phoneNumber;
+  final String email;
+  final String workAddress;
+  final String status;
+  final bool active;
+  final List<Map<String, dynamic>> history;
+}
+
+class CallCentreClient {
+  const CallCentreClient({
+    required this.userId,
+    required this.name,
+    required this.phoneNumber,
+    this.email,
+  });
+  factory CallCentreClient.fromJson(Object? value) {
+    final map = jsonObject(value);
+    return CallCentreClient(
+      userId: map['userId'] as String,
+      name: map['name'] as String,
+      phoneNumber: map['phoneNumber'] as String,
+      email: map['email'] as String?,
+    );
+  }
+  final String userId;
+  final String name;
+  final String phoneNumber;
+  final String? email;
+}
+
+class EligibleProvider {
+  const EligibleProvider({required this.userId, required this.companyName});
+  factory EligibleProvider.fromJson(Object? value) {
+    final map = jsonObject(value);
+    return EligibleProvider(
+      userId: map['userId'] as String,
+      companyName: map['companyName'] as String,
+    );
+  }
+  final String userId;
+  final String companyName;
+}
+
+class MapPlace {
+  const MapPlace({
+    required this.name,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+  });
+  factory MapPlace.fromJson(Object? value) {
+    final map = jsonObject(value);
+    return MapPlace(
+      name: map['name'] as String,
+      address: map['address'] as String? ?? '',
+      latitude: (map['latitude'] as num).toDouble(),
+      longitude: (map['longitude'] as num).toDouble(),
+    );
+  }
+  final String name;
+  final String address;
+  final double latitude;
+  final double longitude;
+}
+
+class MapRouteGuidance {
+  const MapRouteGuidance({
+    required this.distanceMetres,
+    required this.duration,
+    required this.encodedPolyline,
+  });
+  factory MapRouteGuidance.fromJson(Object? value) {
+    final map = jsonObject(value);
+    final polyline = jsonObject(map['polyline']);
+    return MapRouteGuidance(
+      distanceMetres: map['distanceMeters'] as int? ?? 0,
+      duration: map['duration'] as String? ?? '',
+      encodedPolyline: polyline['encodedPolyline'] as String? ?? '',
+    );
+  }
+  final int distanceMetres;
+  final String duration;
+  final String encodedPolyline;
 }

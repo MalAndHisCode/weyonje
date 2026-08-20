@@ -5,6 +5,8 @@ import '../../../ui/weyonje_alert.dart';
 import '../../../ui/weyonje_button.dart';
 import '../../../ui/weyonje_page.dart';
 import '../application/sign_in_controller.dart';
+import '../../../navigation/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -103,6 +105,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ? 'Enter your password.'
                         : null,
                     onFieldSubmitted: (_) => _submit(state.inProgress),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: state.inProgress
+                        ? null
+                        : () => context.push(AppRoutes.passwordRecovery),
+                    child: const Text('Forgot password?'),
                   ),
                 ),
                 if (state.message case final message?) ...[

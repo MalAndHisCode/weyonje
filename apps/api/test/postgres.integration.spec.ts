@@ -4,7 +4,13 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 
 import { PrismaClient } from "../src/generated/prisma/client";
-import { ActorType } from "../src/generated/prisma/enums";
+import {
+  ActorType,
+  NotificationDeliveryChannel,
+  OperationalNotificationType,
+  OutboxStatus,
+} from "../src/generated/prisma/enums";
+import { DeliveryProcessor } from "../src/delivery/delivery.processor";
 
 const runtimeUrl = process.env.TEST_DATABASE_URL;
 const directUrl = process.env.TEST_DIRECT_URL;
@@ -91,5 +97,67 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
     await expect(
       prisma.refreshToken.count({ where: { sessionId: session.id } }),
     ).resolves.toBe(0);
+  });
+
+  it("allows two processors to compete without delivering one event twice", async () => {
+    const event = await prisma.outboxEvent.create({
+      data: {
+        channel: NotificationDeliveryChannel.IN_APP,
+        eventType: OperationalNotificationType.REMINDER,
+        deduplicationKey: `integration:${randomUUID()}`,
+        payload: { kind: "synthetic" },
+      },
+      select: { id: true },
+    });
+    const config = {
+      batchSize: 1,
+      pollIntervalMilliseconds: 100,
+      claimLeaseSeconds: 30,
+      maxAttempts: 3,
+      backoffBaseSeconds: 1,
+      backoffMaximumSeconds: 10,
+      retentionDays: 1,
+    };
+    const dependency = {} as never;
+    const first = new DeliveryProcessor(
+      prisma as never,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      config,
+    );
+    const second = new DeliveryProcessor(
+      prisma as never,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      dependency,
+      config,
+    );
+    try {
+      const claimed = await Promise.all([
+        first.processBatch(),
+        second.processBatch(),
+      ]);
+      expect(claimed.reduce((sum, value) => sum + value, 0)).toBe(1);
+      await expect(
+        prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } }),
+      ).resolves.toMatchObject({
+        status: OutboxStatus.DELIVERED,
+        attempts: 1,
+      });
+      await expect(
+        prisma.deliveryAttempt.count({ where: { outboxEventId: event.id } }),
+      ).resolves.toBe(1);
+    } finally {
+      await prisma.outboxEvent.delete({ where: { id: event.id } });
+    }
   });
 });

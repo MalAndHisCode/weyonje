@@ -25,6 +25,7 @@ export class CurrentActorService {
         return {
           actorType: ActorType.client,
           access: user.isActive ? ActorAccess.eligible : ActorAccess.denied,
+          emailVerified: user.emailVerifiedAt !== null,
         };
       case ActorType.serviceProvider:
         if (
@@ -39,6 +40,7 @@ export class CurrentActorService {
         }
         return {
           actorType: ActorType.serviceProvider,
+          emailVerified: user.emailVerifiedAt !== null,
           access:
             user.isActive && user.providerStatus === ProviderStatus.approved
               ? ActorAccess.eligible
@@ -63,10 +65,17 @@ export class CurrentActorService {
         }
         return {
           actorType: ActorType.kccaStaff,
+          emailVerified: user.emailVerifiedAt !== null,
           access:
-            user.isActive && user.mobileMonitoringPermitted
+            user.isActive &&
+            (user.mobileMonitoringPermitted ||
+              user.providerApprovalPermitted ||
+              user.callCentreOperationsPermitted)
               ? ActorAccess.eligible
               : ActorAccess.denied,
+          mobileMonitoringPermitted: user.mobileMonitoringPermitted,
+          providerApprovalPermitted: user.providerApprovalPermitted,
+          callCentreOperationsPermitted: user.callCentreOperationsPermitted,
         };
       default:
         throw this.inconsistent();

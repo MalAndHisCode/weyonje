@@ -11,10 +11,12 @@ import {
   ClientRegistrationRequestContract,
   ClientType,
   PendingProviderRegistrationContract,
+  ProviderAdministrationContract,
   PhoneChallengeContract,
   ProviderApprovalDecision,
   ProviderApprovalRequestContract,
   ProviderRegistrationStatusContract,
+  ProviderStatusChangeContract,
   ProviderStatus,
   ServiceProviderRegistrationRequestContract,
   ServiceProviderType,
@@ -31,6 +33,8 @@ import {
   ActorType as PrismaActorType,
   ClientType as PrismaClientType,
   NotificationType,
+  NotificationDeliveryChannel,
+  OperationalNotificationType,
   PhoneChallengePurpose,
   ProviderApprovalDecision as PrismaApprovalDecision,
   ProviderStatus as PrismaProviderStatus,
@@ -250,6 +254,140 @@ export class RegistrationService {
     });
   }
 
+  async providers(
+    actor: AuthenticatedActor,
+    status?: ProviderStatus,
+  ): Promise<ProviderAdministrationContract[]> {
+    this.assertApprovalPermission(actor);
+    if (status && !Object.values(ProviderStatus).includes(status)) {
+      throw new BadRequestException({
+        code: ApiErrorCode.invalidRequest,
+        message: "Select a recognized Provider status.",
+      });
+    }
+    const providers = await this.prisma.user.findMany({
+      where: {
+        actorType: PrismaActorType.SERVICE_PROVIDER,
+        ...(status ? { providerStatus: status as PrismaProviderStatus } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      include: {
+        serviceProviderProfile: true,
+        providerStatusHistory: { orderBy: { createdAt: "desc" } },
+      },
+    });
+    return providers.map((provider) => this.providerAdministration(provider));
+  }
+
+  async providerAdministrationDetail(
+    actor: AuthenticatedActor,
+    providerUserId: string,
+  ): Promise<ProviderAdministrationContract> {
+    this.assertApprovalPermission(actor);
+    const provider = await this.prisma.user.findFirst({
+      where: {
+        id: providerUserId,
+        actorType: PrismaActorType.SERVICE_PROVIDER,
+      },
+      include: {
+        serviceProviderProfile: true,
+        providerStatusHistory: { orderBy: { createdAt: "desc" } },
+      },
+    });
+    if (!provider?.serviceProviderProfile || !provider.providerStatus)
+      throw new NotFoundException({
+        code: ApiErrorCode.invalidRequest,
+        message: "The Service Provider was not found.",
+      });
+    return this.providerAdministration(provider);
+  }
+
+  async changeProviderStatus(
+    actor: AuthenticatedActor,
+    providerUserId: string,
+    input: ProviderStatusChangeContract,
+  ): Promise<ProviderAdministrationContract> {
+    this.assertApprovalPermission(actor);
+    const allowed = [
+      ProviderStatus.approved,
+      ProviderStatus.inactive,
+      ProviderStatus.disabled,
+    ];
+    if (!allowed.includes(input.status)) {
+      throw new BadRequestException({
+        code: ApiErrorCode.invalidRequest,
+        message:
+          "Only activation, deactivation, or disabling is permitted here.",
+      });
+    }
+    const reason = clean(input.reason);
+    if (input.status === ProviderStatus.disabled && !reason) {
+      throw new BadRequestException({
+        code: ApiErrorCode.invalidRequest,
+        message: "A reason is required when disabling a Provider.",
+      });
+    }
+    await this.prisma.$transaction(async (tx) => {
+      const provider = await tx.user.findFirst({
+        where: {
+          id: providerUserId,
+          actorType: PrismaActorType.SERVICE_PROVIDER,
+        },
+        select: { providerStatus: true, phoneVerifiedAt: true },
+      });
+      if (
+        !provider?.providerStatus ||
+        provider.providerStatus === PrismaProviderStatus.PENDING
+      )
+        throw this.conflict("Complete the pending approval decision first.");
+      if (provider.providerStatus === (input.status as PrismaProviderStatus))
+        throw this.conflict("The Provider already has this status.");
+      if (input.status === ProviderStatus.approved && !provider.phoneVerifiedAt)
+        throw this.conflict(
+          "The Provider phone number must be verified before activation.",
+        );
+      await tx.user.update({
+        where: { id: providerUserId },
+        data: {
+          providerStatus: input.status as PrismaProviderStatus,
+          isActive: input.status === ProviderStatus.approved,
+        },
+      });
+      const history = await tx.providerStatusHistory.create({
+        data: {
+          providerUserId,
+          changedByUserId: actor.user.id,
+          fromStatus: provider.providerStatus,
+          toStatus: input.status as PrismaProviderStatus,
+          reason,
+        },
+      });
+      const title =
+        input.status === ProviderStatus.approved
+          ? "Provider account activated"
+          : "Provider account status changed";
+      await tx.operationalNotification.create({
+        data: {
+          recipientUserId: providerUserId,
+          type: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
+          title,
+          message: "Your Weyonje Provider account status was updated by KCCA.",
+        },
+      });
+      await tx.outboxEvent.create({
+        data: {
+          recipientUserId: providerUserId,
+          channel: NotificationDeliveryChannel.PUSH,
+          eventType: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
+          deduplicationKey: `provider:${providerUserId}:status:${history.id}`,
+          payload: { providerUserId, status: input.status },
+        },
+      });
+    });
+    return this.providerAdministrationDetail(actor, providerUserId);
+  }
+
   async decideProvider(
     actor: AuthenticatedActor,
     providerUserId: string,
@@ -329,6 +467,17 @@ export class RegistrationService {
           reason: approved ? null : reason,
         },
       });
+      await transaction.providerStatusHistory.create({
+        data: {
+          providerUserId,
+          changedByUserId: actor.user.id,
+          fromStatus: PrismaProviderStatus.PENDING,
+          toStatus: approved
+            ? PrismaProviderStatus.APPROVED
+            : PrismaProviderStatus.REJECTED,
+          reason: approved ? null : reason,
+        },
+      });
       await transaction.registrationNotification.create({
         data: {
           recipientUserId: providerUserId,
@@ -336,6 +485,26 @@ export class RegistrationService {
             ? NotificationType.PROVIDER_APPROVED
             : NotificationType.PROVIDER_REJECTED,
           subjectUserId: providerUserId,
+        },
+      });
+      const accountMessage = approved
+        ? "KCCA approved your Weyonje Provider registration."
+        : "KCCA reviewed your Weyonje Provider registration. Open Weyonje for the decision.";
+      await transaction.operationalNotification.create({
+        data: {
+          recipientUserId: providerUserId,
+          type: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
+          title: approved ? "Provider registration approved" : "Provider registration reviewed",
+          message: accountMessage,
+        },
+      });
+      await transaction.outboxEvent.create({
+        data: {
+          recipientUserId: providerUserId,
+          channel: NotificationDeliveryChannel.PUSH,
+          eventType: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
+          deduplicationKey: `provider:${providerUserId}:review:${approved ? "approved" : "rejected"}`,
+          payload: { providerUserId, decision: approved ? "APPROVED" : "REJECTED" },
         },
       });
       return approved
@@ -377,6 +546,59 @@ export class RegistrationService {
         provider.serviceProviderProfile.latestRejectionReason;
     }
     return result;
+  }
+
+  private providerAdministration(provider: {
+    id: string;
+    providerStatus: PrismaProviderStatus | null;
+    isActive: boolean;
+    encryptedEmail: string | null;
+    encryptedPhone: string | null;
+    createdAt: Date;
+    serviceProviderProfile: {
+      essLicenseNumber: string;
+      companyName: string;
+      workAddress: string;
+      providerType: PrismaServiceProviderType;
+      contactPersonName: string;
+      encryptedContactPhone: string;
+      providerNumber: string | null;
+      latestRejectionReason: string | null;
+    } | null;
+    providerStatusHistory: Array<{
+      fromStatus: PrismaProviderStatus;
+      toStatus: PrismaProviderStatus;
+      reason: string | null;
+      createdAt: Date;
+    }>;
+  }): ProviderAdministrationContract {
+    const profile = provider.serviceProviderProfile!;
+    return {
+      providerUserId: provider.id,
+      status: provider.providerStatus as ProviderStatus,
+      active: provider.isActive,
+      essLicenseNumber: profile.essLicenseNumber,
+      companyName: profile.companyName,
+      phoneNumber: this.phones.decrypt(provider.encryptedPhone!),
+      email: this.emails.decrypt(provider.encryptedEmail!),
+      workAddress: profile.workAddress,
+      providerType: profile.providerType as ServiceProviderType,
+      contactPersonName: profile.contactPersonName,
+      contactPersonPhone: this.phones.decrypt(profile.encryptedContactPhone),
+      submittedAt: provider.createdAt.toISOString(),
+      ...(profile.providerNumber
+        ? { providerNumber: profile.providerNumber }
+        : {}),
+      ...(profile.latestRejectionReason
+        ? { rejectionReason: profile.latestRejectionReason }
+        : {}),
+      statusHistory: provider.providerStatusHistory.map((history) => ({
+        fromStatus: history.fromStatus as ProviderStatus,
+        toStatus: history.toStatus as ProviderStatus,
+        ...(history.reason ? { reason: history.reason } : {}),
+        createdAt: history.createdAt.toISOString(),
+      })),
+    };
   }
 
   private async assertIdentifiersAvailable(

@@ -175,14 +175,32 @@ enum OperationalNotificationType {
   DISPOSAL_ARRIVED
   DISPOSAL_COMPLETED
   REMINDER
+  PASSWORD_RECOVERY
+  EMAIL_VERIFICATION
+  PROVIDER_ACCOUNT_UPDATED
 
   @@map("operational_notification_type")
+}
+
+enum AccountChallengePurpose {
+  PASSWORD_RECOVERY
+  EMAIL_VERIFICATION
+
+  @@map("account_challenge_purpose")
+}
+
+enum AccountChallengeChannel {
+  SMS
+  EMAIL
+
+  @@map("account_challenge_channel")
 }
 
 enum NotificationDeliveryChannel {
   IN_APP
   SMS
   PUSH
+  EMAIL
 
   @@map("notification_delivery_channel")
 }
@@ -192,6 +210,7 @@ enum OutboxStatus {
   PROCESSING
   DELIVERED
   FAILED
+  DEAD_LETTER
 
   @@map("outbox_status")
 }
@@ -224,6 +243,8 @@ model User {
   phoneChallenges               PhoneChallenge[]
   approvalDecisionsMade         ProviderApprovalDecisionRecord[] @relation("ApprovalDecisionMaker")
   providerApprovalDecisions     ProviderApprovalDecisionRecord[] @relation("ApprovalSubject")
+  providerStatusHistory         ProviderStatusHistory[]          @relation("ProviderStatusSubject")
+  providerStatusChangesMade     ProviderStatusHistory[]          @relation("ProviderStatusActor")
   notifications                 RegistrationNotification[]
   clientRequests                ServiceRequest[]                 @relation("ClientRequests")
   requestsCreated               ServiceRequest[]                 @relation("CreatedRequests")
@@ -234,11 +255,69 @@ model User {
   collectionReports             CollectionReport[]               @relation("ProviderCollectionReports")
   feedbackSubmissions           ServiceFeedback[]                @relation("FeedbackSubmitter")
   disposalAssignmentsMade       DisposalAssignment[]             @relation("DisposalAssignmentsMade")
+  disposalAssignmentChangesMade DisposalAssignmentHistory[]      @relation("DisposalAssignmentHistoryActor")
   operationalNotifications      OperationalNotification[]
   auditEvents                   AuditEvent[]
+  accountChallenges             AccountChallenge[]
+  securityEvents                SecurityEvent[]
+  deviceInstallations           DeviceInstallation[]
 
   @@index([actorType], map: "ix_users_actor_type")
   @@map("users")
+}
+
+model AccountChallenge {
+  id                String                  @id @default(uuid()) @db.Uuid
+  userId            String                  @map("user_id") @db.Uuid
+  purpose           AccountChallengePurpose
+  channel           AccountChallengeChannel
+  secretHash        String                  @map("secret_hash") @db.VarChar(64)
+  expiresAt         DateTime                @map("expires_at") @db.Timestamptz(3)
+  resendAvailableAt DateTime                @map("resend_available_at") @db.Timestamptz(3)
+  attemptsRemaining Int                     @default(5) @map("attempts_remaining")
+  consumedAt        DateTime?               @map("consumed_at") @db.Timestamptz(3)
+  supersededAt      DateTime?               @map("superseded_at") @db.Timestamptz(3)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, createdAt], map: "ix_account_challenges_user_purpose_created")
+  @@index([expiresAt], map: "ix_account_challenges_expiry")
+  @@map("account_challenges")
+}
+
+model SecurityEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @map("user_id") @db.Uuid
+  subjectHash String   @map("subject_hash") @db.VarChar(64)
+  challengeId String?  @map("challenge_id") @db.Uuid
+  action      String   @db.VarChar(100)
+  outcome     String   @db.VarChar(64)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([subjectHash, createdAt], map: "ix_security_events_subject_created")
+  @@index([userId, createdAt], map: "ix_security_events_user_created")
+  @@map("security_events")
+}
+
+model DeviceInstallation {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  installationId String    @map("installation_id") @db.Uuid
+  environment    String    @db.VarChar(32)
+  platform       String    @db.VarChar(32)
+  tokenLookup    String    @unique(map: "uq_device_installations_token_lookup") @map("token_lookup") @db.VarChar(64)
+  encryptedToken String    @map("encrypted_token") @db.VarChar(4096)
+  active         Boolean   @default(true)
+  lastSeenAt     DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  invalidatedAt  DateTime? @map("invalidated_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, installationId, environment], map: "uq_device_installations_user_installation_environment")
+  @@index([userId, active], map: "ix_device_installations_user_active")
+  @@map("device_installations")
 }
 
 model ClientProfile {
@@ -310,6 +389,21 @@ model ProviderApprovalDecisionRecord {
   @@map("provider_approval_decisions")
 }
 
+model ProviderStatusHistory {
+  id              String         @id @default(uuid()) @db.Uuid
+  providerUserId  String         @map("provider_user_id") @db.Uuid
+  changedByUserId String         @map("changed_by_user_id") @db.Uuid
+  fromStatus      ProviderStatus @map("from_status")
+  toStatus        ProviderStatus @map("to_status")
+  reason          String?        @db.VarChar(1000)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  provider        User           @relation("ProviderStatusSubject", fields: [providerUserId], references: [id], onDelete: Cascade)
+  changedBy       User           @relation("ProviderStatusActor", fields: [changedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([providerUserId, createdAt], map: "ix_provider_status_history_subject_created")
+  @@map("provider_status_history")
+}
+
 model RegistrationNotification {
   id                 String           @id @default(uuid()) @db.Uuid
   recipientUserId    String?          @map("recipient_user_id") @db.Uuid
@@ -378,41 +472,42 @@ model LoginThrottle {
 }
 
 model ServiceRequest {
-  id                       String                    @id @default(uuid()) @db.Uuid
-  reference                String                    @unique(map: "uq_service_requests_reference") @db.VarChar(32)
-  origin                   ServiceRequestOrigin
-  status                   ServiceRequestStatus      @default(PENDING)
-  clientUserId             String?                   @map("client_user_id") @db.Uuid
-  createdByUserId          String?                   @map("created_by_user_id") @db.Uuid
-  acceptedProviderUserId   String?                   @map("accepted_provider_user_id") @db.Uuid
-  clientName               String                    @map("client_name") @db.VarChar(240)
-  encryptedClientPhone     String                    @map("encrypted_client_phone") @db.VarChar(1024)
-  encryptedClientEmail     String?                   @map("encrypted_client_email") @db.VarChar(1024)
-  locationKind             RequestLocationKind       @map("location_kind")
-  locationText             String?                   @map("location_text") @db.VarChar(500)
-  latitude                 Decimal?                  @db.Decimal(9, 6)
-  longitude                Decimal?                  @db.Decimal(9, 6)
-  toiletType               ToiletType?               @map("toilet_type")
-  additionalContactName    String?                   @map("additional_contact_name") @db.VarChar(200)
-  encryptedAdditionalPhone String?                   @map("encrypted_additional_phone") @db.VarChar(1024)
-  scheduleMode             ScheduleMode              @map("schedule_mode")
-  requestedServiceAt       DateTime?                 @map("requested_service_at") @db.Timestamptz(3)
-  agreedPriceUgx           Int?                      @map("agreed_price_ugx")
-  acceptedAt               DateTime?                 @map("accepted_at") @db.Timestamptz(3)
-  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
-  client                   User?                     @relation("ClientRequests", fields: [clientUserId], references: [id], onDelete: Restrict)
-  createdBy                User?                     @relation("CreatedRequests", fields: [createdByUserId], references: [id], onDelete: Restrict)
-  acceptedProvider         User?                     @relation("AcceptedProviderRequests", fields: [acceptedProviderUserId], references: [id], onDelete: Restrict)
-  assignments              RequestAssignment[]
-  statusHistory            RequestStatusHistory[]
-  journeys                 Journey[]
-  collectionReport         CollectionReport?
-  feedback                 ServiceFeedback?
-  followUpCase             FollowUpCase?
-  disposalAssignment       DisposalAssignment?
-  notifications            OperationalNotification[]
-  outboxEvents             OutboxEvent[]
+  id                        String                      @id @default(uuid()) @db.Uuid
+  reference                 String                      @unique(map: "uq_service_requests_reference") @db.VarChar(32)
+  origin                    ServiceRequestOrigin
+  status                    ServiceRequestStatus        @default(PENDING)
+  clientUserId              String?                     @map("client_user_id") @db.Uuid
+  createdByUserId           String?                     @map("created_by_user_id") @db.Uuid
+  acceptedProviderUserId    String?                     @map("accepted_provider_user_id") @db.Uuid
+  clientName                String                      @map("client_name") @db.VarChar(240)
+  encryptedClientPhone      String                      @map("encrypted_client_phone") @db.VarChar(1024)
+  encryptedClientEmail      String?                     @map("encrypted_client_email") @db.VarChar(1024)
+  locationKind              RequestLocationKind         @map("location_kind")
+  locationText              String?                     @map("location_text") @db.VarChar(500)
+  latitude                  Decimal?                    @db.Decimal(9, 6)
+  longitude                 Decimal?                    @db.Decimal(9, 6)
+  toiletType                ToiletType?                 @map("toilet_type")
+  additionalContactName     String?                     @map("additional_contact_name") @db.VarChar(200)
+  encryptedAdditionalPhone  String?                     @map("encrypted_additional_phone") @db.VarChar(1024)
+  scheduleMode              ScheduleMode                @map("schedule_mode")
+  requestedServiceAt        DateTime?                   @map("requested_service_at") @db.Timestamptz(3)
+  agreedPriceUgx            Int?                        @map("agreed_price_ugx")
+  acceptedAt                DateTime?                   @map("accepted_at") @db.Timestamptz(3)
+  createdAt                 DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                 DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  client                    User?                       @relation("ClientRequests", fields: [clientUserId], references: [id], onDelete: Restrict)
+  createdBy                 User?                       @relation("CreatedRequests", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  acceptedProvider          User?                       @relation("AcceptedProviderRequests", fields: [acceptedProviderUserId], references: [id], onDelete: Restrict)
+  assignments               RequestAssignment[]
+  statusHistory             RequestStatusHistory[]
+  journeys                  Journey[]
+  collectionReport          CollectionReport?
+  feedback                  ServiceFeedback?
+  followUpCase              FollowUpCase?
+  disposalAssignment        DisposalAssignment?
+  disposalAssignmentHistory DisposalAssignmentHistory[]
+  notifications             OperationalNotification[]
+  outboxEvents              OutboxEvent[]
 
   @@index([clientUserId, createdAt], map: "ix_service_requests_client_created")
   @@index([acceptedProviderUserId, updatedAt], map: "ix_service_requests_provider_updated")
@@ -530,16 +625,17 @@ model FollowUpCase {
 }
 
 model DisposalSite {
-  id          String               @id @default(uuid()) @db.Uuid
-  name        String               @db.VarChar(200)
-  address     String               @db.VarChar(500)
-  latitude    Decimal              @db.Decimal(9, 6)
-  longitude   Decimal              @db.Decimal(9, 6)
-  active      Boolean              @default(true)
-  approvedAt  DateTime             @default(now()) @map("approved_at") @db.Timestamptz(3)
-  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  assignments DisposalAssignment[]
+  id                String                      @id @default(uuid()) @db.Uuid
+  name              String                      @db.VarChar(200)
+  address           String                      @db.VarChar(500)
+  latitude          Decimal                     @db.Decimal(9, 6)
+  longitude         Decimal                     @db.Decimal(9, 6)
+  active            Boolean                     @default(true)
+  approvedAt        DateTime                    @default(now()) @map("approved_at") @db.Timestamptz(3)
+  createdAt         DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  assignments       DisposalAssignment[]
+  assignmentHistory DisposalAssignmentHistory[]
 
   @@index([active, name], map: "ix_disposal_sites_active_name")
   @@map("disposal_sites")
@@ -558,17 +654,32 @@ model DisposalAssignment {
   @@map("disposal_assignments")
 }
 
+model DisposalAssignmentHistory {
+  id               String         @id @default(uuid()) @db.Uuid
+  requestId        String         @map("request_id") @db.Uuid
+  disposalSiteId   String         @map("disposal_site_id") @db.Uuid
+  assignedByUserId String         @map("assigned_by_user_id") @db.Uuid
+  assignedAt       DateTime       @default(now()) @map("assigned_at") @db.Timestamptz(3)
+  request          ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  disposalSite     DisposalSite   @relation(fields: [disposalSiteId], references: [id], onDelete: Restrict)
+  assignedBy       User           @relation("DisposalAssignmentHistoryActor", fields: [assignedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, assignedAt], map: "ix_disposal_assignment_history_request_time")
+  @@map("disposal_assignment_history")
+}
+
 model OperationalNotification {
-  id              String                      @id @default(uuid()) @db.Uuid
-  recipientUserId String                      @map("recipient_user_id") @db.Uuid
-  requestId       String?                     @map("request_id") @db.Uuid
-  type            OperationalNotificationType
-  title           String                      @db.VarChar(200)
-  message         String                      @db.VarChar(1000)
-  createdAt       DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
-  readAt          DateTime?                   @map("read_at") @db.Timestamptz(3)
-  recipient       User                        @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
-  request         ServiceRequest?             @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  id                  String                      @id @default(uuid()) @db.Uuid
+  recipientUserId     String                      @map("recipient_user_id") @db.Uuid
+  requestId           String?                     @map("request_id") @db.Uuid
+  type                OperationalNotificationType
+  title               String                      @db.VarChar(200)
+  message             String                      @db.VarChar(1000)
+  createdAt           DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  readAt              DateTime?                   @map("read_at") @db.Timestamptz(3)
+  sourceOutboxEventId String?                     @unique(map: "uq_operational_notifications_source_outbox") @map("source_outbox_event_id") @db.Uuid
+  recipient           User                        @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+  request             ServiceRequest?             @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([recipientUserId, createdAt], map: "ix_operational_notifications_recipient_created")
   @@map("operational_notifications")
@@ -585,14 +696,37 @@ model OutboxEvent {
   status           OutboxStatus                @default(PENDING)
   attempts         Int                         @default(0)
   nextAttemptAt    DateTime                    @default(now()) @map("next_attempt_at") @db.Timestamptz(3)
+  claimedAt        DateTime?                   @map("claimed_at") @db.Timestamptz(3)
+  claimExpiresAt   DateTime?                   @map("claim_expires_at") @db.Timestamptz(3)
+  claimToken       String?                     @map("claim_token") @db.Uuid
   deliveredAt      DateTime?                   @map("delivered_at") @db.Timestamptz(3)
+  deadLetteredAt   DateTime?                   @map("dead_lettered_at") @db.Timestamptz(3)
   lastErrorCode    String?                     @map("last_error_code") @db.VarChar(100)
   createdAt        DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
   request          ServiceRequest?             @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  attemptsHistory  DeliveryAttempt[]
 
   @@index([status, nextAttemptAt], map: "ix_outbox_events_status_next")
+  @@index([status, claimExpiresAt], map: "ix_outbox_events_status_claim_expiry")
   @@map("outbox_events")
+}
+
+model DeliveryAttempt {
+  id                String                      @id @default(uuid()) @db.Uuid
+  outboxEventId     String                      @map("outbox_event_id") @db.Uuid
+  attemptNumber     Int                         @map("attempt_number")
+  channel           NotificationDeliveryChannel
+  result            String                      @db.VarChar(32)
+  errorCode         String?                     @map("error_code") @db.VarChar(100)
+  providerMessageId String?                     @map("provider_message_id") @db.VarChar(255)
+  startedAt         DateTime                    @default(now()) @map("started_at") @db.Timestamptz(3)
+  completedAt       DateTime?                   @map("completed_at") @db.Timestamptz(3)
+  outboxEvent       OutboxEvent                 @relation(fields: [outboxEventId], references: [id], onDelete: Cascade)
+
+  @@unique([outboxEventId, attemptNumber], map: "uq_delivery_attempts_event_number")
+  @@index([result, completedAt], map: "ix_delivery_attempts_result_completed")
+  @@map("delivery_attempts")
 }
 
 model IdempotencyRecord {

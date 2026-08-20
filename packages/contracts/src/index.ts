@@ -21,6 +21,10 @@ export enum ProviderStatus {
 export interface CurrentActorContract {
   actorType: ActorType;
   access: ActorAccess;
+  emailVerified: boolean;
+  mobileMonitoringPermitted?: boolean;
+  providerApprovalPermitted?: boolean;
+  callCentreOperationsPermitted?: boolean;
   providerStatus?: ProviderStatus;
   providerNumber?: string;
   providerRejectionReason?: string;
@@ -120,6 +124,27 @@ export interface PendingProviderRegistrationContract {
   submittedAt: string;
 }
 
+export interface ProviderStatusHistoryContract {
+  fromStatus: ProviderStatus;
+  toStatus: ProviderStatus;
+  reason?: string;
+  createdAt: string;
+}
+
+export interface ProviderAdministrationContract
+  extends PendingProviderRegistrationContract {
+  status: ProviderStatus;
+  active: boolean;
+  providerNumber?: string;
+  rejectionReason?: string;
+  statusHistory: ProviderStatusHistoryContract[];
+}
+
+export interface ProviderStatusChangeContract {
+  status: ProviderStatus.inactive | ProviderStatus.approved | ProviderStatus.disabled;
+  reason?: string;
+}
+
 export interface RefreshRequestContract {
   refreshToken: string;
 }
@@ -156,6 +181,43 @@ export enum ApiErrorCode {
   idempotencyConflict = "IDEMPOTENCY_CONFLICT",
   locationUnavailable = "LOCATION_UNAVAILABLE",
   locationStale = "LOCATION_STALE",
+  challengeInvalid = "ACCOUNT_CHALLENGE_INVALID",
+  challengeExpired = "ACCOUNT_CHALLENGE_EXPIRED",
+  challengeUsed = "ACCOUNT_CHALLENGE_USED",
+  challengeSuperseded = "ACCOUNT_CHALLENGE_SUPERSEDED",
+}
+
+export enum AccountChallengeMethod {
+  phone = "PHONE",
+  email = "EMAIL",
+}
+
+export interface AccountChallengeContract {
+  challengeId: string;
+  expiresAt: string;
+  resendAvailableAt: string;
+  deliveryStatus: "QUEUED";
+  developmentVerificationCode?: string;
+}
+
+export interface PasswordRecoveryRequestContract {
+  email: string;
+  method: AccountChallengeMethod;
+}
+
+export interface CompletePasswordRecoveryContract {
+  challengeId: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface RequestEmailVerificationContract {
+  method: AccountChallengeMethod;
+}
+
+export interface VerifyEmailContract {
+  challengeId: string;
+  code: string;
 }
 
 export interface ApiErrorContract {
@@ -250,6 +312,9 @@ export enum OperationalNotificationType {
   disposalArrived = "DISPOSAL_ARRIVED",
   disposalCompleted = "DISPOSAL_COMPLETED",
   reminder = "REMINDER",
+  passwordRecovery = "PASSWORD_RECOVERY",
+  emailVerification = "EMAIL_VERIFICATION",
+  providerAccountUpdated = "PROVIDER_ACCOUNT_UPDATED",
 }
 
 export interface GeoPointContract {
@@ -274,9 +339,23 @@ export interface CallCentreCreateRequestContract extends Omit<
   "idempotencyKey"
 > {
   idempotencyKey: string;
+  clientUserId?: string;
   clientName: string;
   clientPhone: string;
   clientEmail?: string;
+}
+
+export interface CallCentreClientContract {
+  userId: string;
+  name: string;
+  phoneNumber: string;
+  email?: string;
+}
+
+export interface EligibleProviderContract {
+  userId: string;
+  companyName: string;
+  providerNumber?: string;
 }
 
 export interface ServiceRequestSummaryContract {
@@ -385,10 +464,15 @@ export interface DisposalSiteContract extends GeoPointContract {
   id: string;
   name: string;
   address: string;
+  active: boolean;
 }
 
-export interface UpsertDisposalSiteContract extends DisposalSiteContract {
-  active: boolean;
+export interface UpsertDisposalSiteContract extends DisposalSiteContract {}
+
+export interface DisposalAssignmentHistoryContract {
+  disposalSiteId: string;
+  disposalSiteName: string;
+  assignedAt: string;
 }
 
 export interface CompleteDisposalContract {

@@ -378,6 +378,7 @@ export type ServiceRequestWhereInput = {
   feedback?: Prisma.XOR<Prisma.ServiceFeedbackNullableScalarRelationFilter, Prisma.ServiceFeedbackWhereInput> | null
   followUpCase?: Prisma.XOR<Prisma.FollowUpCaseNullableScalarRelationFilter, Prisma.FollowUpCaseWhereInput> | null
   disposalAssignment?: Prisma.XOR<Prisma.DisposalAssignmentNullableScalarRelationFilter, Prisma.DisposalAssignmentWhereInput> | null
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryListRelationFilter
   notifications?: Prisma.OperationalNotificationListRelationFilter
   outboxEvents?: Prisma.OutboxEventListRelationFilter
 }
@@ -416,6 +417,7 @@ export type ServiceRequestOrderByWithRelationInput = {
   feedback?: Prisma.ServiceFeedbackOrderByWithRelationInput
   followUpCase?: Prisma.FollowUpCaseOrderByWithRelationInput
   disposalAssignment?: Prisma.DisposalAssignmentOrderByWithRelationInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryOrderByRelationAggregateInput
   notifications?: Prisma.OperationalNotificationOrderByRelationAggregateInput
   outboxEvents?: Prisma.OutboxEventOrderByRelationAggregateInput
 }
@@ -457,6 +459,7 @@ export type ServiceRequestWhereUniqueInput = Prisma.AtLeast<{
   feedback?: Prisma.XOR<Prisma.ServiceFeedbackNullableScalarRelationFilter, Prisma.ServiceFeedbackWhereInput> | null
   followUpCase?: Prisma.XOR<Prisma.FollowUpCaseNullableScalarRelationFilter, Prisma.FollowUpCaseWhereInput> | null
   disposalAssignment?: Prisma.XOR<Prisma.DisposalAssignmentNullableScalarRelationFilter, Prisma.DisposalAssignmentWhereInput> | null
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryListRelationFilter
   notifications?: Prisma.OperationalNotificationListRelationFilter
   outboxEvents?: Prisma.OutboxEventListRelationFilter
 }, "id" | "reference">
@@ -552,6 +555,7 @@ export type ServiceRequestCreateInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -587,6 +591,7 @@ export type ServiceRequestUncheckedCreateInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -622,6 +627,7 @@ export type ServiceRequestUpdateInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -657,6 +663,7 @@ export type ServiceRequestUncheckedUpdateInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -1106,6 +1113,20 @@ export type ServiceRequestUpdateOneRequiredWithoutDisposalAssignmentNestedInput 
   update?: Prisma.XOR<Prisma.XOR<Prisma.ServiceRequestUpdateToOneWithWhereWithoutDisposalAssignmentInput, Prisma.ServiceRequestUpdateWithoutDisposalAssignmentInput>, Prisma.ServiceRequestUncheckedUpdateWithoutDisposalAssignmentInput>
 }
 
+export type ServiceRequestCreateNestedOneWithoutDisposalAssignmentHistoryInput = {
+  create?: Prisma.XOR<Prisma.ServiceRequestCreateWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUncheckedCreateWithoutDisposalAssignmentHistoryInput>
+  connectOrCreate?: Prisma.ServiceRequestCreateOrConnectWithoutDisposalAssignmentHistoryInput
+  connect?: Prisma.ServiceRequestWhereUniqueInput
+}
+
+export type ServiceRequestUpdateOneRequiredWithoutDisposalAssignmentHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.ServiceRequestCreateWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUncheckedCreateWithoutDisposalAssignmentHistoryInput>
+  connectOrCreate?: Prisma.ServiceRequestCreateOrConnectWithoutDisposalAssignmentHistoryInput
+  upsert?: Prisma.ServiceRequestUpsertWithoutDisposalAssignmentHistoryInput
+  connect?: Prisma.ServiceRequestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ServiceRequestUpdateToOneWithWhereWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUpdateWithoutDisposalAssignmentHistoryInput>, Prisma.ServiceRequestUncheckedUpdateWithoutDisposalAssignmentHistoryInput>
+}
+
 export type ServiceRequestCreateNestedOneWithoutNotificationsInput = {
   create?: Prisma.XOR<Prisma.ServiceRequestCreateWithoutNotificationsInput, Prisma.ServiceRequestUncheckedCreateWithoutNotificationsInput>
   connectOrCreate?: Prisma.ServiceRequestCreateOrConnectWithoutNotificationsInput
@@ -1168,6 +1189,7 @@ export type ServiceRequestCreateWithoutClientInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1202,6 +1224,7 @@ export type ServiceRequestUncheckedCreateWithoutClientInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -1246,6 +1269,7 @@ export type ServiceRequestCreateWithoutCreatedByInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1280,6 +1304,7 @@ export type ServiceRequestUncheckedCreateWithoutCreatedByInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -1324,6 +1349,7 @@ export type ServiceRequestCreateWithoutAcceptedProviderInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1358,6 +1384,7 @@ export type ServiceRequestUncheckedCreateWithoutAcceptedProviderInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -1479,6 +1506,7 @@ export type ServiceRequestCreateWithoutAssignmentsInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1513,6 +1541,7 @@ export type ServiceRequestUncheckedCreateWithoutAssignmentsInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -1563,6 +1592,7 @@ export type ServiceRequestUpdateWithoutAssignmentsInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -1597,6 +1627,7 @@ export type ServiceRequestUncheckedUpdateWithoutAssignmentsInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -1631,6 +1662,7 @@ export type ServiceRequestCreateWithoutStatusHistoryInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1665,6 +1697,7 @@ export type ServiceRequestUncheckedCreateWithoutStatusHistoryInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -1715,6 +1748,7 @@ export type ServiceRequestUpdateWithoutStatusHistoryInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -1749,6 +1783,7 @@ export type ServiceRequestUncheckedUpdateWithoutStatusHistoryInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -1783,6 +1818,7 @@ export type ServiceRequestCreateWithoutJourneysInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1817,6 +1853,7 @@ export type ServiceRequestUncheckedCreateWithoutJourneysInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -1867,6 +1904,7 @@ export type ServiceRequestUpdateWithoutJourneysInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -1901,6 +1939,7 @@ export type ServiceRequestUncheckedUpdateWithoutJourneysInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -1935,6 +1974,7 @@ export type ServiceRequestCreateWithoutCollectionReportInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -1969,6 +2009,7 @@ export type ServiceRequestUncheckedCreateWithoutCollectionReportInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -2019,6 +2060,7 @@ export type ServiceRequestUpdateWithoutCollectionReportInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -2053,6 +2095,7 @@ export type ServiceRequestUncheckedUpdateWithoutCollectionReportInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -2087,6 +2130,7 @@ export type ServiceRequestCreateWithoutFeedbackInput = {
   collectionReport?: Prisma.CollectionReportCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -2121,6 +2165,7 @@ export type ServiceRequestUncheckedCreateWithoutFeedbackInput = {
   collectionReport?: Prisma.CollectionReportUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -2171,6 +2216,7 @@ export type ServiceRequestUpdateWithoutFeedbackInput = {
   collectionReport?: Prisma.CollectionReportUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -2205,6 +2251,7 @@ export type ServiceRequestUncheckedUpdateWithoutFeedbackInput = {
   collectionReport?: Prisma.CollectionReportUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -2239,6 +2286,7 @@ export type ServiceRequestCreateWithoutFollowUpCaseInput = {
   collectionReport?: Prisma.CollectionReportCreateNestedOneWithoutRequestInput
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -2273,6 +2321,7 @@ export type ServiceRequestUncheckedCreateWithoutFollowUpCaseInput = {
   collectionReport?: Prisma.CollectionReportUncheckedCreateNestedOneWithoutRequestInput
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -2323,6 +2372,7 @@ export type ServiceRequestUpdateWithoutFollowUpCaseInput = {
   collectionReport?: Prisma.CollectionReportUpdateOneWithoutRequestNestedInput
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -2357,6 +2407,7 @@ export type ServiceRequestUncheckedUpdateWithoutFollowUpCaseInput = {
   collectionReport?: Prisma.CollectionReportUncheckedUpdateOneWithoutRequestNestedInput
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -2391,6 +2442,7 @@ export type ServiceRequestCreateWithoutDisposalAssignmentInput = {
   collectionReport?: Prisma.CollectionReportCreateNestedOneWithoutRequestInput
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
@@ -2425,6 +2477,7 @@ export type ServiceRequestUncheckedCreateWithoutDisposalAssignmentInput = {
   collectionReport?: Prisma.CollectionReportUncheckedCreateNestedOneWithoutRequestInput
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
@@ -2475,6 +2528,7 @@ export type ServiceRequestUpdateWithoutDisposalAssignmentInput = {
   collectionReport?: Prisma.CollectionReportUpdateOneWithoutRequestNestedInput
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -2509,6 +2563,163 @@ export type ServiceRequestUncheckedUpdateWithoutDisposalAssignmentInput = {
   collectionReport?: Prisma.CollectionReportUncheckedUpdateOneWithoutRequestNestedInput
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
+  notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
+  outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
+}
+
+export type ServiceRequestCreateWithoutDisposalAssignmentHistoryInput = {
+  id?: string
+  reference: string
+  origin: $Enums.ServiceRequestOrigin
+  status?: $Enums.ServiceRequestStatus
+  clientName: string
+  encryptedClientPhone: string
+  encryptedClientEmail?: string | null
+  locationKind: $Enums.RequestLocationKind
+  locationText?: string | null
+  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  toiletType?: $Enums.ToiletType | null
+  additionalContactName?: string | null
+  encryptedAdditionalPhone?: string | null
+  scheduleMode: $Enums.ScheduleMode
+  requestedServiceAt?: Date | string | null
+  agreedPriceUgx?: number | null
+  acceptedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  client?: Prisma.UserCreateNestedOneWithoutClientRequestsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutRequestsCreatedInput
+  acceptedProvider?: Prisma.UserCreateNestedOneWithoutAcceptedRequestsInput
+  assignments?: Prisma.RequestAssignmentCreateNestedManyWithoutRequestInput
+  statusHistory?: Prisma.RequestStatusHistoryCreateNestedManyWithoutRequestInput
+  journeys?: Prisma.JourneyCreateNestedManyWithoutRequestInput
+  collectionReport?: Prisma.CollectionReportCreateNestedOneWithoutRequestInput
+  feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
+  followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
+  disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
+  outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
+}
+
+export type ServiceRequestUncheckedCreateWithoutDisposalAssignmentHistoryInput = {
+  id?: string
+  reference: string
+  origin: $Enums.ServiceRequestOrigin
+  status?: $Enums.ServiceRequestStatus
+  clientUserId?: string | null
+  createdByUserId?: string | null
+  acceptedProviderUserId?: string | null
+  clientName: string
+  encryptedClientPhone: string
+  encryptedClientEmail?: string | null
+  locationKind: $Enums.RequestLocationKind
+  locationText?: string | null
+  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  toiletType?: $Enums.ToiletType | null
+  additionalContactName?: string | null
+  encryptedAdditionalPhone?: string | null
+  scheduleMode: $Enums.ScheduleMode
+  requestedServiceAt?: Date | string | null
+  agreedPriceUgx?: number | null
+  acceptedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  assignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutRequestInput
+  statusHistory?: Prisma.RequestStatusHistoryUncheckedCreateNestedManyWithoutRequestInput
+  journeys?: Prisma.JourneyUncheckedCreateNestedManyWithoutRequestInput
+  collectionReport?: Prisma.CollectionReportUncheckedCreateNestedOneWithoutRequestInput
+  feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
+  followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
+  outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
+}
+
+export type ServiceRequestCreateOrConnectWithoutDisposalAssignmentHistoryInput = {
+  where: Prisma.ServiceRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ServiceRequestCreateWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUncheckedCreateWithoutDisposalAssignmentHistoryInput>
+}
+
+export type ServiceRequestUpsertWithoutDisposalAssignmentHistoryInput = {
+  update: Prisma.XOR<Prisma.ServiceRequestUpdateWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUncheckedUpdateWithoutDisposalAssignmentHistoryInput>
+  create: Prisma.XOR<Prisma.ServiceRequestCreateWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUncheckedCreateWithoutDisposalAssignmentHistoryInput>
+  where?: Prisma.ServiceRequestWhereInput
+}
+
+export type ServiceRequestUpdateToOneWithWhereWithoutDisposalAssignmentHistoryInput = {
+  where?: Prisma.ServiceRequestWhereInput
+  data: Prisma.XOR<Prisma.ServiceRequestUpdateWithoutDisposalAssignmentHistoryInput, Prisma.ServiceRequestUncheckedUpdateWithoutDisposalAssignmentHistoryInput>
+}
+
+export type ServiceRequestUpdateWithoutDisposalAssignmentHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.StringFieldUpdateOperationsInput | string
+  origin?: Prisma.EnumServiceRequestOriginFieldUpdateOperationsInput | $Enums.ServiceRequestOrigin
+  status?: Prisma.EnumServiceRequestStatusFieldUpdateOperationsInput | $Enums.ServiceRequestStatus
+  clientName?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedClientPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedClientEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationKind?: Prisma.EnumRequestLocationKindFieldUpdateOperationsInput | $Enums.RequestLocationKind
+  locationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  toiletType?: Prisma.NullableEnumToiletTypeFieldUpdateOperationsInput | $Enums.ToiletType | null
+  additionalContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedAdditionalPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduleMode?: Prisma.EnumScheduleModeFieldUpdateOperationsInput | $Enums.ScheduleMode
+  requestedServiceAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  agreedPriceUgx?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  client?: Prisma.UserUpdateOneWithoutClientRequestsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutRequestsCreatedNestedInput
+  acceptedProvider?: Prisma.UserUpdateOneWithoutAcceptedRequestsNestedInput
+  assignments?: Prisma.RequestAssignmentUpdateManyWithoutRequestNestedInput
+  statusHistory?: Prisma.RequestStatusHistoryUpdateManyWithoutRequestNestedInput
+  journeys?: Prisma.JourneyUpdateManyWithoutRequestNestedInput
+  collectionReport?: Prisma.CollectionReportUpdateOneWithoutRequestNestedInput
+  feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
+  followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
+  disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
+  outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
+}
+
+export type ServiceRequestUncheckedUpdateWithoutDisposalAssignmentHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.StringFieldUpdateOperationsInput | string
+  origin?: Prisma.EnumServiceRequestOriginFieldUpdateOperationsInput | $Enums.ServiceRequestOrigin
+  status?: Prisma.EnumServiceRequestStatusFieldUpdateOperationsInput | $Enums.ServiceRequestStatus
+  clientUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  acceptedProviderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clientName?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedClientPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedClientEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationKind?: Prisma.EnumRequestLocationKindFieldUpdateOperationsInput | $Enums.RequestLocationKind
+  locationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  toiletType?: Prisma.NullableEnumToiletTypeFieldUpdateOperationsInput | $Enums.ToiletType | null
+  additionalContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedAdditionalPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduleMode?: Prisma.EnumScheduleModeFieldUpdateOperationsInput | $Enums.ScheduleMode
+  requestedServiceAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  agreedPriceUgx?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutRequestNestedInput
+  statusHistory?: Prisma.RequestStatusHistoryUncheckedUpdateManyWithoutRequestNestedInput
+  journeys?: Prisma.JourneyUncheckedUpdateManyWithoutRequestNestedInput
+  collectionReport?: Prisma.CollectionReportUncheckedUpdateOneWithoutRequestNestedInput
+  feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
+  followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -2544,6 +2755,7 @@ export type ServiceRequestCreateWithoutNotificationsInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventCreateNestedManyWithoutRequestInput
 }
 
@@ -2578,6 +2790,7 @@ export type ServiceRequestUncheckedCreateWithoutNotificationsInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   outboxEvents?: Prisma.OutboxEventUncheckedCreateNestedManyWithoutRequestInput
 }
 
@@ -2628,6 +2841,7 @@ export type ServiceRequestUpdateWithoutNotificationsInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
 
@@ -2662,6 +2876,7 @@ export type ServiceRequestUncheckedUpdateWithoutNotificationsInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
 
@@ -2696,6 +2911,7 @@ export type ServiceRequestCreateWithoutOutboxEventsInput = {
   feedback?: Prisma.ServiceFeedbackCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRequestInput
 }
 
@@ -2730,6 +2946,7 @@ export type ServiceRequestUncheckedCreateWithoutOutboxEventsInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedCreateNestedOneWithoutRequestInput
   followUpCase?: Prisma.FollowUpCaseUncheckedCreateNestedOneWithoutRequestInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedCreateNestedOneWithoutRequestInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutRequestInput
   notifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRequestInput
 }
 
@@ -2780,6 +2997,7 @@ export type ServiceRequestUpdateWithoutOutboxEventsInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
 }
 
@@ -2814,6 +3032,7 @@ export type ServiceRequestUncheckedUpdateWithoutOutboxEventsInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
 }
 
@@ -2922,6 +3141,7 @@ export type ServiceRequestUpdateWithoutClientInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -2956,6 +3176,7 @@ export type ServiceRequestUncheckedUpdateWithoutClientInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -3015,6 +3236,7 @@ export type ServiceRequestUpdateWithoutCreatedByInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -3049,6 +3271,7 @@ export type ServiceRequestUncheckedUpdateWithoutCreatedByInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -3108,6 +3331,7 @@ export type ServiceRequestUpdateWithoutAcceptedProviderInput = {
   feedback?: Prisma.ServiceFeedbackUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUpdateManyWithoutRequestNestedInput
 }
@@ -3142,6 +3366,7 @@ export type ServiceRequestUncheckedUpdateWithoutAcceptedProviderInput = {
   feedback?: Prisma.ServiceFeedbackUncheckedUpdateOneWithoutRequestNestedInput
   followUpCase?: Prisma.FollowUpCaseUncheckedUpdateOneWithoutRequestNestedInput
   disposalAssignment?: Prisma.DisposalAssignmentUncheckedUpdateOneWithoutRequestNestedInput
+  disposalAssignmentHistory?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutRequestNestedInput
   notifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRequestNestedInput
   outboxEvents?: Prisma.OutboxEventUncheckedUpdateManyWithoutRequestNestedInput
 }
@@ -3180,6 +3405,7 @@ export type ServiceRequestCountOutputType = {
   assignments: number
   statusHistory: number
   journeys: number
+  disposalAssignmentHistory: number
   notifications: number
   outboxEvents: number
 }
@@ -3188,6 +3414,7 @@ export type ServiceRequestCountOutputTypeSelect<ExtArgs extends runtime.Types.Ex
   assignments?: boolean | ServiceRequestCountOutputTypeCountAssignmentsArgs
   statusHistory?: boolean | ServiceRequestCountOutputTypeCountStatusHistoryArgs
   journeys?: boolean | ServiceRequestCountOutputTypeCountJourneysArgs
+  disposalAssignmentHistory?: boolean | ServiceRequestCountOutputTypeCountDisposalAssignmentHistoryArgs
   notifications?: boolean | ServiceRequestCountOutputTypeCountNotificationsArgs
   outboxEvents?: boolean | ServiceRequestCountOutputTypeCountOutboxEventsArgs
 }
@@ -3221,6 +3448,13 @@ export type ServiceRequestCountOutputTypeCountStatusHistoryArgs<ExtArgs extends 
  */
 export type ServiceRequestCountOutputTypeCountJourneysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.JourneyWhereInput
+}
+
+/**
+ * ServiceRequestCountOutputType without action
+ */
+export type ServiceRequestCountOutputTypeCountDisposalAssignmentHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DisposalAssignmentHistoryWhereInput
 }
 
 /**
@@ -3272,6 +3506,7 @@ export type ServiceRequestSelect<ExtArgs extends runtime.Types.Extensions.Intern
   feedback?: boolean | Prisma.ServiceRequest$feedbackArgs<ExtArgs>
   followUpCase?: boolean | Prisma.ServiceRequest$followUpCaseArgs<ExtArgs>
   disposalAssignment?: boolean | Prisma.ServiceRequest$disposalAssignmentArgs<ExtArgs>
+  disposalAssignmentHistory?: boolean | Prisma.ServiceRequest$disposalAssignmentHistoryArgs<ExtArgs>
   notifications?: boolean | Prisma.ServiceRequest$notificationsArgs<ExtArgs>
   outboxEvents?: boolean | Prisma.ServiceRequest$outboxEventsArgs<ExtArgs>
   _count?: boolean | Prisma.ServiceRequestCountOutputTypeDefaultArgs<ExtArgs>
@@ -3373,6 +3608,7 @@ export type ServiceRequestInclude<ExtArgs extends runtime.Types.Extensions.Inter
   feedback?: boolean | Prisma.ServiceRequest$feedbackArgs<ExtArgs>
   followUpCase?: boolean | Prisma.ServiceRequest$followUpCaseArgs<ExtArgs>
   disposalAssignment?: boolean | Prisma.ServiceRequest$disposalAssignmentArgs<ExtArgs>
+  disposalAssignmentHistory?: boolean | Prisma.ServiceRequest$disposalAssignmentHistoryArgs<ExtArgs>
   notifications?: boolean | Prisma.ServiceRequest$notificationsArgs<ExtArgs>
   outboxEvents?: boolean | Prisma.ServiceRequest$outboxEventsArgs<ExtArgs>
   _count?: boolean | Prisma.ServiceRequestCountOutputTypeDefaultArgs<ExtArgs>
@@ -3401,6 +3637,7 @@ export type $ServiceRequestPayload<ExtArgs extends runtime.Types.Extensions.Inte
     feedback: Prisma.$ServiceFeedbackPayload<ExtArgs> | null
     followUpCase: Prisma.$FollowUpCasePayload<ExtArgs> | null
     disposalAssignment: Prisma.$DisposalAssignmentPayload<ExtArgs> | null
+    disposalAssignmentHistory: Prisma.$DisposalAssignmentHistoryPayload<ExtArgs>[]
     notifications: Prisma.$OperationalNotificationPayload<ExtArgs>[]
     outboxEvents: Prisma.$OutboxEventPayload<ExtArgs>[]
   }
@@ -3832,6 +4069,7 @@ export interface Prisma__ServiceRequestClient<T, Null = never, ExtArgs extends r
   feedback<T extends Prisma.ServiceRequest$feedbackArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceRequest$feedbackArgs<ExtArgs>>): Prisma.Prisma__ServiceFeedbackClient<runtime.Types.Result.GetResult<Prisma.$ServiceFeedbackPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   followUpCase<T extends Prisma.ServiceRequest$followUpCaseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceRequest$followUpCaseArgs<ExtArgs>>): Prisma.Prisma__FollowUpCaseClient<runtime.Types.Result.GetResult<Prisma.$FollowUpCasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   disposalAssignment<T extends Prisma.ServiceRequest$disposalAssignmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceRequest$disposalAssignmentArgs<ExtArgs>>): Prisma.Prisma__DisposalAssignmentClient<runtime.Types.Result.GetResult<Prisma.$DisposalAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  disposalAssignmentHistory<T extends Prisma.ServiceRequest$disposalAssignmentHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceRequest$disposalAssignmentHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisposalAssignmentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.ServiceRequest$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceRequest$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperationalNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   outboxEvents<T extends Prisma.ServiceRequest$outboxEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ServiceRequest$outboxEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutboxEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -4489,6 +4727,30 @@ export type ServiceRequest$disposalAssignmentArgs<ExtArgs extends runtime.Types.
    */
   include?: Prisma.DisposalAssignmentInclude<ExtArgs> | null
   where?: Prisma.DisposalAssignmentWhereInput
+}
+
+/**
+ * ServiceRequest.disposalAssignmentHistory
+ */
+export type ServiceRequest$disposalAssignmentHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DisposalAssignmentHistory
+   */
+  select?: Prisma.DisposalAssignmentHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DisposalAssignmentHistory
+   */
+  omit?: Prisma.DisposalAssignmentHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DisposalAssignmentHistoryInclude<ExtArgs> | null
+  where?: Prisma.DisposalAssignmentHistoryWhereInput
+  orderBy?: Prisma.DisposalAssignmentHistoryOrderByWithRelationInput | Prisma.DisposalAssignmentHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.DisposalAssignmentHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DisposalAssignmentHistoryScalarFieldEnum | Prisma.DisposalAssignmentHistoryScalarFieldEnum[]
 }
 
 /**

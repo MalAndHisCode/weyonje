@@ -122,6 +122,11 @@ export class CallCentreCreateRequestDto
   extends CreateServiceRequestDto
   implements CallCentreCreateRequestContract
 {
+  @ApiPropertyOptional({ type: String, format: "uuid" })
+  @IsOptional()
+  @IsUUID()
+  clientUserId?: string;
+
   @ApiProperty({ type: String, maxLength: 240 })
   @IsString()
   @IsNotEmpty()

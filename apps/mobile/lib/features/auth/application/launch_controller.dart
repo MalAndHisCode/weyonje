@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/auth/auth_repository.dart';
 import '../../../core/auth/current_actor.dart';
+import '../../../core/notifications/push_notification_coordinator.dart';
+import '../../workflows/application/journey_tracking_coordinator.dart';
 
 sealed class LaunchState {
   const LaunchState();
@@ -118,6 +120,8 @@ class LaunchController extends Notifier<LaunchState> {
 
   Future<void> signOut() async {
     cancelActiveCheck();
+    await ref.read(pushNotificationCoordinatorProvider).disable();
+    await ref.read(journeyTrackingCoordinatorProvider).clear();
     await ref.read(authRepositoryProvider).signOut();
     state = const LaunchUnauthenticated(message: 'You have signed out.');
   }

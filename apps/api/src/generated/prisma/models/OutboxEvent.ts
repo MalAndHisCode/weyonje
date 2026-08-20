@@ -44,7 +44,11 @@ export type OutboxEventMinAggregateOutputType = {
   status: $Enums.OutboxStatus | null
   attempts: number | null
   nextAttemptAt: Date | null
+  claimedAt: Date | null
+  claimExpiresAt: Date | null
+  claimToken: string | null
   deliveredAt: Date | null
+  deadLetteredAt: Date | null
   lastErrorCode: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -60,7 +64,11 @@ export type OutboxEventMaxAggregateOutputType = {
   status: $Enums.OutboxStatus | null
   attempts: number | null
   nextAttemptAt: Date | null
+  claimedAt: Date | null
+  claimExpiresAt: Date | null
+  claimToken: string | null
   deliveredAt: Date | null
+  deadLetteredAt: Date | null
   lastErrorCode: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -77,7 +85,11 @@ export type OutboxEventCountAggregateOutputType = {
   status: number
   attempts: number
   nextAttemptAt: number
+  claimedAt: number
+  claimExpiresAt: number
+  claimToken: number
   deliveredAt: number
+  deadLetteredAt: number
   lastErrorCode: number
   createdAt: number
   updatedAt: number
@@ -103,7 +115,11 @@ export type OutboxEventMinAggregateInputType = {
   status?: true
   attempts?: true
   nextAttemptAt?: true
+  claimedAt?: true
+  claimExpiresAt?: true
+  claimToken?: true
   deliveredAt?: true
+  deadLetteredAt?: true
   lastErrorCode?: true
   createdAt?: true
   updatedAt?: true
@@ -119,7 +135,11 @@ export type OutboxEventMaxAggregateInputType = {
   status?: true
   attempts?: true
   nextAttemptAt?: true
+  claimedAt?: true
+  claimExpiresAt?: true
+  claimToken?: true
   deliveredAt?: true
+  deadLetteredAt?: true
   lastErrorCode?: true
   createdAt?: true
   updatedAt?: true
@@ -136,7 +156,11 @@ export type OutboxEventCountAggregateInputType = {
   status?: true
   attempts?: true
   nextAttemptAt?: true
+  claimedAt?: true
+  claimExpiresAt?: true
+  claimToken?: true
   deliveredAt?: true
+  deadLetteredAt?: true
   lastErrorCode?: true
   createdAt?: true
   updatedAt?: true
@@ -240,7 +264,11 @@ export type OutboxEventGroupByOutputType = {
   status: $Enums.OutboxStatus
   attempts: number
   nextAttemptAt: Date
+  claimedAt: Date | null
+  claimExpiresAt: Date | null
+  claimToken: string | null
   deliveredAt: Date | null
+  deadLetteredAt: Date | null
   lastErrorCode: string | null
   createdAt: Date
   updatedAt: Date
@@ -280,11 +308,16 @@ export type OutboxEventWhereInput = {
   status?: Prisma.EnumOutboxStatusFilter<"OutboxEvent"> | $Enums.OutboxStatus
   attempts?: Prisma.IntFilter<"OutboxEvent"> | number
   nextAttemptAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
+  claimedAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  claimExpiresAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  claimToken?: Prisma.UuidNullableFilter<"OutboxEvent"> | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  deadLetteredAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableFilter<"OutboxEvent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
   request?: Prisma.XOR<Prisma.ServiceRequestNullableScalarRelationFilter, Prisma.ServiceRequestWhereInput> | null
+  attemptsHistory?: Prisma.DeliveryAttemptListRelationFilter
 }
 
 export type OutboxEventOrderByWithRelationInput = {
@@ -298,11 +331,16 @@ export type OutboxEventOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   nextAttemptAt?: Prisma.SortOrder
+  claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimToken?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deadLetteredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   request?: Prisma.ServiceRequestOrderByWithRelationInput
+  attemptsHistory?: Prisma.DeliveryAttemptOrderByRelationAggregateInput
 }
 
 export type OutboxEventWhereUniqueInput = Prisma.AtLeast<{
@@ -319,11 +357,16 @@ export type OutboxEventWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumOutboxStatusFilter<"OutboxEvent"> | $Enums.OutboxStatus
   attempts?: Prisma.IntFilter<"OutboxEvent"> | number
   nextAttemptAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
+  claimedAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  claimExpiresAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  claimToken?: Prisma.UuidNullableFilter<"OutboxEvent"> | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  deadLetteredAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableFilter<"OutboxEvent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
   request?: Prisma.XOR<Prisma.ServiceRequestNullableScalarRelationFilter, Prisma.ServiceRequestWhereInput> | null
+  attemptsHistory?: Prisma.DeliveryAttemptListRelationFilter
 }, "id" | "deduplicationKey">
 
 export type OutboxEventOrderByWithAggregationInput = {
@@ -337,7 +380,11 @@ export type OutboxEventOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   nextAttemptAt?: Prisma.SortOrder
+  claimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimToken?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deadLetteredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -362,7 +409,11 @@ export type OutboxEventScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumOutboxStatusWithAggregatesFilter<"OutboxEvent"> | $Enums.OutboxStatus
   attempts?: Prisma.IntWithAggregatesFilter<"OutboxEvent"> | number
   nextAttemptAt?: Prisma.DateTimeWithAggregatesFilter<"OutboxEvent"> | Date | string
+  claimedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OutboxEvent"> | Date | string | null
+  claimExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OutboxEvent"> | Date | string | null
+  claimToken?: Prisma.UuidNullableWithAggregatesFilter<"OutboxEvent"> | string | null
   deliveredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OutboxEvent"> | Date | string | null
+  deadLetteredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OutboxEvent"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableWithAggregatesFilter<"OutboxEvent"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OutboxEvent"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"OutboxEvent"> | Date | string
@@ -378,11 +429,16 @@ export type OutboxEventCreateInput = {
   status?: $Enums.OutboxStatus
   attempts?: number
   nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
   deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
   lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   request?: Prisma.ServiceRequestCreateNestedOneWithoutOutboxEventsInput
+  attemptsHistory?: Prisma.DeliveryAttemptCreateNestedManyWithoutOutboxEventInput
 }
 
 export type OutboxEventUncheckedCreateInput = {
@@ -396,10 +452,15 @@ export type OutboxEventUncheckedCreateInput = {
   status?: $Enums.OutboxStatus
   attempts?: number
   nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
   deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
   lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  attemptsHistory?: Prisma.DeliveryAttemptUncheckedCreateNestedManyWithoutOutboxEventInput
 }
 
 export type OutboxEventUpdateInput = {
@@ -412,11 +473,16 @@ export type OutboxEventUpdateInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   request?: Prisma.ServiceRequestUpdateOneWithoutOutboxEventsNestedInput
+  attemptsHistory?: Prisma.DeliveryAttemptUpdateManyWithoutOutboxEventNestedInput
 }
 
 export type OutboxEventUncheckedUpdateInput = {
@@ -430,10 +496,15 @@ export type OutboxEventUncheckedUpdateInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attemptsHistory?: Prisma.DeliveryAttemptUncheckedUpdateManyWithoutOutboxEventNestedInput
 }
 
 export type OutboxEventCreateManyInput = {
@@ -447,7 +518,11 @@ export type OutboxEventCreateManyInput = {
   status?: $Enums.OutboxStatus
   attempts?: number
   nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
   deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
   lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -463,7 +538,11 @@ export type OutboxEventUpdateManyMutationInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -480,7 +559,11 @@ export type OutboxEventUncheckedUpdateManyInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -507,7 +590,11 @@ export type OutboxEventCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   nextAttemptAt?: Prisma.SortOrder
+  claimedAt?: Prisma.SortOrder
+  claimExpiresAt?: Prisma.SortOrder
+  claimToken?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
+  deadLetteredAt?: Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -527,7 +614,11 @@ export type OutboxEventMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   nextAttemptAt?: Prisma.SortOrder
+  claimedAt?: Prisma.SortOrder
+  claimExpiresAt?: Prisma.SortOrder
+  claimToken?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
+  deadLetteredAt?: Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -543,7 +634,11 @@ export type OutboxEventMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   nextAttemptAt?: Prisma.SortOrder
+  claimedAt?: Prisma.SortOrder
+  claimExpiresAt?: Prisma.SortOrder
+  claimToken?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
+  deadLetteredAt?: Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -551,6 +646,11 @@ export type OutboxEventMinOrderByAggregateInput = {
 
 export type OutboxEventSumOrderByAggregateInput = {
   attempts?: Prisma.SortOrder
+}
+
+export type OutboxEventScalarRelationFilter = {
+  is?: Prisma.OutboxEventWhereInput
+  isNot?: Prisma.OutboxEventWhereInput
 }
 
 export type OutboxEventCreateNestedManyWithoutRequestInput = {
@@ -603,6 +703,20 @@ export type EnumOutboxStatusFieldUpdateOperationsInput = {
   set?: $Enums.OutboxStatus
 }
 
+export type OutboxEventCreateNestedOneWithoutAttemptsHistoryInput = {
+  create?: Prisma.XOR<Prisma.OutboxEventCreateWithoutAttemptsHistoryInput, Prisma.OutboxEventUncheckedCreateWithoutAttemptsHistoryInput>
+  connectOrCreate?: Prisma.OutboxEventCreateOrConnectWithoutAttemptsHistoryInput
+  connect?: Prisma.OutboxEventWhereUniqueInput
+}
+
+export type OutboxEventUpdateOneRequiredWithoutAttemptsHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.OutboxEventCreateWithoutAttemptsHistoryInput, Prisma.OutboxEventUncheckedCreateWithoutAttemptsHistoryInput>
+  connectOrCreate?: Prisma.OutboxEventCreateOrConnectWithoutAttemptsHistoryInput
+  upsert?: Prisma.OutboxEventUpsertWithoutAttemptsHistoryInput
+  connect?: Prisma.OutboxEventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OutboxEventUpdateToOneWithWhereWithoutAttemptsHistoryInput, Prisma.OutboxEventUpdateWithoutAttemptsHistoryInput>, Prisma.OutboxEventUncheckedUpdateWithoutAttemptsHistoryInput>
+}
+
 export type OutboxEventCreateWithoutRequestInput = {
   id?: string
   recipientUserId?: string | null
@@ -613,10 +727,15 @@ export type OutboxEventCreateWithoutRequestInput = {
   status?: $Enums.OutboxStatus
   attempts?: number
   nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
   deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
   lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  attemptsHistory?: Prisma.DeliveryAttemptCreateNestedManyWithoutOutboxEventInput
 }
 
 export type OutboxEventUncheckedCreateWithoutRequestInput = {
@@ -629,10 +748,15 @@ export type OutboxEventUncheckedCreateWithoutRequestInput = {
   status?: $Enums.OutboxStatus
   attempts?: number
   nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
   deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
   lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  attemptsHistory?: Prisma.DeliveryAttemptUncheckedCreateNestedManyWithoutOutboxEventInput
 }
 
 export type OutboxEventCreateOrConnectWithoutRequestInput = {
@@ -675,10 +799,114 @@ export type OutboxEventScalarWhereInput = {
   status?: Prisma.EnumOutboxStatusFilter<"OutboxEvent"> | $Enums.OutboxStatus
   attempts?: Prisma.IntFilter<"OutboxEvent"> | number
   nextAttemptAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
+  claimedAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  claimExpiresAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  claimToken?: Prisma.UuidNullableFilter<"OutboxEvent"> | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
+  deadLetteredAt?: Prisma.DateTimeNullableFilter<"OutboxEvent"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableFilter<"OutboxEvent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OutboxEvent"> | Date | string
+}
+
+export type OutboxEventCreateWithoutAttemptsHistoryInput = {
+  id?: string
+  recipientUserId?: string | null
+  channel: $Enums.NotificationDeliveryChannel
+  eventType: $Enums.OperationalNotificationType
+  deduplicationKey: string
+  payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  status?: $Enums.OutboxStatus
+  attempts?: number
+  nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
+  deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
+  lastErrorCode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  request?: Prisma.ServiceRequestCreateNestedOneWithoutOutboxEventsInput
+}
+
+export type OutboxEventUncheckedCreateWithoutAttemptsHistoryInput = {
+  id?: string
+  requestId?: string | null
+  recipientUserId?: string | null
+  channel: $Enums.NotificationDeliveryChannel
+  eventType: $Enums.OperationalNotificationType
+  deduplicationKey: string
+  payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  status?: $Enums.OutboxStatus
+  attempts?: number
+  nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
+  deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
+  lastErrorCode?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OutboxEventCreateOrConnectWithoutAttemptsHistoryInput = {
+  where: Prisma.OutboxEventWhereUniqueInput
+  create: Prisma.XOR<Prisma.OutboxEventCreateWithoutAttemptsHistoryInput, Prisma.OutboxEventUncheckedCreateWithoutAttemptsHistoryInput>
+}
+
+export type OutboxEventUpsertWithoutAttemptsHistoryInput = {
+  update: Prisma.XOR<Prisma.OutboxEventUpdateWithoutAttemptsHistoryInput, Prisma.OutboxEventUncheckedUpdateWithoutAttemptsHistoryInput>
+  create: Prisma.XOR<Prisma.OutboxEventCreateWithoutAttemptsHistoryInput, Prisma.OutboxEventUncheckedCreateWithoutAttemptsHistoryInput>
+  where?: Prisma.OutboxEventWhereInput
+}
+
+export type OutboxEventUpdateToOneWithWhereWithoutAttemptsHistoryInput = {
+  where?: Prisma.OutboxEventWhereInput
+  data: Prisma.XOR<Prisma.OutboxEventUpdateWithoutAttemptsHistoryInput, Prisma.OutboxEventUncheckedUpdateWithoutAttemptsHistoryInput>
+}
+
+export type OutboxEventUpdateWithoutAttemptsHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  recipientUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumNotificationDeliveryChannelFieldUpdateOperationsInput | $Enums.NotificationDeliveryChannel
+  eventType?: Prisma.EnumOperationalNotificationTypeFieldUpdateOperationsInput | $Enums.OperationalNotificationType
+  deduplicationKey?: Prisma.StringFieldUpdateOperationsInput | string
+  payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  request?: Prisma.ServiceRequestUpdateOneWithoutOutboxEventsNestedInput
+}
+
+export type OutboxEventUncheckedUpdateWithoutAttemptsHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumNotificationDeliveryChannelFieldUpdateOperationsInput | $Enums.NotificationDeliveryChannel
+  eventType?: Prisma.EnumOperationalNotificationTypeFieldUpdateOperationsInput | $Enums.OperationalNotificationType
+  deduplicationKey?: Prisma.StringFieldUpdateOperationsInput | string
+  payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OutboxEventCreateManyRequestInput = {
@@ -691,7 +919,11 @@ export type OutboxEventCreateManyRequestInput = {
   status?: $Enums.OutboxStatus
   attempts?: number
   nextAttemptAt?: Date | string
+  claimedAt?: Date | string | null
+  claimExpiresAt?: Date | string | null
+  claimToken?: string | null
   deliveredAt?: Date | string | null
+  deadLetteredAt?: Date | string | null
   lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -707,10 +939,15 @@ export type OutboxEventUpdateWithoutRequestInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attemptsHistory?: Prisma.DeliveryAttemptUpdateManyWithoutOutboxEventNestedInput
 }
 
 export type OutboxEventUncheckedUpdateWithoutRequestInput = {
@@ -723,10 +960,15 @@ export type OutboxEventUncheckedUpdateWithoutRequestInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  attemptsHistory?: Prisma.DeliveryAttemptUncheckedUpdateManyWithoutOutboxEventNestedInput
 }
 
 export type OutboxEventUncheckedUpdateManyWithoutRequestInput = {
@@ -739,12 +981,45 @@ export type OutboxEventUncheckedUpdateManyWithoutRequestInput = {
   status?: Prisma.EnumOutboxStatusFieldUpdateOperationsInput | $Enums.OutboxStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadLetteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type OutboxEventCountOutputType
+ */
+
+export type OutboxEventCountOutputType = {
+  attemptsHistory: number
+}
+
+export type OutboxEventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  attemptsHistory?: boolean | OutboxEventCountOutputTypeCountAttemptsHistoryArgs
+}
+
+/**
+ * OutboxEventCountOutputType without action
+ */
+export type OutboxEventCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OutboxEventCountOutputType
+   */
+  select?: Prisma.OutboxEventCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * OutboxEventCountOutputType without action
+ */
+export type OutboxEventCountOutputTypeCountAttemptsHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeliveryAttemptWhereInput
+}
 
 
 export type OutboxEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -758,11 +1033,17 @@ export type OutboxEventSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   status?: boolean
   attempts?: boolean
   nextAttemptAt?: boolean
+  claimedAt?: boolean
+  claimExpiresAt?: boolean
+  claimToken?: boolean
   deliveredAt?: boolean
+  deadLetteredAt?: boolean
   lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   request?: boolean | Prisma.OutboxEvent$requestArgs<ExtArgs>
+  attemptsHistory?: boolean | Prisma.OutboxEvent$attemptsHistoryArgs<ExtArgs>
+  _count?: boolean | Prisma.OutboxEventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["outboxEvent"]>
 
 export type OutboxEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -776,7 +1057,11 @@ export type OutboxEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   status?: boolean
   attempts?: boolean
   nextAttemptAt?: boolean
+  claimedAt?: boolean
+  claimExpiresAt?: boolean
+  claimToken?: boolean
   deliveredAt?: boolean
+  deadLetteredAt?: boolean
   lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -794,7 +1079,11 @@ export type OutboxEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   status?: boolean
   attempts?: boolean
   nextAttemptAt?: boolean
+  claimedAt?: boolean
+  claimExpiresAt?: boolean
+  claimToken?: boolean
   deliveredAt?: boolean
+  deadLetteredAt?: boolean
   lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -812,15 +1101,21 @@ export type OutboxEventSelectScalar = {
   status?: boolean
   attempts?: boolean
   nextAttemptAt?: boolean
+  claimedAt?: boolean
+  claimExpiresAt?: boolean
+  claimToken?: boolean
   deliveredAt?: boolean
+  deadLetteredAt?: boolean
   lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OutboxEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requestId" | "recipientUserId" | "channel" | "eventType" | "deduplicationKey" | "payload" | "status" | "attempts" | "nextAttemptAt" | "deliveredAt" | "lastErrorCode" | "createdAt" | "updatedAt", ExtArgs["result"]["outboxEvent"]>
+export type OutboxEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requestId" | "recipientUserId" | "channel" | "eventType" | "deduplicationKey" | "payload" | "status" | "attempts" | "nextAttemptAt" | "claimedAt" | "claimExpiresAt" | "claimToken" | "deliveredAt" | "deadLetteredAt" | "lastErrorCode" | "createdAt" | "updatedAt", ExtArgs["result"]["outboxEvent"]>
 export type OutboxEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   request?: boolean | Prisma.OutboxEvent$requestArgs<ExtArgs>
+  attemptsHistory?: boolean | Prisma.OutboxEvent$attemptsHistoryArgs<ExtArgs>
+  _count?: boolean | Prisma.OutboxEventCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OutboxEventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   request?: boolean | Prisma.OutboxEvent$requestArgs<ExtArgs>
@@ -833,6 +1128,7 @@ export type $OutboxEventPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "OutboxEvent"
   objects: {
     request: Prisma.$ServiceRequestPayload<ExtArgs> | null
+    attemptsHistory: Prisma.$DeliveryAttemptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -845,7 +1141,11 @@ export type $OutboxEventPayload<ExtArgs extends runtime.Types.Extensions.Interna
     status: $Enums.OutboxStatus
     attempts: number
     nextAttemptAt: Date
+    claimedAt: Date | null
+    claimExpiresAt: Date | null
+    claimToken: string | null
     deliveredAt: Date | null
+    deadLetteredAt: Date | null
     lastErrorCode: string | null
     createdAt: Date
     updatedAt: Date
@@ -1244,6 +1544,7 @@ readonly fields: OutboxEventFieldRefs;
 export interface Prisma__OutboxEventClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   request<T extends Prisma.OutboxEvent$requestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OutboxEvent$requestArgs<ExtArgs>>): Prisma.Prisma__ServiceRequestClient<runtime.Types.Result.GetResult<Prisma.$ServiceRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  attemptsHistory<T extends Prisma.OutboxEvent$attemptsHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OutboxEvent$attemptsHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeliveryAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1283,7 +1584,11 @@ export interface OutboxEventFieldRefs {
   readonly status: Prisma.FieldRef<"OutboxEvent", 'OutboxStatus'>
   readonly attempts: Prisma.FieldRef<"OutboxEvent", 'Int'>
   readonly nextAttemptAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
+  readonly claimedAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
+  readonly claimExpiresAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
+  readonly claimToken: Prisma.FieldRef<"OutboxEvent", 'String'>
   readonly deliveredAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
+  readonly deadLetteredAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
   readonly lastErrorCode: Prisma.FieldRef<"OutboxEvent", 'String'>
   readonly createdAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"OutboxEvent", 'DateTime'>
@@ -1704,6 +2009,30 @@ export type OutboxEvent$requestArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.ServiceRequestInclude<ExtArgs> | null
   where?: Prisma.ServiceRequestWhereInput
+}
+
+/**
+ * OutboxEvent.attemptsHistory
+ */
+export type OutboxEvent$attemptsHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeliveryAttempt
+   */
+  select?: Prisma.DeliveryAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeliveryAttempt
+   */
+  omit?: Prisma.DeliveryAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeliveryAttemptInclude<ExtArgs> | null
+  where?: Prisma.DeliveryAttemptWhereInput
+  orderBy?: Prisma.DeliveryAttemptOrderByWithRelationInput | Prisma.DeliveryAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.DeliveryAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeliveryAttemptScalarFieldEnum | Prisma.DeliveryAttemptScalarFieldEnum[]
 }
 
 /**

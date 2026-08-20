@@ -142,6 +142,33 @@ export class Environment {
   @Max(20)
   OTP_MAX_REQUESTS_PER_HOUR = 5;
 
+  @IsIn(["FAKE", "UNCONFIGURED"])
+  EMAIL_PROVIDER = "FAKE";
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(300)
+  @Max(3600)
+  ACCOUNT_CHALLENGE_TTL_SECONDS = 900;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(30)
+  @Max(900)
+  ACCOUNT_CHALLENGE_RESEND_SECONDS = 60;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(3)
+  @Max(10)
+  ACCOUNT_CHALLENGE_MAX_ATTEMPTS = 5;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(2)
+  @Max(20)
+  ACCOUNT_CHALLENGE_MAX_REQUESTS_PER_HOUR = 5;
+
   @Transform(({ value }) => Number(value))
   @IsInt()
   @Min(5)
@@ -181,6 +208,73 @@ export class Environment {
   @Transform(({ value }) => value === true || value === "true")
   @IsBoolean()
   LOCATION_BACKGROUND_TRACKING_ENABLED = true;
+
+  @IsString()
+  GOOGLE_MAPS_SERVER_API_KEY = "";
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1000)
+  @Max(30000)
+  GOOGLE_MAPS_TIMEOUT_MILLISECONDS = 8000;
+
+  @IsString()
+  @IsNotEmpty()
+  REMINDER_OFFSETS_MINUTES = "1440,120";
+
+  @IsIn(["FAKE", "FIREBASE", "UNCONFIGURED"])
+  FCM_PROVIDER = "FAKE";
+
+  @IsString()
+  FIREBASE_PROJECT_ID = "";
+
+  @IsString()
+  FIREBASE_CLIENT_EMAIL = "";
+
+  @IsString()
+  FIREBASE_PRIVATE_KEY = "";
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  DELIVERY_BATCH_SIZE = 20;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(100)
+  @Max(60_000)
+  DELIVERY_POLL_INTERVAL_MILLISECONDS = 1000;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(15)
+  @Max(900)
+  DELIVERY_CLAIM_LEASE_SECONDS = 60;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  DELIVERY_MAX_ATTEMPTS = 8;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(3600)
+  DELIVERY_BACKOFF_BASE_SECONDS = 5;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(5)
+  @Max(86_400)
+  DELIVERY_BACKOFF_MAX_SECONDS = 3600;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(3650)
+  DELIVERY_RETENTION_DAYS = 90;
 }
 
 export function validateEnvironment(
@@ -227,6 +321,17 @@ export function validateEnvironment(
     config.NODE_ENV !== "production"
   ) {
     invalid.add("NODE_ENV");
+  }
+  if (
+    config.WEYONJE_ENVIRONMENT === "production" &&
+    config.EMAIL_PROVIDER === "FAKE"
+  ) {
+    invalid.add("EMAIL_PROVIDER");
+  }
+  if (
+    config.DELIVERY_BACKOFF_MAX_SECONDS < config.DELIVERY_BACKOFF_BASE_SECONDS
+  ) {
+    invalid.add("DELIVERY_BACKOFF_MAX_SECONDS");
   }
   if (invalid.size > 0) {
     throw new Error(

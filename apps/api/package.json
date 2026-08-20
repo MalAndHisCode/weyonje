@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "node dist/main.js",
+    "start:worker": "node dist/worker.js",
+    "start:worker:dev": "tsx src/worker.ts",
     "start:dev": "tsx watch src/main.ts",
     "build": "pnpm prisma:generate && tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"!src/generated/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\" \"prisma.config.ts\"",
@@ -41,6 +43,7 @@
     "class-validator": "^0.14.2",
     "dotenv": "^17.2.2",
     "fastify": "5.11.0",
+    "firebase-admin": "^14.2.0",
     "jose": "^5.10.0",
     "libphonenumber-js": "^1.12.14",
     "pg": "8.16.3",

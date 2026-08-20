@@ -7,6 +7,9 @@ import {
   PhoneCodeDeliveryStatus,
   ProviderApprovalDecision,
   ProviderApprovalRequestContract,
+  ProviderAdministrationContract,
+  ProviderStatusChangeContract,
+  ProviderStatusHistoryContract,
   ProviderRegistrationStatusContract,
   ProviderStatus,
   ResendPhoneCodeRequestContract,
@@ -249,4 +252,45 @@ export class PendingProviderRegistrationDto implements PendingProviderRegistrati
   @ApiProperty({ type: String }) contactPersonName!: string;
   @ApiProperty({ type: String }) contactPersonPhone!: string;
   @ApiProperty({ type: String, format: "date-time" }) submittedAt!: string;
+}
+
+export class ProviderStatusHistoryDto implements ProviderStatusHistoryContract {
+  @ApiProperty({ type: String, enum: ProviderStatus })
+  fromStatus!: ProviderStatus;
+  @ApiProperty({ type: String, enum: ProviderStatus })
+  toStatus!: ProviderStatus;
+  @ApiPropertyOptional({ type: String }) reason?: string;
+  @ApiProperty({ type: String, format: "date-time" }) createdAt!: string;
+}
+
+export class ProviderAdministrationDto
+  extends PendingProviderRegistrationDto
+  implements ProviderAdministrationContract
+{
+  @ApiProperty({ type: String, enum: ProviderStatus }) status!: ProviderStatus;
+  @ApiProperty({ type: Boolean }) active!: boolean;
+  @ApiPropertyOptional({ type: String }) providerNumber?: string;
+  @ApiPropertyOptional({ type: String }) rejectionReason?: string;
+  @ApiProperty({ type: ProviderStatusHistoryDto, isArray: true })
+  statusHistory!: ProviderStatusHistoryContract[];
+}
+
+export class ProviderStatusChangeDto implements ProviderStatusChangeContract {
+  @ApiProperty({
+    type: String,
+    enum: [
+      ProviderStatus.approved,
+      ProviderStatus.inactive,
+      ProviderStatus.disabled,
+    ],
+  })
+  @IsEnum(ProviderStatus)
+  status!:
+    ProviderStatus.inactive | ProviderStatus.approved | ProviderStatus.disabled;
+
+  @ApiPropertyOptional({ type: String, maxLength: 1000 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  reason?: string;
 }

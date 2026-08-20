@@ -13,6 +13,18 @@ export class CurrentActorDto implements CurrentActorContract {
   @ApiProperty({ type: String, enum: ActorAccess, enumName: "ActorAccess" })
   access!: ActorAccess;
 
+  @ApiProperty({ type: Boolean })
+  emailVerified!: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  mobileMonitoringPermitted?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  providerApprovalPermitted?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  callCentreOperationsPermitted?: boolean;
+
   @ApiPropertyOptional({
     type: String,
     enum: ProviderStatus,

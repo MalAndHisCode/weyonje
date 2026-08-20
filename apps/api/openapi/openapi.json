@@ -493,6 +493,88 @@
         ]
       }
     },
+    "/v1/provider-registrations": {
+      "get": {
+        "operationId": "ProviderRegistrationController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderAdministrationDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List Providers by administration status",
+        "tags": [
+          "provider registration review"
+        ]
+      }
+    },
+    "/v1/provider-registrations/{providerUserId}": {
+      "get": {
+        "operationId": "ProviderRegistrationController_detail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAdministrationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider registration review"
+        ]
+      }
+    },
+    "/v1/provider-registrations/{providerUserId}/status": {
+      "post": {
+        "operationId": "ProviderRegistrationController_changeStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAdministrationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "provider registration review"
+        ]
+      }
+    },
     "/v1/provider-registrations/{providerUserId}/decision": {
       "post": {
         "operationId": "ProviderRegistrationController_decide",
@@ -997,6 +1079,61 @@
         "tags": [
           "call centre workflows"
         ]
+      },
+      "get": {
+        "operationId": "CallCentreWorkflowController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
+      }
+    },
+    "/v1/call-centre/clients": {
+      "get": {
+        "operationId": "CallCentreWorkflowController_clients",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
+      }
+    },
+    "/v1/call-centre/providers": {
+      "get": {
+        "operationId": "CallCentreWorkflowController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "call centre workflows"
+        ]
       }
     },
     "/v1/call-centre/requests/{requestId}": {
@@ -1130,6 +1267,25 @@
         ]
       }
     },
+    "/v1/kcca/requests/{requestId}/disposal-site-history": {
+      "get": {
+        "operationId": "KccaWorkflowController_assignmentHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "KCCA operations"
+        ]
+      }
+    },
     "/v1/journeys/{requestId}": {
       "get": {
         "operationId": "JourneyController_tracking",
@@ -1201,6 +1357,252 @@
         ],
         "tags": [
           "notifications"
+        ]
+      }
+    },
+    "/v1/kcca/delivery/health": {
+      "get": {
+        "operationId": "DeliveryController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Safe delivery backlog and worker health"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "delivery operations"
+        ]
+      }
+    },
+    "/v1/account-security/password-recovery/request": {
+      "post": {
+        "operationId": "AccountSecurityController_requestRecovery",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountChallengeDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Request non-enumerating password recovery",
+        "tags": [
+          "account security"
+        ]
+      }
+    },
+    "/v1/account-security/password-recovery/resend": {
+      "post": {
+        "operationId": "AccountSecurityController_resendRecovery",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountChallengeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "account security"
+        ]
+      }
+    },
+    "/v1/account-security/password-recovery/complete": {
+      "post": {
+        "operationId": "AccountSecurityController_completeRecovery",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSecurityResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "account security"
+        ]
+      }
+    },
+    "/v1/account-security/email-verification/request": {
+      "post": {
+        "operationId": "AccountSecurityController_requestEmailVerification",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountChallengeDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "account security"
+        ]
+      }
+    },
+    "/v1/account-security/email-verification/resend": {
+      "post": {
+        "operationId": "AccountSecurityController_resendEmailVerification",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountChallengeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "account security"
+        ]
+      }
+    },
+    "/v1/account-security/email-verification/verify": {
+      "post": {
+        "operationId": "AccountSecurityController_verifyEmail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSecurityResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "account security"
+        ]
+      }
+    },
+    "/v1/maps/search": {
+      "post": {
+        "operationId": "MapsController_search",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/v1/maps/reverse": {
+      "get": {
+        "operationId": "MapsController_reverse",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/v1/maps/route": {
+      "post": {
+        "operationId": "MapsController_route",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/v1/notification-devices": {
+      "post": {
+        "operationId": "NotificationDevicesController_register",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notification devices"
+        ]
+      }
+    },
+    "/v1/notification-devices/{installationId}": {
+      "delete": {
+        "operationId": "NotificationDevicesController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notification devices"
         ]
       }
     }
@@ -1411,6 +1813,18 @@
               "DENIED"
             ]
           },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "mobileMonitoringPermitted": {
+            "type": "boolean"
+          },
+          "providerApprovalPermitted": {
+            "type": "boolean"
+          },
+          "callCentreOperationsPermitted": {
+            "type": "boolean"
+          },
           "providerStatus": {
             "type": "string",
             "enum": [
@@ -1432,7 +1846,8 @@
         },
         "required": [
           "actorType",
-          "access"
+          "access",
+          "emailVerified"
         ]
       },
       "RegistrationVerificationDto": {
@@ -1512,6 +1927,125 @@
           "contactPersonName",
           "contactPersonPhone",
           "submittedAt"
+        ]
+      },
+      "ProviderStatusHistoryDto": {
+        "type": "object",
+        "properties": {
+          "fromStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "INACTIVE",
+              "DISABLED"
+            ]
+          },
+          "toStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "INACTIVE",
+              "DISABLED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "fromStatus",
+          "toStatus",
+          "createdAt"
+        ]
+      },
+      "ProviderAdministrationDto": {
+        "type": "object",
+        "properties": {
+          "providerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "essLicenseNumber": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "workAddress": {
+            "type": "string"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "GULPER",
+              "EMPTIER"
+            ]
+          },
+          "contactPersonName": {
+            "type": "string"
+          },
+          "contactPersonPhone": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "INACTIVE",
+              "DISABLED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "providerNumber": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          },
+          "statusHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatusHistoryDto"
+            }
+          }
+        },
+        "required": [
+          "providerUserId",
+          "essLicenseNumber",
+          "companyName",
+          "phoneNumber",
+          "email",
+          "workAddress",
+          "providerType",
+          "contactPersonName",
+          "contactPersonPhone",
+          "submittedAt",
+          "status",
+          "active",
+          "statusHistory"
         ]
       },
       "ProviderRegistrationStatusDto": {
@@ -1953,7 +2487,10 @@
               "DISPOSAL_STARTED",
               "DISPOSAL_ARRIVED",
               "DISPOSAL_COMPLETED",
-              "REMINDER"
+              "REMINDER",
+              "PASSWORD_RECOVERY",
+              "EMAIL_VERIFICATION",
+              "PROVIDER_ACCOUNT_UPDATED"
             ]
           },
           "title": {
@@ -1980,6 +2517,51 @@
           "title",
           "message",
           "createdAt"
+        ]
+      },
+      "AccountChallengeDto": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resendAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": [
+              "QUEUED"
+            ]
+          },
+          "developmentVerificationCode": {
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "challengeId",
+          "expiresAt",
+          "resendAvailableAt",
+          "deliveryStatus"
+        ]
+      },
+      "AccountSecurityResultDto": {
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "completed"
         ]
       }
     }

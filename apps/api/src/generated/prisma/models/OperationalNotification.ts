@@ -33,6 +33,7 @@ export type OperationalNotificationMinAggregateOutputType = {
   message: string | null
   createdAt: Date | null
   readAt: Date | null
+  sourceOutboxEventId: string | null
 }
 
 export type OperationalNotificationMaxAggregateOutputType = {
@@ -44,6 +45,7 @@ export type OperationalNotificationMaxAggregateOutputType = {
   message: string | null
   createdAt: Date | null
   readAt: Date | null
+  sourceOutboxEventId: string | null
 }
 
 export type OperationalNotificationCountAggregateOutputType = {
@@ -55,6 +57,7 @@ export type OperationalNotificationCountAggregateOutputType = {
   message: number
   createdAt: number
   readAt: number
+  sourceOutboxEventId: number
   _all: number
 }
 
@@ -68,6 +71,7 @@ export type OperationalNotificationMinAggregateInputType = {
   message?: true
   createdAt?: true
   readAt?: true
+  sourceOutboxEventId?: true
 }
 
 export type OperationalNotificationMaxAggregateInputType = {
@@ -79,6 +83,7 @@ export type OperationalNotificationMaxAggregateInputType = {
   message?: true
   createdAt?: true
   readAt?: true
+  sourceOutboxEventId?: true
 }
 
 export type OperationalNotificationCountAggregateInputType = {
@@ -90,6 +95,7 @@ export type OperationalNotificationCountAggregateInputType = {
   message?: true
   createdAt?: true
   readAt?: true
+  sourceOutboxEventId?: true
   _all?: true
 }
 
@@ -174,6 +180,7 @@ export type OperationalNotificationGroupByOutputType = {
   message: string
   createdAt: Date
   readAt: Date | null
+  sourceOutboxEventId: string | null
   _count: OperationalNotificationCountAggregateOutputType | null
   _min: OperationalNotificationMinAggregateOutputType | null
   _max: OperationalNotificationMaxAggregateOutputType | null
@@ -206,6 +213,7 @@ export type OperationalNotificationWhereInput = {
   message?: Prisma.StringFilter<"OperationalNotification"> | string
   createdAt?: Prisma.DateTimeFilter<"OperationalNotification"> | Date | string
   readAt?: Prisma.DateTimeNullableFilter<"OperationalNotification"> | Date | string | null
+  sourceOutboxEventId?: Prisma.UuidNullableFilter<"OperationalNotification"> | string | null
   recipient?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   request?: Prisma.XOR<Prisma.ServiceRequestNullableScalarRelationFilter, Prisma.ServiceRequestWhereInput> | null
 }
@@ -219,12 +227,14 @@ export type OperationalNotificationOrderByWithRelationInput = {
   message?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   readAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceOutboxEventId?: Prisma.SortOrderInput | Prisma.SortOrder
   recipient?: Prisma.UserOrderByWithRelationInput
   request?: Prisma.ServiceRequestOrderByWithRelationInput
 }
 
 export type OperationalNotificationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  sourceOutboxEventId?: string
   AND?: Prisma.OperationalNotificationWhereInput | Prisma.OperationalNotificationWhereInput[]
   OR?: Prisma.OperationalNotificationWhereInput[]
   NOT?: Prisma.OperationalNotificationWhereInput | Prisma.OperationalNotificationWhereInput[]
@@ -237,7 +247,7 @@ export type OperationalNotificationWhereUniqueInput = Prisma.AtLeast<{
   readAt?: Prisma.DateTimeNullableFilter<"OperationalNotification"> | Date | string | null
   recipient?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   request?: Prisma.XOR<Prisma.ServiceRequestNullableScalarRelationFilter, Prisma.ServiceRequestWhereInput> | null
-}, "id">
+}, "id" | "sourceOutboxEventId">
 
 export type OperationalNotificationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -248,6 +258,7 @@ export type OperationalNotificationOrderByWithAggregationInput = {
   message?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   readAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceOutboxEventId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OperationalNotificationCountOrderByAggregateInput
   _max?: Prisma.OperationalNotificationMaxOrderByAggregateInput
   _min?: Prisma.OperationalNotificationMinOrderByAggregateInput
@@ -265,6 +276,7 @@ export type OperationalNotificationScalarWhereWithAggregatesInput = {
   message?: Prisma.StringWithAggregatesFilter<"OperationalNotification"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OperationalNotification"> | Date | string
   readAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OperationalNotification"> | Date | string | null
+  sourceOutboxEventId?: Prisma.UuidNullableWithAggregatesFilter<"OperationalNotification"> | string | null
 }
 
 export type OperationalNotificationCreateInput = {
@@ -274,6 +286,7 @@ export type OperationalNotificationCreateInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
   recipient: Prisma.UserCreateNestedOneWithoutOperationalNotificationsInput
   request?: Prisma.ServiceRequestCreateNestedOneWithoutNotificationsInput
 }
@@ -287,6 +300,7 @@ export type OperationalNotificationUncheckedCreateInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
 }
 
 export type OperationalNotificationUpdateInput = {
@@ -296,6 +310,7 @@ export type OperationalNotificationUpdateInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipient?: Prisma.UserUpdateOneRequiredWithoutOperationalNotificationsNestedInput
   request?: Prisma.ServiceRequestUpdateOneWithoutNotificationsNestedInput
 }
@@ -309,6 +324,7 @@ export type OperationalNotificationUncheckedUpdateInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OperationalNotificationCreateManyInput = {
@@ -320,6 +336,7 @@ export type OperationalNotificationCreateManyInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
 }
 
 export type OperationalNotificationUpdateManyMutationInput = {
@@ -329,6 +346,7 @@ export type OperationalNotificationUpdateManyMutationInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OperationalNotificationUncheckedUpdateManyInput = {
@@ -340,6 +358,7 @@ export type OperationalNotificationUncheckedUpdateManyInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OperationalNotificationListRelationFilter = {
@@ -361,6 +380,7 @@ export type OperationalNotificationCountOrderByAggregateInput = {
   message?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   readAt?: Prisma.SortOrder
+  sourceOutboxEventId?: Prisma.SortOrder
 }
 
 export type OperationalNotificationMaxOrderByAggregateInput = {
@@ -372,6 +392,7 @@ export type OperationalNotificationMaxOrderByAggregateInput = {
   message?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   readAt?: Prisma.SortOrder
+  sourceOutboxEventId?: Prisma.SortOrder
 }
 
 export type OperationalNotificationMinOrderByAggregateInput = {
@@ -383,6 +404,7 @@ export type OperationalNotificationMinOrderByAggregateInput = {
   message?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   readAt?: Prisma.SortOrder
+  sourceOutboxEventId?: Prisma.SortOrder
 }
 
 export type OperationalNotificationCreateNestedManyWithoutRecipientInput = {
@@ -480,6 +502,7 @@ export type OperationalNotificationCreateWithoutRecipientInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
   request?: Prisma.ServiceRequestCreateNestedOneWithoutNotificationsInput
 }
 
@@ -491,6 +514,7 @@ export type OperationalNotificationUncheckedCreateWithoutRecipientInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
 }
 
 export type OperationalNotificationCreateOrConnectWithoutRecipientInput = {
@@ -531,6 +555,7 @@ export type OperationalNotificationScalarWhereInput = {
   message?: Prisma.StringFilter<"OperationalNotification"> | string
   createdAt?: Prisma.DateTimeFilter<"OperationalNotification"> | Date | string
   readAt?: Prisma.DateTimeNullableFilter<"OperationalNotification"> | Date | string | null
+  sourceOutboxEventId?: Prisma.UuidNullableFilter<"OperationalNotification"> | string | null
 }
 
 export type OperationalNotificationCreateWithoutRequestInput = {
@@ -540,6 +565,7 @@ export type OperationalNotificationCreateWithoutRequestInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
   recipient: Prisma.UserCreateNestedOneWithoutOperationalNotificationsInput
 }
 
@@ -551,6 +577,7 @@ export type OperationalNotificationUncheckedCreateWithoutRequestInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
 }
 
 export type OperationalNotificationCreateOrConnectWithoutRequestInput = {
@@ -587,6 +614,7 @@ export type OperationalNotificationCreateManyRecipientInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
 }
 
 export type OperationalNotificationUpdateWithoutRecipientInput = {
@@ -596,6 +624,7 @@ export type OperationalNotificationUpdateWithoutRecipientInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request?: Prisma.ServiceRequestUpdateOneWithoutNotificationsNestedInput
 }
 
@@ -607,6 +636,7 @@ export type OperationalNotificationUncheckedUpdateWithoutRecipientInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OperationalNotificationUncheckedUpdateManyWithoutRecipientInput = {
@@ -617,6 +647,7 @@ export type OperationalNotificationUncheckedUpdateManyWithoutRecipientInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OperationalNotificationCreateManyRequestInput = {
@@ -627,6 +658,7 @@ export type OperationalNotificationCreateManyRequestInput = {
   message: string
   createdAt?: Date | string
   readAt?: Date | string | null
+  sourceOutboxEventId?: string | null
 }
 
 export type OperationalNotificationUpdateWithoutRequestInput = {
@@ -636,6 +668,7 @@ export type OperationalNotificationUpdateWithoutRequestInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipient?: Prisma.UserUpdateOneRequiredWithoutOperationalNotificationsNestedInput
 }
 
@@ -647,6 +680,7 @@ export type OperationalNotificationUncheckedUpdateWithoutRequestInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OperationalNotificationUncheckedUpdateManyWithoutRequestInput = {
@@ -657,6 +691,7 @@ export type OperationalNotificationUncheckedUpdateManyWithoutRequestInput = {
   message?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceOutboxEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -670,6 +705,7 @@ export type OperationalNotificationSelect<ExtArgs extends runtime.Types.Extensio
   message?: boolean
   createdAt?: boolean
   readAt?: boolean
+  sourceOutboxEventId?: boolean
   recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   request?: boolean | Prisma.OperationalNotification$requestArgs<ExtArgs>
 }, ExtArgs["result"]["operationalNotification"]>
@@ -683,6 +719,7 @@ export type OperationalNotificationSelectCreateManyAndReturn<ExtArgs extends run
   message?: boolean
   createdAt?: boolean
   readAt?: boolean
+  sourceOutboxEventId?: boolean
   recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   request?: boolean | Prisma.OperationalNotification$requestArgs<ExtArgs>
 }, ExtArgs["result"]["operationalNotification"]>
@@ -696,6 +733,7 @@ export type OperationalNotificationSelectUpdateManyAndReturn<ExtArgs extends run
   message?: boolean
   createdAt?: boolean
   readAt?: boolean
+  sourceOutboxEventId?: boolean
   recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   request?: boolean | Prisma.OperationalNotification$requestArgs<ExtArgs>
 }, ExtArgs["result"]["operationalNotification"]>
@@ -709,9 +747,10 @@ export type OperationalNotificationSelectScalar = {
   message?: boolean
   createdAt?: boolean
   readAt?: boolean
+  sourceOutboxEventId?: boolean
 }
 
-export type OperationalNotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "recipientUserId" | "requestId" | "type" | "title" | "message" | "createdAt" | "readAt", ExtArgs["result"]["operationalNotification"]>
+export type OperationalNotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "recipientUserId" | "requestId" | "type" | "title" | "message" | "createdAt" | "readAt" | "sourceOutboxEventId", ExtArgs["result"]["operationalNotification"]>
 export type OperationalNotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   request?: boolean | Prisma.OperationalNotification$requestArgs<ExtArgs>
@@ -740,6 +779,7 @@ export type $OperationalNotificationPayload<ExtArgs extends runtime.Types.Extens
     message: string
     createdAt: Date
     readAt: Date | null
+    sourceOutboxEventId: string | null
   }, ExtArgs["result"]["operationalNotification"]>
   composites: {}
 }
@@ -1173,6 +1213,7 @@ export interface OperationalNotificationFieldRefs {
   readonly message: Prisma.FieldRef<"OperationalNotification", 'String'>
   readonly createdAt: Prisma.FieldRef<"OperationalNotification", 'DateTime'>
   readonly readAt: Prisma.FieldRef<"OperationalNotification", 'DateTime'>
+  readonly sourceOutboxEventId: Prisma.FieldRef<"OperationalNotification", 'String'>
 }
     
 

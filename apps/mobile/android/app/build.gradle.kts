@@ -23,6 +23,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["WEYONJE_GOOGLE_MAPS_ANDROID_KEY"] =
+            (project.findProperty("WEYONJE_GOOGLE_MAPS_ANDROID_KEY") as String?) ?: ""
     }
 
     buildTypes {

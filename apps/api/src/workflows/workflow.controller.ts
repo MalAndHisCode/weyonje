@@ -250,6 +250,21 @@ export class CallCentreWorkflowController {
     return this.workflows.createCallCentreRequest(actor(request), body);
   }
 
+  @Get("requests")
+  list(@Req() request: AuthenticatedRequest) {
+    return this.workflows.callCentreRequests(actor(request));
+  }
+
+  @Get("clients")
+  clients(@Req() request: AuthenticatedRequest, @Query("query") query = "") {
+    return this.workflows.callCentreClients(actor(request), query);
+  }
+
+  @Get("providers")
+  providers(@Req() request: AuthenticatedRequest) {
+    return this.workflows.callCentreProviders(actor(request));
+  }
+
   @Get("requests/:requestId")
   detail(
     @Req() request: AuthenticatedRequest,
@@ -322,6 +337,14 @@ export class KccaWorkflowController {
       body.disposalSiteId,
       body.idempotencyKey,
     );
+  }
+
+  @Get("requests/:requestId/disposal-site-history")
+  assignmentHistory(
+    @Req() request: AuthenticatedRequest,
+    @Param("requestId", ParseUUIDPipe) requestId: string,
+  ) {
+    return this.workflows.disposalAssignmentHistory(actor(request), requestId);
   }
 }
 

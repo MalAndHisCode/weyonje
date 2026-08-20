@@ -7,9 +7,11 @@ import '../../../core/auth/auth_providers.dart';
 import '../../../ui/weyonje_alert.dart';
 import '../../../ui/weyonje_page.dart';
 import '../application/workflow_providers.dart';
+import '../application/journey_tracking_coordinator.dart';
 import '../data/workflow_repository.dart';
 import '../domain/workflow_models.dart';
 import 'workflow_widgets.dart';
+import 'weyonje_map.dart';
 
 class JourneyTrackingScreen extends ConsumerStatefulWidget {
   const JourneyTrackingScreen({
@@ -29,13 +31,11 @@ class JourneyTrackingScreen extends ConsumerStatefulWidget {
 class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
   JourneySnapshot? _snapshot;
   LocationPolicy? _policy;
+  MapRouteGuidance? _route;
   Object? _error;
   bool _loading = true;
   JourneyRealtimeClient? _realtime;
   StreamSubscription<void>? _realtimeSubscription;
-  StreamSubscription<DevicePoint>? _movementSubscription;
-  Timer? _intervalTimer;
-  bool _sending = false;
 
   @override
   void initState() {
@@ -54,6 +54,7 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
       _snapshot = values[0] as JourneySnapshot;
       _policy = values[1] as LocationPolicy;
       setState(() => _loading = false);
+      await _loadRoute();
       final realtime = JourneyRealtimeClient(
         ref.read(appConfigProvider),
         repository,
@@ -64,7 +65,9 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
         widget.phase,
       )).listen((_) => _reconcile());
       if (widget.providerMode && _snapshot!.status == 'ACTIVE') {
-        await _startProviderTracking();
+        await ref
+            .read(journeyTrackingCoordinatorProvider)
+            .start(widget.requestId, widget.phase, _policy!);
       }
     } catch (error) {
       if (mounted) {
@@ -87,62 +90,36 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
           _error = null;
         });
       }
+      await _loadRoute();
     } catch (error) {
       if (mounted) setState(() => _error = error);
     }
   }
 
-  Future<void> _startProviderTracking() async {
-    final policy = _policy!;
-    final locations = ref.read(deviceLocationProvider);
-    _movementSubscription = locations
-        .watch(policy)
-        .listen(
-          _send,
-          onError: (Object error) {
-            if (mounted) setState(() => _error = error);
-          },
-        );
-    _intervalTimer = Timer.periodic(
-      Duration(seconds: policy.sampleIntervalSeconds),
-      (_) async {
-        try {
-          await _send(await locations.current());
-        } catch (error) {
-          if (mounted) setState(() => _error = error);
-        }
-      },
-    );
-  }
-
-  Future<void> _send(DevicePoint point) async {
-    if (_sending) return;
-    _sending = true;
+  Future<void> _loadRoute() async {
+    final value = _snapshot;
+    if (!ref.read(mapSelectionProvider).configured ||
+        value?.latitude == null ||
+        value?.longitude == null) {
+      return;
+    }
     try {
-      final value = await ref
+      final route = await ref
           .read(workflowRepositoryProvider)
-          .submitPosition(widget.requestId, widget.phase, point);
-      if (mounted) {
-        setState(() {
-          _snapshot = value;
-          _error = null;
-        });
-      }
-      if (value.status != 'ACTIVE') {
-        await _movementSubscription?.cancel();
-        _intervalTimer?.cancel();
-      }
-    } catch (error) {
-      if (mounted) setState(() => _error = error);
-    } finally {
-      _sending = false;
+          .routeGuidance(
+            value!.latitude!,
+            value.longitude!,
+            value.destinationLatitude,
+            value.destinationLongitude,
+          );
+      if (mounted) setState(() => _route = route);
+    } catch (_) {
+      // Persisted coordinates and status remain available without route guidance.
     }
   }
 
   @override
   void dispose() {
-    _intervalTimer?.cancel();
-    _movementSubscription?.cancel();
     _realtimeSubscription?.cancel();
     _realtime?.dispose();
     super.dispose();
@@ -184,6 +161,14 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
           message:
               'The authorised Google Maps project is not configured. Weyonje shows authenticated, persisted coordinates and status without fabricating a map.',
         ),
+      if (ref.watch(mapSelectionProvider).configured)
+        WeyonjeMap(
+          destinationLatitude: value.destinationLatitude,
+          destinationLongitude: value.destinationLongitude,
+          providerLatitude: value.latitude,
+          providerLongitude: value.longitude,
+          encodedRoute: _route?.encodedPolyline,
+        ),
       const SizedBox(height: 16),
       Card(
         child: Padding(
@@ -204,6 +189,10 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
                 ),
               if (value.accuracyMetres != null)
                 Text('Accuracy: ${value.accuracyMetres!.round()} metres'),
+              if (_route != null)
+                Text(
+                  'Google route guidance: ${(_route!.distanceMetres / 1000).toStringAsFixed(1)} km, estimated ${_route!.duration}.',
+                ),
               Text(
                 value.stale
                     ? 'Location is stale; reconciling with the server.'

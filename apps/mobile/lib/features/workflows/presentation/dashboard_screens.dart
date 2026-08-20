@@ -215,7 +215,11 @@ class _KccaMonitoringDashboardScreenState
   @override
   void initState() {
     super.initState();
-    _load = ref.read(workflowRepositoryProvider).kccaMonitoring();
+    final launch = ref.read(launchControllerProvider);
+    _load =
+        launch is LaunchAuthenticated && launch.actor.mobileMonitoringPermitted
+        ? ref.read(workflowRepositoryProvider).kccaMonitoring()
+        : Future.value(const <ServiceRequestSummary>[]);
   }
 
   void _reload() => setState(
@@ -237,9 +241,34 @@ class _KccaMonitoringDashboardScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Read-only mobile monitoring. Operational administration remains outside this app.',
+              'KCCA monitoring and authorised operational administration.',
             ),
             const SizedBox(height: 12),
+            if (ref.watch(launchControllerProvider) case LaunchAuthenticated(
+              :final actor,
+            )) ...[
+              if (actor.providerApprovalPermitted) ...[
+                WeyonjeButton(
+                  label: 'Provider administration',
+                  onPressed: () =>
+                      context.push(AppRoutes.kccaProviderAdministration),
+                ),
+                const SizedBox(height: 10),
+              ],
+              if (actor.callCentreOperationsPermitted) ...[
+                WeyonjeButton(
+                  label: 'Manual Call Centre entry',
+                  onPressed: () => context.push(AppRoutes.kccaCallCentre),
+                ),
+                const SizedBox(height: 10),
+                WeyonjeButton(
+                  label: 'Disposal-site administration',
+                  kind: WeyonjeButtonKind.outline,
+                  onPressed: () => context.push(AppRoutes.kccaDisposalSites),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ],
             WeyonjeButton(
               label: 'Notifications',
               kind: WeyonjeButtonKind.outline,
@@ -247,7 +276,12 @@ class _KccaMonitoringDashboardScreenState
             ),
             const SizedBox(height: 16),
             if (snapshot.requireData.isEmpty)
-              const Text('No journeys currently require mobile monitoring.'),
+              Text(switch (ref.watch(launchControllerProvider)) {
+                LaunchAuthenticated(:final actor)
+                    when !actor.mobileMonitoringPermitted =>
+                  'This account does not have mobile journey-monitoring permission.',
+                _ => 'No journeys currently require mobile monitoring.',
+              }),
             ...snapshot.requireData.map(
               (request) => RequestSummaryCard(
                 request: request,

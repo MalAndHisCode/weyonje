@@ -39,6 +39,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { AuthenticatedActor } from "../auth/authenticated-actor";
 import { EmailSecurityService } from "../auth/email-security.service";
 import { locationConfig } from "../config/location.config";
+import { reminderConfig } from "../config/reminder.config";
 import { JourneyGateway } from "./journey.gateway";
 import { PrismaService } from "../database/prisma.service";
 import { Prisma } from "../generated/prisma/client";
@@ -96,6 +97,8 @@ export class WorkflowService {
     private readonly realtime: JourneyGateway,
     @Inject(locationConfig.KEY)
     private readonly policy: ConfigType<typeof locationConfig>,
+    @Inject(reminderConfig.KEY)
+    private readonly reminders: ConfigType<typeof reminderConfig>,
   ) {}
 
   locationPolicy(): LocationPolicyContract {
@@ -219,6 +222,12 @@ export class WorkflowService {
             "Your service request is pending Provider acceptance.",
           ),
         ]);
+        await this.createReminders(
+          tx,
+          request.id,
+          actor.user.id,
+          normalized.requestedServiceAt,
+        );
         return { id: request.id };
       },
     );
@@ -241,11 +250,24 @@ export class WorkflowService {
       input.idempotencyKey,
       input,
       async (tx) => {
+        if (input.clientUserId) {
+          const client = await tx.user.findFirst({
+            where: {
+              id: input.clientUserId,
+              actorType: PrismaActorType.CLIENT,
+              isActive: true,
+            },
+            select: { id: true },
+          });
+          if (!client)
+            throw this.invalid("Select an active Weyonje Client account.");
+        }
         const request = await tx.serviceRequest.create({
           data: {
             reference: requestReference(),
             origin: PrismaRequestOrigin.CALL_CENTRE,
             createdByUserId: actor.user.id,
+            clientUserId: input.clientUserId ?? null,
             clientName: requiredText(
               input.clientName,
               "Client name is required.",
@@ -271,10 +293,92 @@ export class WorkflowService {
           request.id,
           request.id,
         );
+        if (input.clientUserId)
+          await this.createReminders(
+            tx,
+            request.id,
+            input.clientUserId,
+            normalized.requestedServiceAt,
+          );
         return { id: request.id };
       },
     );
     return this.authorizedRequestDetail(actor, response.id);
+  }
+
+  async callCentreRequests(actor: AuthenticatedActor) {
+    this.assertCallCentre(actor);
+    const requests = await this.prisma.serviceRequest.findMany({
+      where: { origin: PrismaRequestOrigin.CALL_CENTRE },
+      orderBy: { updatedAt: "desc" },
+      take: 200,
+      include: REQUEST_INCLUDE,
+    });
+    return requests.map((request) => this.summary(request));
+  }
+
+  async callCentreClients(actor: AuthenticatedActor, query: string) {
+    this.assertCallCentre(actor);
+    const users = await this.prisma.user.findMany({
+      where: {
+        actorType: PrismaActorType.CLIENT,
+        isActive: true,
+        phoneVerifiedAt: { not: null },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: { clientProfile: true },
+    });
+    const normalized = query.trim().toLowerCase();
+    return users
+      .map((user) => {
+        const profile = user.clientProfile!;
+        const name =
+          profile.organizationName ??
+          [profile.firstName, profile.lastName].filter(Boolean).join(" ");
+        return {
+          userId: user.id,
+          name,
+          phoneNumber: this.phones.decrypt(user.encryptedPhone!),
+          ...(user.encryptedEmail
+            ? { email: this.emails.decrypt(user.encryptedEmail) }
+            : {}),
+        };
+      })
+      .filter(
+        (client) =>
+          !normalized ||
+          client.name.toLowerCase().includes(normalized) ||
+          client.phoneNumber.includes(normalized) ||
+          client.email?.toLowerCase().includes(normalized),
+      )
+      .slice(0, 25);
+  }
+
+  async callCentreProviders(actor: AuthenticatedActor) {
+    this.assertCallCentre(actor);
+    const providers = await this.prisma.user.findMany({
+      where: {
+        actorType: PrismaActorType.SERVICE_PROVIDER,
+        providerStatus: "APPROVED",
+        isActive: true,
+        loginEnabled: true,
+      },
+      orderBy: { serviceProviderProfile: { companyName: "asc" } },
+      select: {
+        id: true,
+        serviceProviderProfile: {
+          select: { companyName: true, providerNumber: true },
+        },
+      },
+    });
+    return providers.map((provider) => ({
+      userId: provider.id,
+      companyName: provider.serviceProviderProfile!.companyName,
+      ...(provider.serviceProviderProfile!.providerNumber
+        ? { providerNumber: provider.serviceProviderProfile!.providerNumber }
+        : {}),
+    }));
   }
 
   async clientRequests(
@@ -657,6 +761,12 @@ export class WorkflowService {
           PrismaNotificationType.REQUEST_ASSIGNED,
           "New assigned request",
           "A Call Centre request was assigned to you.",
+        );
+        await this.createReminders(
+          tx,
+          requestId,
+          provider.id,
+          request.requestedServiceAt,
         );
         await this.outbox(
           tx,
@@ -1262,16 +1372,28 @@ export class WorkflowService {
     },
   ) {
     this.assertCallCentre(actor);
-    const site = await this.prisma.disposalSite.upsert({
-      where: { id: input.id },
-      create: input,
-      update: {
-        name: input.name,
-        address: input.address,
-        latitude: input.latitude,
-        longitude: input.longitude,
-        active: input.active,
-      },
+    const site = await this.prisma.$transaction(async (tx) => {
+      const value = await tx.disposalSite.upsert({
+        where: { id: input.id },
+        create: input,
+        update: {
+          name: input.name,
+          address: input.address,
+          latitude: input.latitude,
+          longitude: input.longitude,
+          active: input.active,
+        },
+      });
+      await this.audit(
+        tx,
+        actor.user.id,
+        "disposal-site.updated",
+        "DisposalSite",
+        value.id,
+        null,
+        { active: value.active },
+      );
+      return value;
     });
     return this.disposalSite(site);
   }
@@ -1279,7 +1401,10 @@ export class WorkflowService {
   async disposalSites(actor: AuthenticatedActor) {
     if (actor.user.actorType === PrismaActorType.SERVICE_PROVIDER)
       this.assertProvider(actor);
-    else if (actor.user.actorType === PrismaActorType.KCCA_STAFF)
+    else if (
+      actor.user.actorType === PrismaActorType.KCCA_STAFF &&
+      !actor.user.callCentreOperationsPermitted
+    )
       this.assertKccaMonitoring(actor);
     else
       throw new ForbiddenException({
@@ -1287,7 +1412,10 @@ export class WorkflowService {
         message: "This account cannot view disposal sites.",
       });
     const sites = await this.prisma.disposalSite.findMany({
-      where: { active: true },
+      ...(actor.user.actorType === PrismaActorType.KCCA_STAFF &&
+      actor.user.callCentreOperationsPermitted
+        ? {}
+        : { where: { active: true } }),
       orderBy: { name: "asc" },
     });
     return sites.map((site) => this.disposalSite(site));
@@ -1316,6 +1444,28 @@ export class WorkflowService {
       },
     );
     return this.authorizedRequestDetail(actor, requestId);
+  }
+
+  async disposalAssignmentHistory(
+    actor: AuthenticatedActor,
+    requestId: string,
+  ) {
+    this.assertCallCentre(actor);
+    const exists = await this.prisma.serviceRequest.findUnique({
+      where: { id: requestId },
+      select: { id: true },
+    });
+    if (!exists) throw this.notFound();
+    const history = await this.prisma.disposalAssignmentHistory.findMany({
+      where: { requestId },
+      orderBy: { assignedAt: "desc" },
+      include: { disposalSite: { select: { id: true, name: true } } },
+    });
+    return history.map((item) => ({
+      disposalSiteId: item.disposalSite.id,
+      disposalSiteName: item.disposalSite.name,
+      assignedAt: item.assignedAt.toISOString(),
+    }));
   }
 
   async notifications(
@@ -1626,9 +1776,7 @@ export class WorkflowService {
       ...(request.followUpCase
         ? { followUpStatus: request.followUpCase.status as FollowUpStatus }
         : {}),
-      ...(toRequestSnapshot
-        ? { journeyToRequest: toRequestSnapshot }
-        : {}),
+      ...(toRequestSnapshot ? { journeyToRequest: toRequestSnapshot } : {}),
       ...(disposalSnapshot ? { disposalJourney: disposalSnapshot } : {}),
       ...(request.disposalAssignment
         ? {
@@ -1694,6 +1842,7 @@ export class WorkflowService {
     address: string;
     latitude: Prisma.Decimal;
     longitude: Prisma.Decimal;
+    active: boolean;
   }) {
     return {
       id: site.id,
@@ -1701,6 +1850,7 @@ export class WorkflowService {
       address: site.address,
       latitude: Number(site.latitude),
       longitude: Number(site.longitude),
+      active: site.active,
     };
   }
 
@@ -1713,7 +1863,14 @@ export class WorkflowService {
     const [request, site] = await Promise.all([
       tx.serviceRequest.findUnique({
         where: { id: requestId },
-        select: { id: true, acceptedProviderUserId: true },
+        select: {
+          id: true,
+          acceptedProviderUserId: true,
+          journeys: {
+            where: { phase: PrismaJourneyPhase.TO_DISPOSAL },
+            select: { status: true },
+          },
+        },
       }),
       tx.disposalSite.findFirst({
         where: { id: siteId, active: true },
@@ -1721,6 +1878,10 @@ export class WorkflowService {
       }),
     ]);
     if (!request) throw this.notFound();
+    if (request.journeys.some((journey) => journey.status !== "READY"))
+      throw this.invalid(
+        "The disposal-site assignment cannot change after the disposal journey starts.",
+      );
     if (!site)
       throw this.invalid("Select an active KCCA-approved disposal site.");
     await tx.disposalAssignment.upsert({
@@ -1736,6 +1897,13 @@ export class WorkflowService {
         assignedAt: new Date(),
       },
     });
+    await tx.disposalAssignmentHistory.create({
+      data: {
+        requestId,
+        disposalSiteId: site.id,
+        assignedByUserId: actorUserId,
+      },
+    });
     await this.audit(
       tx,
       actorUserId,
@@ -1745,6 +1913,60 @@ export class WorkflowService {
       requestId,
       { disposalSiteId: site.id },
     );
+  }
+
+  private async createReminders(
+    tx: TransactionClient,
+    requestId: string,
+    recipientUserId: string,
+    requestedServiceAt: Date | null,
+  ): Promise<void> {
+    if (!requestedServiceAt) return;
+    for (const offsetMinutes of this.reminders.offsetsMinutes) {
+      const dueAt = new Date(
+        Math.max(
+          Date.now(),
+          requestedServiceAt.getTime() - offsetMinutes * 60_000,
+        ),
+      );
+      for (const channel of [
+        NotificationDeliveryChannel.IN_APP,
+        NotificationDeliveryChannel.PUSH,
+      ]) {
+        await tx.outboxEvent.upsert({
+          where: {
+            deduplicationKey: `reminder:${requestId}:${recipientUserId}:${offsetMinutes}:${channel}`,
+          },
+          create: {
+            requestId,
+            recipientUserId,
+            channel,
+            eventType: PrismaNotificationType.REMINDER,
+            deduplicationKey: `reminder:${requestId}:${recipientUserId}:${offsetMinutes}:${channel}`,
+            nextAttemptAt: dueAt,
+            payload: {
+              requestedServiceAt: requestedServiceAt.toISOString(),
+              offsetMinutes,
+              title: "Upcoming Weyonje service",
+              message: "Your scheduled Weyonje service is coming up.",
+            },
+          },
+          update: {
+            nextAttemptAt: dueAt,
+            status: "PENDING",
+            attempts: 0,
+            deliveredAt: null,
+            deadLetteredAt: null,
+            payload: {
+              requestedServiceAt: requestedServiceAt.toISOString(),
+              offsetMinutes,
+              title: "Upcoming Weyonje service",
+              message: "Your scheduled Weyonje service is coming up.",
+            },
+          },
+        });
+      }
+    }
   }
 
   private async idempotent<T extends Record<string, unknown>>(

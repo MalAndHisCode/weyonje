@@ -13,6 +13,11 @@ Endpoints:
 - `/v1/call-centre/*`: separately permissioned Call Centre request/assignment/feedback ingress.
 - `/v1/kcca/*`: permitted monitoring and KCCA-controlled disposal-site catalogue/assignment.
 - `/v1/journeys/*`, `/v1/notifications/*`, and Socket.IO namespace `/journeys`: authorised reconciliation and durable notification access.
+- `/v1/account-security/*`: non-enumerating password recovery and email verification.
+- `/v1/provider-registrations/*`: Provider review, administration status and immutable history.
+- `/v1/notification-devices/*`: authenticated FCM installation lifecycle.
+- `/v1/maps/*`: authenticated Places, reverse-geocoding and Routes proxy using a server-only key.
+- `/v1/kcca/delivery/health`: permission-protected delivery backlog health.
 
 Access tokens are short-lived HS256 JWTs containing only internal user and session identifiers. Every protected request verifies algorithm, signature, issuer, audience, issue/expiry times, current server session, password version, login permission, and verification state. Roles and business eligibility are loaded from Prisma rather than trusted as token claims.
 
@@ -64,6 +69,16 @@ The Railway service is user-confirmed as connected directly to GitHub and rooted
 - Port: Railway-supplied `PORT`; the API binds `0.0.0.0`.
 - Environment: all root `.env.example` names entered privately in Railway Variables; use `NODE_ENV=production` and set `WEYONJE_ENVIRONMENT` to the actual environment classification.
 
-Use no persistent disk or worker in this slice. Durable state belongs in PostgreSQL. This slice intentionally has no Valkey/BullMQ processor: outbox records persist, but reliable dispatch, scheduled reminders, dead-letter handling, and multi-instance Socket.IO require a production architecture decision. The live Railway deployment, Variables, domain, build settings, migration state, and service health were not inspected or changed by this implementation task.
+Use no persistent disk. Durable state belongs in PostgreSQL. Production delivery uses a separate Railway service built from the same repository and variables with run command `pnpm --filter @weyonje/api start:worker`. The worker claims PostgreSQL outbox events with leases/skip-locked rows, retries with bounded backoff, records attempts, dead-letters permanent failures, recovers expired claims, and cleans terminal history according to retention configuration. Run it locally with `pnpm --filter @weyonje/api start:worker:dev`. Do not run an additional in-process production worker or add Valkey/BullMQ.
+
+Creating the Railway worker, applying migrations, and setting private Maps/Firebase variables are external operations and were not performed. Deploy migrations before starting code that writes the new models, then start one worker and inspect `/v1/kcca/delivery/health`; scale only after the isolated competing-worker test and capacity checks pass.
+
+## Maps, push, reminders, and account security
+
+- `GOOGLE_MAPS_SERVER_API_KEY` is server-only. Restrict it to the authorised APIs and Railway egress policy; do not place it in Flutter.
+- `FCM_PROVIDER=FAKE` is development-only. `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` are required only for `FCM_PROVIDER=FIREBASE` and must be private Railway variables.
+- `EMAIL_PROVIDER=FAKE` supports local recovery/verification capture without sending email. No live email provider has been selected.
+- `REMINDER_OFFSETS_MINUTES` is a validated comma-separated provisional schedule. ASAP requests create no reminders.
+- Account challenge and delivery lease/backoff/retention settings are listed in the root `.env.example`.
 
 Swagger UI is exposed at `/internal/docs` only when `NODE_ENV` is not production. Generate and check the committed safe contract with `pnpm openapi:generate` and `pnpm openapi:check`.

@@ -12,6 +12,14 @@ import { AuthService } from "../src/auth/auth.service";
 import { SessionService } from "../src/auth/session.service";
 import { ActorsController } from "../src/identity/actors.controller";
 import { CurrentActorService } from "../src/identity/current-actor.service";
+import { DeliveryController } from "../src/delivery/delivery.controller";
+import { DeliveryProcessor } from "../src/delivery/delivery.processor";
+import { AccountSecurityController } from "../src/account-security/account-security.controller";
+import { AccountSecurityService } from "../src/account-security/account-security.service";
+import { MapsController } from "../src/maps/maps.controller";
+import { MapsService } from "../src/maps/maps.service";
+import { NotificationDevicesController } from "../src/notifications/notifications.controller";
+import { DeviceInstallationService } from "../src/notifications/device-installation.service";
 import {
   ProviderRegistrationController,
   RegistrationController,
@@ -41,6 +49,10 @@ import { WorkflowService } from "../src/workflows/workflow.service";
     KccaWorkflowController,
     JourneyController,
     NotificationController,
+    DeliveryController,
+    AccountSecurityController,
+    MapsController,
+    NotificationDevicesController,
   ],
   providers: [
     { provide: AuthService, useValue: {} },
@@ -48,6 +60,10 @@ import { WorkflowService } from "../src/workflows/workflow.service";
     { provide: CurrentActorService, useValue: { resolve: () => undefined } },
     { provide: RegistrationService, useValue: {} },
     { provide: WorkflowService, useValue: {} },
+    { provide: DeliveryProcessor, useValue: {} },
+    { provide: AccountSecurityService, useValue: {} },
+    { provide: MapsService, useValue: {} },
+    { provide: DeviceInstallationService, useValue: {} },
     { provide: AccessTokenGuard, useValue: { canActivate: () => true } },
   ],
 })

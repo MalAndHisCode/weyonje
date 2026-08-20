@@ -14,3 +14,5 @@ allowBuilds:
   esbuild: true
   prisma: true
   unrs-resolver: true
+  '@firebase/util': false
+  protobufjs: false

@@ -71,3 +71,60 @@ describe("Prisma service workflow migration", () => {
     expect(sql).toContain("uq_journey_positions_sample");
   });
 });
+
+describe("Prisma reliable delivery migration", () => {
+  const sql = readFileSync(
+    resolve(
+      __dirname,
+      "../prisma/migrations/20260820110000_reliable_delivery_foundation/migration.sql",
+    ),
+    "utf8",
+  );
+
+  it("adds leased claims, dead letters, and immutable delivery attempts", () => {
+    expect(sql).toContain('ADD COLUMN "claim_expires_at"');
+    expect(sql).toContain('ADD COLUMN "claim_token"');
+    expect(sql).toContain('CREATE TABLE "delivery_attempts"');
+    expect(sql).toContain("uq_delivery_attempts_event_number");
+    expect(sql).toContain("ck_delivery_attempts_result");
+    expect(sql).toContain("DEAD_LETTER");
+  });
+});
+
+describe("Prisma account recovery and email verification migration", () => {
+  const sql = readFileSync(
+    resolve(
+      __dirname,
+      "../prisma/migrations/20260820130000_account_recovery_verification/migration.sql",
+    ),
+    "utf8",
+  );
+
+  it("stores only challenge hashes and immutable security events", () => {
+    expect(sql).toContain('CREATE TABLE "account_challenges"');
+    expect(sql).toContain('CREATE TABLE "security_events"');
+    expect(sql).toContain("uq_account_challenges_active");
+    expect(sql).toContain("ck_account_challenges_attempts");
+    expect(sql).toContain('"secret_hash"');
+    expect(sql).not.toMatch(/plaintext|verification_code|password_value/i);
+  });
+});
+
+describe("Prisma KCCA administration and integration migration", () => {
+  const sql = readFileSync(
+    resolve(
+      __dirname,
+      "../prisma/migrations/20260820150000_kcca_administration_history/migration.sql",
+    ),
+    "utf8",
+  );
+
+  it("adds immutable histories, protected device installations, and notification deduplication", () => {
+    expect(sql).toContain('CREATE TABLE "provider_status_history"');
+    expect(sql).toContain('CREATE TABLE "disposal_assignment_history"');
+    expect(sql).toContain('CREATE TABLE "device_installations"');
+    expect(sql).toContain("uq_device_installations_token_lookup");
+    expect(sql).toContain("uq_operational_notifications_source_outbox");
+    expect(sql).not.toMatch(/plaintext.*token/i);
+  });
+});

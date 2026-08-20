@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -26,11 +27,14 @@ import {
   AuthenticatedRequest,
 } from "../auth/access-token.guard";
 import { ApiErrorDto } from "../identity/current-actor.dto";
+import { ProviderStatus } from "@weyonje/contracts";
 import {
   ClientRegistrationDto,
   PendingProviderRegistrationDto,
   PhoneChallengeDto,
   ProviderApprovalDto,
+  ProviderAdministrationDto,
+  ProviderStatusChangeDto,
   ProviderRegistrationStatusDto,
   RegistrationVerificationDto,
   ResendPhoneCodeDto,
@@ -111,6 +115,43 @@ export class ProviderRegistrationController {
     @Req() request: AuthenticatedRequest,
   ): Promise<PendingProviderRegistrationDto[]> {
     return this.registrations.pendingProviders(request.authenticatedActor!);
+  }
+
+  @Get()
+  @ApiOperation({ summary: "List Providers by administration status" })
+  @ApiOkResponse({ type: ProviderAdministrationDto, isArray: true })
+  providers(
+    @Req() request: AuthenticatedRequest,
+    @Query("status") status?: ProviderStatus,
+  ) {
+    return this.registrations.providers(request.authenticatedActor!, status);
+  }
+
+  @Get(":providerUserId")
+  @ApiOkResponse({ type: ProviderAdministrationDto })
+  detail(
+    @Req() request: AuthenticatedRequest,
+    @Param("providerUserId", ParseUUIDPipe) providerUserId: string,
+  ) {
+    return this.registrations.providerAdministrationDetail(
+      request.authenticatedActor!,
+      providerUserId,
+    );
+  }
+
+  @Post(":providerUserId/status")
+  @HttpCode(200)
+  @ApiOkResponse({ type: ProviderAdministrationDto })
+  changeStatus(
+    @Req() request: AuthenticatedRequest,
+    @Param("providerUserId", ParseUUIDPipe) providerUserId: string,
+    @Body() body: ProviderStatusChangeDto,
+  ) {
+    return this.registrations.changeProviderStatus(
+      request.authenticatedActor!,
+      providerUserId,
+      body,
+    );
   }
 
   @Post(":providerUserId/decision")

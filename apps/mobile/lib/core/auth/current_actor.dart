@@ -46,9 +46,13 @@ class CurrentActor {
   const CurrentActor({
     required this.actorType,
     required this.access,
+    this.emailVerified = false,
     this.providerStatus,
     this.providerNumber,
     this.providerRejectionReason,
+    this.mobileMonitoringPermitted = false,
+    this.providerApprovalPermitted = false,
+    this.callCentreOperationsPermitted = false,
   });
 
   factory CurrentActor.fromJson(Object? value) {
@@ -66,15 +70,26 @@ class CurrentActor {
     return CurrentActor(
       actorType: actorType,
       access: ActorAccess.parse(value['access']),
+      emailVerified: value['emailVerified'] as bool? ?? false,
       providerStatus: providerStatus,
       providerNumber: value['providerNumber'] as String?,
       providerRejectionReason: value['providerRejectionReason'] as String?,
+      mobileMonitoringPermitted:
+          value['mobileMonitoringPermitted'] as bool? ?? false,
+      providerApprovalPermitted:
+          value['providerApprovalPermitted'] as bool? ?? false,
+      callCentreOperationsPermitted:
+          value['callCentreOperationsPermitted'] as bool? ?? false,
     );
   }
 
   final ActorType actorType;
   final ActorAccess access;
+  final bool emailVerified;
   final ProviderStatus? providerStatus;
   final String? providerNumber;
   final String? providerRejectionReason;
+  final bool mobileMonitoringPermitted;
+  final bool providerApprovalPermitted;
+  final bool callCentreOperationsPermitted;
 }

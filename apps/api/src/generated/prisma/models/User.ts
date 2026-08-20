@@ -354,6 +354,8 @@ export type UserWhereInput = {
   phoneChallenges?: Prisma.PhoneChallengeListRelationFilter
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordListRelationFilter
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordListRelationFilter
+  providerStatusHistory?: Prisma.ProviderStatusHistoryListRelationFilter
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryListRelationFilter
   notifications?: Prisma.RegistrationNotificationListRelationFilter
   clientRequests?: Prisma.ServiceRequestListRelationFilter
   requestsCreated?: Prisma.ServiceRequestListRelationFilter
@@ -364,8 +366,12 @@ export type UserWhereInput = {
   collectionReports?: Prisma.CollectionReportListRelationFilter
   feedbackSubmissions?: Prisma.ServiceFeedbackListRelationFilter
   disposalAssignmentsMade?: Prisma.DisposalAssignmentListRelationFilter
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryListRelationFilter
   operationalNotifications?: Prisma.OperationalNotificationListRelationFilter
   auditEvents?: Prisma.AuditEventListRelationFilter
+  accountChallenges?: Prisma.AccountChallengeListRelationFilter
+  securityEvents?: Prisma.SecurityEventListRelationFilter
+  deviceInstallations?: Prisma.DeviceInstallationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -396,6 +402,8 @@ export type UserOrderByWithRelationInput = {
   phoneChallenges?: Prisma.PhoneChallengeOrderByRelationAggregateInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordOrderByRelationAggregateInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordOrderByRelationAggregateInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryOrderByRelationAggregateInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryOrderByRelationAggregateInput
   notifications?: Prisma.RegistrationNotificationOrderByRelationAggregateInput
   clientRequests?: Prisma.ServiceRequestOrderByRelationAggregateInput
   requestsCreated?: Prisma.ServiceRequestOrderByRelationAggregateInput
@@ -406,8 +414,12 @@ export type UserOrderByWithRelationInput = {
   collectionReports?: Prisma.CollectionReportOrderByRelationAggregateInput
   feedbackSubmissions?: Prisma.ServiceFeedbackOrderByRelationAggregateInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentOrderByRelationAggregateInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryOrderByRelationAggregateInput
   operationalNotifications?: Prisma.OperationalNotificationOrderByRelationAggregateInput
   auditEvents?: Prisma.AuditEventOrderByRelationAggregateInput
+  accountChallenges?: Prisma.AccountChallengeOrderByRelationAggregateInput
+  securityEvents?: Prisma.SecurityEventOrderByRelationAggregateInput
+  deviceInstallations?: Prisma.DeviceInstallationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -441,6 +453,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   phoneChallenges?: Prisma.PhoneChallengeListRelationFilter
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordListRelationFilter
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordListRelationFilter
+  providerStatusHistory?: Prisma.ProviderStatusHistoryListRelationFilter
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryListRelationFilter
   notifications?: Prisma.RegistrationNotificationListRelationFilter
   clientRequests?: Prisma.ServiceRequestListRelationFilter
   requestsCreated?: Prisma.ServiceRequestListRelationFilter
@@ -451,8 +465,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   collectionReports?: Prisma.CollectionReportListRelationFilter
   feedbackSubmissions?: Prisma.ServiceFeedbackListRelationFilter
   disposalAssignmentsMade?: Prisma.DisposalAssignmentListRelationFilter
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryListRelationFilter
   operationalNotifications?: Prisma.OperationalNotificationListRelationFilter
   auditEvents?: Prisma.AuditEventListRelationFilter
+  accountChallenges?: Prisma.AccountChallengeListRelationFilter
+  securityEvents?: Prisma.SecurityEventListRelationFilter
+  deviceInstallations?: Prisma.DeviceInstallationListRelationFilter
 }, "id" | "emailLookup" | "phoneLookup">
 
 export type UserOrderByWithAggregationInput = {
@@ -539,6 +557,8 @@ export type UserCreateInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -549,8 +569,12 @@ export type UserCreateInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -581,6 +605,8 @@ export type UserUncheckedCreateInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -591,8 +617,12 @@ export type UserUncheckedCreateInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -623,6 +653,8 @@ export type UserUpdateInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -633,8 +665,12 @@ export type UserUpdateInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -665,6 +701,8 @@ export type UserUncheckedUpdateInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -675,8 +713,12 @@ export type UserUncheckedUpdateInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -879,6 +921,50 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type UserCreateNestedOneWithoutAccountChallengesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAccountChallengesInput, Prisma.UserUncheckedCreateWithoutAccountChallengesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountChallengesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAccountChallengesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAccountChallengesInput, Prisma.UserUncheckedCreateWithoutAccountChallengesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountChallengesInput
+  upsert?: Prisma.UserUpsertWithoutAccountChallengesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountChallengesInput, Prisma.UserUpdateWithoutAccountChallengesInput>, Prisma.UserUncheckedUpdateWithoutAccountChallengesInput>
+}
+
+export type UserCreateNestedOneWithoutSecurityEventsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSecurityEventsInput, Prisma.UserUncheckedCreateWithoutSecurityEventsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSecurityEventsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSecurityEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSecurityEventsInput, Prisma.UserUncheckedCreateWithoutSecurityEventsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSecurityEventsInput
+  upsert?: Prisma.UserUpsertWithoutSecurityEventsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSecurityEventsInput, Prisma.UserUpdateWithoutSecurityEventsInput>, Prisma.UserUncheckedUpdateWithoutSecurityEventsInput>
+}
+
+export type UserCreateNestedOneWithoutDeviceInstallationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeviceInstallationsInput, Prisma.UserUncheckedCreateWithoutDeviceInstallationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeviceInstallationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDeviceInstallationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeviceInstallationsInput, Prisma.UserUncheckedCreateWithoutDeviceInstallationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeviceInstallationsInput
+  upsert?: Prisma.UserUpsertWithoutDeviceInstallationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeviceInstallationsInput, Prisma.UserUpdateWithoutDeviceInstallationsInput>, Prisma.UserUncheckedUpdateWithoutDeviceInstallationsInput>
+}
+
 export type UserCreateNestedOneWithoutClientProfileInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutClientProfileInput, Prisma.UserUncheckedCreateWithoutClientProfileInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutClientProfileInput
@@ -949,6 +1035,34 @@ export type UserUpdateOneRequiredWithoutApprovalDecisionsMadeNestedInput = {
   upsert?: Prisma.UserUpsertWithoutApprovalDecisionsMadeInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApprovalDecisionsMadeInput, Prisma.UserUpdateWithoutApprovalDecisionsMadeInput>, Prisma.UserUncheckedUpdateWithoutApprovalDecisionsMadeInput>
+}
+
+export type UserCreateNestedOneWithoutProviderStatusHistoryInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusHistoryInput, Prisma.UserUncheckedCreateWithoutProviderStatusHistoryInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProviderStatusHistoryInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutProviderStatusChangesMadeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedCreateWithoutProviderStatusChangesMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProviderStatusChangesMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutProviderStatusHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusHistoryInput, Prisma.UserUncheckedCreateWithoutProviderStatusHistoryInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProviderStatusHistoryInput
+  upsert?: Prisma.UserUpsertWithoutProviderStatusHistoryInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProviderStatusHistoryInput, Prisma.UserUpdateWithoutProviderStatusHistoryInput>, Prisma.UserUncheckedUpdateWithoutProviderStatusHistoryInput>
+}
+
+export type UserUpdateOneRequiredWithoutProviderStatusChangesMadeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedCreateWithoutProviderStatusChangesMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProviderStatusChangesMadeInput
+  upsert?: Prisma.UserUpsertWithoutProviderStatusChangesMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProviderStatusChangesMadeInput, Prisma.UserUpdateWithoutProviderStatusChangesMadeInput>, Prisma.UserUncheckedUpdateWithoutProviderStatusChangesMadeInput>
 }
 
 export type UserCreateNestedOneWithoutNotificationsInput = {
@@ -1117,6 +1231,20 @@ export type UserUpdateOneRequiredWithoutDisposalAssignmentsMadeNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDisposalAssignmentsMadeInput, Prisma.UserUpdateWithoutDisposalAssignmentsMadeInput>, Prisma.UserUncheckedUpdateWithoutDisposalAssignmentsMadeInput>
 }
 
+export type UserCreateNestedOneWithoutDisposalAssignmentChangesMadeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUncheckedCreateWithoutDisposalAssignmentChangesMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDisposalAssignmentChangesMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDisposalAssignmentChangesMadeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUncheckedCreateWithoutDisposalAssignmentChangesMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDisposalAssignmentChangesMadeInput
+  upsert?: Prisma.UserUpsertWithoutDisposalAssignmentChangesMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUpdateWithoutDisposalAssignmentChangesMadeInput>, Prisma.UserUncheckedUpdateWithoutDisposalAssignmentChangesMadeInput>
+}
+
 export type UserCreateNestedOneWithoutOperationalNotificationsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutOperationalNotificationsInput, Prisma.UserUncheckedCreateWithoutOperationalNotificationsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutOperationalNotificationsInput
@@ -1147,6 +1275,618 @@ export type UserUpdateOneWithoutAuditEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditEventsInput, Prisma.UserUpdateWithoutAuditEventsInput>, Prisma.UserUncheckedUpdateWithoutAuditEventsInput>
 }
 
+export type UserCreateWithoutAccountChallengesInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAccountChallengesInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileUncheckedCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAccountChallengesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAccountChallengesInput, Prisma.UserUncheckedCreateWithoutAccountChallengesInput>
+}
+
+export type UserUpsertWithoutAccountChallengesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAccountChallengesInput, Prisma.UserUncheckedUpdateWithoutAccountChallengesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAccountChallengesInput, Prisma.UserUncheckedCreateWithoutAccountChallengesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAccountChallengesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAccountChallengesInput, Prisma.UserUncheckedUpdateWithoutAccountChallengesInput>
+}
+
+export type UserUpdateWithoutAccountChallengesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAccountChallengesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUncheckedUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutSecurityEventsInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSecurityEventsInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileUncheckedCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSecurityEventsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSecurityEventsInput, Prisma.UserUncheckedCreateWithoutSecurityEventsInput>
+}
+
+export type UserUpsertWithoutSecurityEventsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSecurityEventsInput, Prisma.UserUncheckedUpdateWithoutSecurityEventsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSecurityEventsInput, Prisma.UserUncheckedCreateWithoutSecurityEventsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSecurityEventsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSecurityEventsInput, Prisma.UserUncheckedUpdateWithoutSecurityEventsInput>
+}
+
+export type UserUpdateWithoutSecurityEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSecurityEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUncheckedUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutDeviceInstallationsInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutDeviceInstallationsInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileUncheckedCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDeviceInstallationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeviceInstallationsInput, Prisma.UserUncheckedCreateWithoutDeviceInstallationsInput>
+}
+
+export type UserUpsertWithoutDeviceInstallationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeviceInstallationsInput, Prisma.UserUncheckedUpdateWithoutDeviceInstallationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeviceInstallationsInput, Prisma.UserUncheckedCreateWithoutDeviceInstallationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeviceInstallationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeviceInstallationsInput, Prisma.UserUncheckedUpdateWithoutDeviceInstallationsInput>
+}
+
+export type UserUpdateWithoutDeviceInstallationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeviceInstallationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUncheckedUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+}
+
 export type UserCreateWithoutClientProfileInput = {
   id?: string
   encryptedEmail?: string | null
@@ -1174,6 +1914,8 @@ export type UserCreateWithoutClientProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -1184,8 +1926,12 @@ export type UserCreateWithoutClientProfileInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClientProfileInput = {
@@ -1215,6 +1961,8 @@ export type UserUncheckedCreateWithoutClientProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1225,8 +1973,12 @@ export type UserUncheckedCreateWithoutClientProfileInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClientProfileInput = {
@@ -1272,6 +2024,8 @@ export type UserUpdateWithoutClientProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -1282,8 +2036,12 @@ export type UserUpdateWithoutClientProfileInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClientProfileInput = {
@@ -1313,6 +2071,8 @@ export type UserUncheckedUpdateWithoutClientProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1323,8 +2083,12 @@ export type UserUncheckedUpdateWithoutClientProfileInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutServiceProviderProfileInput = {
@@ -1354,6 +2118,8 @@ export type UserCreateWithoutServiceProviderProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -1364,8 +2130,12 @@ export type UserCreateWithoutServiceProviderProfileInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutServiceProviderProfileInput = {
@@ -1395,6 +2165,8 @@ export type UserUncheckedCreateWithoutServiceProviderProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1405,8 +2177,12 @@ export type UserUncheckedCreateWithoutServiceProviderProfileInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutServiceProviderProfileInput = {
@@ -1452,6 +2228,8 @@ export type UserUpdateWithoutServiceProviderProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -1462,8 +2240,12 @@ export type UserUpdateWithoutServiceProviderProfileInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutServiceProviderProfileInput = {
@@ -1493,6 +2275,8 @@ export type UserUncheckedUpdateWithoutServiceProviderProfileInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1503,8 +2287,12 @@ export type UserUncheckedUpdateWithoutServiceProviderProfileInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPhoneChallengesInput = {
@@ -1534,6 +2322,8 @@ export type UserCreateWithoutPhoneChallengesInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -1544,8 +2334,12 @@ export type UserCreateWithoutPhoneChallengesInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPhoneChallengesInput = {
@@ -1575,6 +2369,8 @@ export type UserUncheckedCreateWithoutPhoneChallengesInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1585,8 +2381,12 @@ export type UserUncheckedCreateWithoutPhoneChallengesInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPhoneChallengesInput = {
@@ -1632,6 +2432,8 @@ export type UserUpdateWithoutPhoneChallengesInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -1642,8 +2444,12 @@ export type UserUpdateWithoutPhoneChallengesInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPhoneChallengesInput = {
@@ -1673,6 +2479,8 @@ export type UserUncheckedUpdateWithoutPhoneChallengesInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1683,8 +2491,12 @@ export type UserUncheckedUpdateWithoutPhoneChallengesInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProviderApprovalDecisionsInput = {
@@ -1714,6 +2526,8 @@ export type UserCreateWithoutProviderApprovalDecisionsInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -1724,8 +2538,12 @@ export type UserCreateWithoutProviderApprovalDecisionsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProviderApprovalDecisionsInput = {
@@ -1755,6 +2573,8 @@ export type UserUncheckedCreateWithoutProviderApprovalDecisionsInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1765,8 +2585,12 @@ export type UserUncheckedCreateWithoutProviderApprovalDecisionsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProviderApprovalDecisionsInput = {
@@ -1801,6 +2625,8 @@ export type UserCreateWithoutApprovalDecisionsMadeInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -1811,8 +2637,12 @@ export type UserCreateWithoutApprovalDecisionsMadeInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalDecisionsMadeInput = {
@@ -1842,6 +2672,8 @@ export type UserUncheckedCreateWithoutApprovalDecisionsMadeInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1852,8 +2684,12 @@ export type UserUncheckedCreateWithoutApprovalDecisionsMadeInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalDecisionsMadeInput = {
@@ -1899,6 +2735,8 @@ export type UserUpdateWithoutProviderApprovalDecisionsInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -1909,8 +2747,12 @@ export type UserUpdateWithoutProviderApprovalDecisionsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProviderApprovalDecisionsInput = {
@@ -1940,6 +2782,8 @@ export type UserUncheckedUpdateWithoutProviderApprovalDecisionsInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1950,8 +2794,12 @@ export type UserUncheckedUpdateWithoutProviderApprovalDecisionsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutApprovalDecisionsMadeInput = {
@@ -1992,6 +2840,8 @@ export type UserUpdateWithoutApprovalDecisionsMadeInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -2002,8 +2852,12 @@ export type UserUpdateWithoutApprovalDecisionsMadeInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalDecisionsMadeInput = {
@@ -2033,6 +2887,8 @@ export type UserUncheckedUpdateWithoutApprovalDecisionsMadeInput = {
   serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2043,8 +2899,420 @@ export type UserUncheckedUpdateWithoutApprovalDecisionsMadeInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutProviderStatusHistoryInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutProviderStatusHistoryInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileUncheckedCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutProviderStatusHistoryInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusHistoryInput, Prisma.UserUncheckedCreateWithoutProviderStatusHistoryInput>
+}
+
+export type UserCreateWithoutProviderStatusChangesMadeInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutProviderStatusChangesMadeInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileUncheckedCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutProviderStatusChangesMadeInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedCreateWithoutProviderStatusChangesMadeInput>
+}
+
+export type UserUpsertWithoutProviderStatusHistoryInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProviderStatusHistoryInput, Prisma.UserUncheckedUpdateWithoutProviderStatusHistoryInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusHistoryInput, Prisma.UserUncheckedCreateWithoutProviderStatusHistoryInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProviderStatusHistoryInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProviderStatusHistoryInput, Prisma.UserUncheckedUpdateWithoutProviderStatusHistoryInput>
+}
+
+export type UserUpdateWithoutProviderStatusHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProviderStatusHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUncheckedUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUpsertWithoutProviderStatusChangesMadeInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedUpdateWithoutProviderStatusChangesMadeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedCreateWithoutProviderStatusChangesMadeInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProviderStatusChangesMadeInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedUpdateWithoutProviderStatusChangesMadeInput>
+}
+
+export type UserUpdateWithoutProviderStatusChangesMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProviderStatusChangesMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUncheckedUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -2075,6 +3343,8 @@ export type UserCreateWithoutNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
   acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
@@ -2084,8 +3354,12 @@ export type UserCreateWithoutNotificationsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -2116,6 +3390,8 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
@@ -2125,8 +3401,12 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -2173,6 +3453,8 @@ export type UserUpdateWithoutNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
   acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
@@ -2182,8 +3464,12 @@ export type UserUpdateWithoutNotificationsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -2214,6 +3500,8 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
@@ -2223,8 +3511,12 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -2254,6 +3546,8 @@ export type UserCreateWithoutSessionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -2264,8 +3558,12 @@ export type UserCreateWithoutSessionsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -2295,6 +3593,8 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2305,8 +3605,12 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -2352,6 +3656,8 @@ export type UserUpdateWithoutSessionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -2362,8 +3668,12 @@ export type UserUpdateWithoutSessionsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -2393,6 +3703,8 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2403,8 +3715,12 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutClientRequestsInput = {
@@ -2435,6 +3751,8 @@ export type UserCreateWithoutClientRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
   acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
@@ -2444,8 +3762,12 @@ export type UserCreateWithoutClientRequestsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClientRequestsInput = {
@@ -2476,6 +3798,8 @@ export type UserUncheckedCreateWithoutClientRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
@@ -2485,8 +3809,12 @@ export type UserUncheckedCreateWithoutClientRequestsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClientRequestsInput = {
@@ -2522,6 +3850,8 @@ export type UserCreateWithoutRequestsCreatedInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
@@ -2531,8 +3861,12 @@ export type UserCreateWithoutRequestsCreatedInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRequestsCreatedInput = {
@@ -2563,6 +3897,8 @@ export type UserUncheckedCreateWithoutRequestsCreatedInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
@@ -2572,8 +3908,12 @@ export type UserUncheckedCreateWithoutRequestsCreatedInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRequestsCreatedInput = {
@@ -2609,6 +3949,8 @@ export type UserCreateWithoutAcceptedRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -2618,8 +3960,12 @@ export type UserCreateWithoutAcceptedRequestsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAcceptedRequestsInput = {
@@ -2650,6 +3996,8 @@ export type UserUncheckedCreateWithoutAcceptedRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2659,8 +4007,12 @@ export type UserUncheckedCreateWithoutAcceptedRequestsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAcceptedRequestsInput = {
@@ -2707,6 +4059,8 @@ export type UserUpdateWithoutClientRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
   acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
@@ -2716,8 +4070,12 @@ export type UserUpdateWithoutClientRequestsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClientRequestsInput = {
@@ -2748,6 +4106,8 @@ export type UserUncheckedUpdateWithoutClientRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
@@ -2757,8 +4117,12 @@ export type UserUncheckedUpdateWithoutClientRequestsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutRequestsCreatedInput = {
@@ -2800,6 +4164,8 @@ export type UserUpdateWithoutRequestsCreatedInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
@@ -2809,8 +4175,12 @@ export type UserUpdateWithoutRequestsCreatedInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRequestsCreatedInput = {
@@ -2841,6 +4211,8 @@ export type UserUncheckedUpdateWithoutRequestsCreatedInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
@@ -2850,8 +4222,12 @@ export type UserUncheckedUpdateWithoutRequestsCreatedInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAcceptedRequestsInput = {
@@ -2893,6 +4269,8 @@ export type UserUpdateWithoutAcceptedRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -2902,8 +4280,12 @@ export type UserUpdateWithoutAcceptedRequestsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAcceptedRequestsInput = {
@@ -2934,6 +4316,8 @@ export type UserUncheckedUpdateWithoutAcceptedRequestsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2943,8 +4327,12 @@ export type UserUncheckedUpdateWithoutAcceptedRequestsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProviderAssignmentsInput = {
@@ -2975,6 +4363,8 @@ export type UserCreateWithoutProviderAssignmentsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -2984,8 +4374,12 @@ export type UserCreateWithoutProviderAssignmentsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProviderAssignmentsInput = {
@@ -3016,6 +4410,8 @@ export type UserUncheckedCreateWithoutProviderAssignmentsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3025,8 +4421,12 @@ export type UserUncheckedCreateWithoutProviderAssignmentsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProviderAssignmentsInput = {
@@ -3062,6 +4462,8 @@ export type UserCreateWithoutAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -3071,8 +4473,12 @@ export type UserCreateWithoutAssignmentsMadeInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAssignmentsMadeInput = {
@@ -3103,6 +4509,8 @@ export type UserUncheckedCreateWithoutAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3112,8 +4520,12 @@ export type UserUncheckedCreateWithoutAssignmentsMadeInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAssignmentsMadeInput = {
@@ -3160,6 +4572,8 @@ export type UserUpdateWithoutProviderAssignmentsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -3169,8 +4583,12 @@ export type UserUpdateWithoutProviderAssignmentsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProviderAssignmentsInput = {
@@ -3201,6 +4619,8 @@ export type UserUncheckedUpdateWithoutProviderAssignmentsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3210,8 +4630,12 @@ export type UserUncheckedUpdateWithoutProviderAssignmentsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAssignmentsMadeInput = {
@@ -3253,6 +4677,8 @@ export type UserUpdateWithoutAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -3262,8 +4688,12 @@ export type UserUpdateWithoutAssignmentsMadeInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignmentsMadeInput = {
@@ -3294,6 +4724,8 @@ export type UserUncheckedUpdateWithoutAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3303,8 +4735,12 @@ export type UserUncheckedUpdateWithoutAssignmentsMadeInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProviderJourneysInput = {
@@ -3335,6 +4771,8 @@ export type UserCreateWithoutProviderJourneysInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -3344,8 +4782,12 @@ export type UserCreateWithoutProviderJourneysInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProviderJourneysInput = {
@@ -3376,6 +4818,8 @@ export type UserUncheckedCreateWithoutProviderJourneysInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3385,8 +4829,12 @@ export type UserUncheckedCreateWithoutProviderJourneysInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProviderJourneysInput = {
@@ -3433,6 +4881,8 @@ export type UserUpdateWithoutProviderJourneysInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -3442,8 +4892,12 @@ export type UserUpdateWithoutProviderJourneysInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProviderJourneysInput = {
@@ -3474,6 +4928,8 @@ export type UserUncheckedUpdateWithoutProviderJourneysInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3483,8 +4939,12 @@ export type UserUncheckedUpdateWithoutProviderJourneysInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCollectionReportsInput = {
@@ -3515,6 +4975,8 @@ export type UserCreateWithoutCollectionReportsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -3524,8 +4986,12 @@ export type UserCreateWithoutCollectionReportsInput = {
   providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCollectionReportsInput = {
@@ -3556,6 +5022,8 @@ export type UserUncheckedCreateWithoutCollectionReportsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3565,8 +5033,12 @@ export type UserUncheckedCreateWithoutCollectionReportsInput = {
   providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCollectionReportsInput = {
@@ -3613,6 +5085,8 @@ export type UserUpdateWithoutCollectionReportsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -3622,8 +5096,12 @@ export type UserUpdateWithoutCollectionReportsInput = {
   providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCollectionReportsInput = {
@@ -3654,6 +5132,8 @@ export type UserUncheckedUpdateWithoutCollectionReportsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3663,8 +5143,12 @@ export type UserUncheckedUpdateWithoutCollectionReportsInput = {
   providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFeedbackSubmissionsInput = {
@@ -3695,6 +5179,8 @@ export type UserCreateWithoutFeedbackSubmissionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -3704,8 +5190,12 @@ export type UserCreateWithoutFeedbackSubmissionsInput = {
   providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFeedbackSubmissionsInput = {
@@ -3736,6 +5226,8 @@ export type UserUncheckedCreateWithoutFeedbackSubmissionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3745,8 +5237,12 @@ export type UserUncheckedCreateWithoutFeedbackSubmissionsInput = {
   providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFeedbackSubmissionsInput = {
@@ -3793,6 +5289,8 @@ export type UserUpdateWithoutFeedbackSubmissionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -3802,8 +5300,12 @@ export type UserUpdateWithoutFeedbackSubmissionsInput = {
   providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFeedbackSubmissionsInput = {
@@ -3834,6 +5336,8 @@ export type UserUncheckedUpdateWithoutFeedbackSubmissionsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3843,8 +5347,12 @@ export type UserUncheckedUpdateWithoutFeedbackSubmissionsInput = {
   providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDisposalAssignmentsMadeInput = {
@@ -3875,6 +5383,8 @@ export type UserCreateWithoutDisposalAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -3884,8 +5394,12 @@ export type UserCreateWithoutDisposalAssignmentsMadeInput = {
   providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDisposalAssignmentsMadeInput = {
@@ -3916,6 +5430,8 @@ export type UserUncheckedCreateWithoutDisposalAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3925,8 +5441,12 @@ export type UserUncheckedCreateWithoutDisposalAssignmentsMadeInput = {
   providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDisposalAssignmentsMadeInput = {
@@ -3973,6 +5493,8 @@ export type UserUpdateWithoutDisposalAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -3982,8 +5504,12 @@ export type UserUpdateWithoutDisposalAssignmentsMadeInput = {
   providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDisposalAssignmentsMadeInput = {
@@ -4014,6 +5540,8 @@ export type UserUncheckedUpdateWithoutDisposalAssignmentsMadeInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4023,8 +5551,216 @@ export type UserUncheckedUpdateWithoutDisposalAssignmentsMadeInput = {
   providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutDisposalAssignmentChangesMadeInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutDisposalAssignmentChangesMadeInput = {
+  id?: string
+  encryptedEmail?: string | null
+  emailLookup?: string | null
+  passwordHash?: string | null
+  encryptedPhone?: string | null
+  phoneLookup?: string | null
+  actorType: $Enums.ActorType
+  providerStatus?: $Enums.ProviderStatus | null
+  isActive?: boolean
+  loginEnabled?: boolean
+  emailVerifiedAt?: Date | string | null
+  phoneVerifiedAt?: Date | string | null
+  mobileMonitoringPermitted?: boolean
+  providerApprovalPermitted?: boolean
+  callCentreOperationsPermitted?: boolean
+  passwordChangedAt?: Date | string
+  passwordVersion?: number
+  failedLoginCount?: number
+  authenticationLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedCreateNestedManyWithoutUserInput
+  clientProfile?: Prisma.ClientProfileUncheckedCreateNestedOneWithoutUserInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedCreateNestedOneWithoutUserInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutAcceptedProviderInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutProviderInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  providerJourneys?: Prisma.JourneyUncheckedCreateNestedManyWithoutProviderInput
+  collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDisposalAssignmentChangesMadeInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUncheckedCreateWithoutDisposalAssignmentChangesMadeInput>
+}
+
+export type UserUpsertWithoutDisposalAssignmentChangesMadeInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUncheckedUpdateWithoutDisposalAssignmentChangesMadeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUncheckedCreateWithoutDisposalAssignmentChangesMadeInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDisposalAssignmentChangesMadeInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDisposalAssignmentChangesMadeInput, Prisma.UserUncheckedUpdateWithoutDisposalAssignmentChangesMadeInput>
+}
+
+export type UserUpdateWithoutDisposalAssignmentChangesMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDisposalAssignmentChangesMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  encryptedEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneLookup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actorType?: Prisma.EnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType
+  providerStatus?: Prisma.NullableEnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mobileMonitoringPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  providerApprovalPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  callCentreOperationsPermitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordChangedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  failedLoginCount?: Prisma.IntFieldUpdateOperationsInput | number
+  authenticationLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.AuthenticationSessionUncheckedUpdateManyWithoutUserNestedInput
+  clientProfile?: Prisma.ClientProfileUncheckedUpdateOneWithoutUserNestedInput
+  serviceProviderProfile?: Prisma.ServiceProviderProfileUncheckedUpdateOneWithoutUserNestedInput
+  phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
+  approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
+  providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
+  requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutAcceptedProviderNestedInput
+  providerAssignments?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutProviderNestedInput
+  assignmentsMade?: Prisma.RequestAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  providerJourneys?: Prisma.JourneyUncheckedUpdateManyWithoutProviderNestedInput
+  collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
+  feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
+  disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOperationalNotificationsInput = {
@@ -4055,6 +5791,8 @@ export type UserCreateWithoutOperationalNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -4065,7 +5803,11 @@ export type UserCreateWithoutOperationalNotificationsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOperationalNotificationsInput = {
@@ -4096,6 +5838,8 @@ export type UserUncheckedCreateWithoutOperationalNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4106,7 +5850,11 @@ export type UserUncheckedCreateWithoutOperationalNotificationsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutActorInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOperationalNotificationsInput = {
@@ -4153,6 +5901,8 @@ export type UserUpdateWithoutOperationalNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -4163,7 +5913,11 @@ export type UserUpdateWithoutOperationalNotificationsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOperationalNotificationsInput = {
@@ -4194,6 +5948,8 @@ export type UserUncheckedUpdateWithoutOperationalNotificationsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4204,7 +5960,11 @@ export type UserUncheckedUpdateWithoutOperationalNotificationsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditEventsInput = {
@@ -4235,6 +5995,8 @@ export type UserCreateWithoutAuditEventsInput = {
   phoneChallenges?: Prisma.PhoneChallengeCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestCreateNestedManyWithoutCreatedByInput
@@ -4245,7 +6007,11 @@ export type UserCreateWithoutAuditEventsInput = {
   collectionReports?: Prisma.CollectionReportCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationCreateNestedManyWithoutRecipientInput
+  accountChallenges?: Prisma.AccountChallengeCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditEventsInput = {
@@ -4276,6 +6042,8 @@ export type UserUncheckedCreateWithoutAuditEventsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedCreateNestedManyWithoutUserInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutDecidedByInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutProviderInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   notifications?: Prisma.RegistrationNotificationUncheckedCreateNestedManyWithoutRecipientInput
   clientRequests?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutClientInput
   requestsCreated?: Prisma.ServiceRequestUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4286,7 +6054,11 @@ export type UserUncheckedCreateWithoutAuditEventsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedCreateNestedManyWithoutProviderInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedCreateNestedManyWithoutSubmittedByInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedCreateNestedManyWithoutAssignedByInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedCreateNestedManyWithoutRecipientInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedCreateNestedManyWithoutUserInput
+  securityEvents?: Prisma.SecurityEventUncheckedCreateNestedManyWithoutUserInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditEventsInput = {
@@ -4333,6 +6105,8 @@ export type UserUpdateWithoutAuditEventsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUpdateManyWithoutCreatedByNestedInput
@@ -4343,7 +6117,11 @@ export type UserUpdateWithoutAuditEventsInput = {
   collectionReports?: Prisma.CollectionReportUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUpdateManyWithoutRecipientNestedInput
+  accountChallenges?: Prisma.AccountChallengeUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditEventsInput = {
@@ -4374,6 +6152,8 @@ export type UserUncheckedUpdateWithoutAuditEventsInput = {
   phoneChallenges?: Prisma.PhoneChallengeUncheckedUpdateManyWithoutUserNestedInput
   approvalDecisionsMade?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByNestedInput
   providerApprovalDecisions?: Prisma.ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusHistory?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutProviderNestedInput
+  providerStatusChangesMade?: Prisma.ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   notifications?: Prisma.RegistrationNotificationUncheckedUpdateManyWithoutRecipientNestedInput
   clientRequests?: Prisma.ServiceRequestUncheckedUpdateManyWithoutClientNestedInput
   requestsCreated?: Prisma.ServiceRequestUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4384,7 +6164,11 @@ export type UserUncheckedUpdateWithoutAuditEventsInput = {
   collectionReports?: Prisma.CollectionReportUncheckedUpdateManyWithoutProviderNestedInput
   feedbackSubmissions?: Prisma.ServiceFeedbackUncheckedUpdateManyWithoutSubmittedByNestedInput
   disposalAssignmentsMade?: Prisma.DisposalAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  disposalAssignmentChangesMade?: Prisma.DisposalAssignmentHistoryUncheckedUpdateManyWithoutAssignedByNestedInput
   operationalNotifications?: Prisma.OperationalNotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  accountChallenges?: Prisma.AccountChallengeUncheckedUpdateManyWithoutUserNestedInput
+  securityEvents?: Prisma.SecurityEventUncheckedUpdateManyWithoutUserNestedInput
+  deviceInstallations?: Prisma.DeviceInstallationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -4397,6 +6181,8 @@ export type UserCountOutputType = {
   phoneChallenges: number
   approvalDecisionsMade: number
   providerApprovalDecisions: number
+  providerStatusHistory: number
+  providerStatusChangesMade: number
   notifications: number
   clientRequests: number
   requestsCreated: number
@@ -4407,8 +6193,12 @@ export type UserCountOutputType = {
   collectionReports: number
   feedbackSubmissions: number
   disposalAssignmentsMade: number
+  disposalAssignmentChangesMade: number
   operationalNotifications: number
   auditEvents: number
+  accountChallenges: number
+  securityEvents: number
+  deviceInstallations: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4416,6 +6206,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   phoneChallenges?: boolean | UserCountOutputTypeCountPhoneChallengesArgs
   approvalDecisionsMade?: boolean | UserCountOutputTypeCountApprovalDecisionsMadeArgs
   providerApprovalDecisions?: boolean | UserCountOutputTypeCountProviderApprovalDecisionsArgs
+  providerStatusHistory?: boolean | UserCountOutputTypeCountProviderStatusHistoryArgs
+  providerStatusChangesMade?: boolean | UserCountOutputTypeCountProviderStatusChangesMadeArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   clientRequests?: boolean | UserCountOutputTypeCountClientRequestsArgs
   requestsCreated?: boolean | UserCountOutputTypeCountRequestsCreatedArgs
@@ -4426,8 +6218,12 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   collectionReports?: boolean | UserCountOutputTypeCountCollectionReportsArgs
   feedbackSubmissions?: boolean | UserCountOutputTypeCountFeedbackSubmissionsArgs
   disposalAssignmentsMade?: boolean | UserCountOutputTypeCountDisposalAssignmentsMadeArgs
+  disposalAssignmentChangesMade?: boolean | UserCountOutputTypeCountDisposalAssignmentChangesMadeArgs
   operationalNotifications?: boolean | UserCountOutputTypeCountOperationalNotificationsArgs
   auditEvents?: boolean | UserCountOutputTypeCountAuditEventsArgs
+  accountChallenges?: boolean | UserCountOutputTypeCountAccountChallengesArgs
+  securityEvents?: boolean | UserCountOutputTypeCountSecurityEventsArgs
+  deviceInstallations?: boolean | UserCountOutputTypeCountDeviceInstallationsArgs
 }
 
 /**
@@ -4466,6 +6262,20 @@ export type UserCountOutputTypeCountApprovalDecisionsMadeArgs<ExtArgs extends ru
  */
 export type UserCountOutputTypeCountProviderApprovalDecisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ProviderApprovalDecisionRecordWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountProviderStatusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProviderStatusHistoryWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountProviderStatusChangesMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProviderStatusHistoryWhereInput
 }
 
 /**
@@ -4541,6 +6351,13 @@ export type UserCountOutputTypeCountDisposalAssignmentsMadeArgs<ExtArgs extends 
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountDisposalAssignmentChangesMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DisposalAssignmentHistoryWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountOperationalNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OperationalNotificationWhereInput
 }
@@ -4550,6 +6367,27 @@ export type UserCountOutputTypeCountOperationalNotificationsArgs<ExtArgs extends
  */
 export type UserCountOutputTypeCountAuditEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AuditEventWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAccountChallengesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountChallengeWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSecurityEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SecurityEventWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeviceInstallationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeviceInstallationWhereInput
 }
 
 
@@ -4581,6 +6419,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   phoneChallenges?: boolean | Prisma.User$phoneChallengesArgs<ExtArgs>
   approvalDecisionsMade?: boolean | Prisma.User$approvalDecisionsMadeArgs<ExtArgs>
   providerApprovalDecisions?: boolean | Prisma.User$providerApprovalDecisionsArgs<ExtArgs>
+  providerStatusHistory?: boolean | Prisma.User$providerStatusHistoryArgs<ExtArgs>
+  providerStatusChangesMade?: boolean | Prisma.User$providerStatusChangesMadeArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   clientRequests?: boolean | Prisma.User$clientRequestsArgs<ExtArgs>
   requestsCreated?: boolean | Prisma.User$requestsCreatedArgs<ExtArgs>
@@ -4591,8 +6431,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   collectionReports?: boolean | Prisma.User$collectionReportsArgs<ExtArgs>
   feedbackSubmissions?: boolean | Prisma.User$feedbackSubmissionsArgs<ExtArgs>
   disposalAssignmentsMade?: boolean | Prisma.User$disposalAssignmentsMadeArgs<ExtArgs>
+  disposalAssignmentChangesMade?: boolean | Prisma.User$disposalAssignmentChangesMadeArgs<ExtArgs>
   operationalNotifications?: boolean | Prisma.User$operationalNotificationsArgs<ExtArgs>
   auditEvents?: boolean | Prisma.User$auditEventsArgs<ExtArgs>
+  accountChallenges?: boolean | Prisma.User$accountChallengesArgs<ExtArgs>
+  securityEvents?: boolean | Prisma.User$securityEventsArgs<ExtArgs>
+  deviceInstallations?: boolean | Prisma.User$deviceInstallationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -4676,6 +6520,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   phoneChallenges?: boolean | Prisma.User$phoneChallengesArgs<ExtArgs>
   approvalDecisionsMade?: boolean | Prisma.User$approvalDecisionsMadeArgs<ExtArgs>
   providerApprovalDecisions?: boolean | Prisma.User$providerApprovalDecisionsArgs<ExtArgs>
+  providerStatusHistory?: boolean | Prisma.User$providerStatusHistoryArgs<ExtArgs>
+  providerStatusChangesMade?: boolean | Prisma.User$providerStatusChangesMadeArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   clientRequests?: boolean | Prisma.User$clientRequestsArgs<ExtArgs>
   requestsCreated?: boolean | Prisma.User$requestsCreatedArgs<ExtArgs>
@@ -4686,8 +6532,12 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   collectionReports?: boolean | Prisma.User$collectionReportsArgs<ExtArgs>
   feedbackSubmissions?: boolean | Prisma.User$feedbackSubmissionsArgs<ExtArgs>
   disposalAssignmentsMade?: boolean | Prisma.User$disposalAssignmentsMadeArgs<ExtArgs>
+  disposalAssignmentChangesMade?: boolean | Prisma.User$disposalAssignmentChangesMadeArgs<ExtArgs>
   operationalNotifications?: boolean | Prisma.User$operationalNotificationsArgs<ExtArgs>
   auditEvents?: boolean | Prisma.User$auditEventsArgs<ExtArgs>
+  accountChallenges?: boolean | Prisma.User$accountChallengesArgs<ExtArgs>
+  securityEvents?: boolean | Prisma.User$securityEventsArgs<ExtArgs>
+  deviceInstallations?: boolean | Prisma.User$deviceInstallationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -4702,6 +6552,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     phoneChallenges: Prisma.$PhoneChallengePayload<ExtArgs>[]
     approvalDecisionsMade: Prisma.$ProviderApprovalDecisionRecordPayload<ExtArgs>[]
     providerApprovalDecisions: Prisma.$ProviderApprovalDecisionRecordPayload<ExtArgs>[]
+    providerStatusHistory: Prisma.$ProviderStatusHistoryPayload<ExtArgs>[]
+    providerStatusChangesMade: Prisma.$ProviderStatusHistoryPayload<ExtArgs>[]
     notifications: Prisma.$RegistrationNotificationPayload<ExtArgs>[]
     clientRequests: Prisma.$ServiceRequestPayload<ExtArgs>[]
     requestsCreated: Prisma.$ServiceRequestPayload<ExtArgs>[]
@@ -4712,8 +6564,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     collectionReports: Prisma.$CollectionReportPayload<ExtArgs>[]
     feedbackSubmissions: Prisma.$ServiceFeedbackPayload<ExtArgs>[]
     disposalAssignmentsMade: Prisma.$DisposalAssignmentPayload<ExtArgs>[]
+    disposalAssignmentChangesMade: Prisma.$DisposalAssignmentHistoryPayload<ExtArgs>[]
     operationalNotifications: Prisma.$OperationalNotificationPayload<ExtArgs>[]
     auditEvents: Prisma.$AuditEventPayload<ExtArgs>[]
+    accountChallenges: Prisma.$AccountChallengePayload<ExtArgs>[]
+    securityEvents: Prisma.$SecurityEventPayload<ExtArgs>[]
+    deviceInstallations: Prisma.$DeviceInstallationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5137,6 +6993,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   phoneChallenges<T extends Prisma.User$phoneChallengesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$phoneChallengesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PhoneChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalDecisionsMade<T extends Prisma.User$approvalDecisionsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalDecisionsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProviderApprovalDecisionRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   providerApprovalDecisions<T extends Prisma.User$providerApprovalDecisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$providerApprovalDecisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProviderApprovalDecisionRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  providerStatusHistory<T extends Prisma.User$providerStatusHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$providerStatusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProviderStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  providerStatusChangesMade<T extends Prisma.User$providerStatusChangesMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$providerStatusChangesMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProviderStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RegistrationNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   clientRequests<T extends Prisma.User$clientRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clientRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServiceRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requestsCreated<T extends Prisma.User$requestsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$requestsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServiceRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5147,8 +7005,12 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   collectionReports<T extends Prisma.User$collectionReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$collectionReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectionReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   feedbackSubmissions<T extends Prisma.User$feedbackSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$feedbackSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServiceFeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   disposalAssignmentsMade<T extends Prisma.User$disposalAssignmentsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$disposalAssignmentsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisposalAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  disposalAssignmentChangesMade<T extends Prisma.User$disposalAssignmentChangesMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$disposalAssignmentChangesMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisposalAssignmentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   operationalNotifications<T extends Prisma.User$operationalNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$operationalNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OperationalNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditEvents<T extends Prisma.User$auditEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  accountChallenges<T extends Prisma.User$accountChallengesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountChallengesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  securityEvents<T extends Prisma.User$securityEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$securityEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SecurityEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deviceInstallations<T extends Prisma.User$deviceInstallationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deviceInstallationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeviceInstallationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5726,6 +7588,54 @@ export type User$providerApprovalDecisionsArgs<ExtArgs extends runtime.Types.Ext
 }
 
 /**
+ * User.providerStatusHistory
+ */
+export type User$providerStatusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProviderStatusHistory
+   */
+  select?: Prisma.ProviderStatusHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProviderStatusHistory
+   */
+  omit?: Prisma.ProviderStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderStatusHistoryInclude<ExtArgs> | null
+  where?: Prisma.ProviderStatusHistoryWhereInput
+  orderBy?: Prisma.ProviderStatusHistoryOrderByWithRelationInput | Prisma.ProviderStatusHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.ProviderStatusHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProviderStatusHistoryScalarFieldEnum | Prisma.ProviderStatusHistoryScalarFieldEnum[]
+}
+
+/**
+ * User.providerStatusChangesMade
+ */
+export type User$providerStatusChangesMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProviderStatusHistory
+   */
+  select?: Prisma.ProviderStatusHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProviderStatusHistory
+   */
+  omit?: Prisma.ProviderStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderStatusHistoryInclude<ExtArgs> | null
+  where?: Prisma.ProviderStatusHistoryWhereInput
+  orderBy?: Prisma.ProviderStatusHistoryOrderByWithRelationInput | Prisma.ProviderStatusHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.ProviderStatusHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProviderStatusHistoryScalarFieldEnum | Prisma.ProviderStatusHistoryScalarFieldEnum[]
+}
+
+/**
  * User.notifications
  */
 export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5966,6 +7876,30 @@ export type User$disposalAssignmentsMadeArgs<ExtArgs extends runtime.Types.Exten
 }
 
 /**
+ * User.disposalAssignmentChangesMade
+ */
+export type User$disposalAssignmentChangesMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DisposalAssignmentHistory
+   */
+  select?: Prisma.DisposalAssignmentHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DisposalAssignmentHistory
+   */
+  omit?: Prisma.DisposalAssignmentHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DisposalAssignmentHistoryInclude<ExtArgs> | null
+  where?: Prisma.DisposalAssignmentHistoryWhereInput
+  orderBy?: Prisma.DisposalAssignmentHistoryOrderByWithRelationInput | Prisma.DisposalAssignmentHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.DisposalAssignmentHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DisposalAssignmentHistoryScalarFieldEnum | Prisma.DisposalAssignmentHistoryScalarFieldEnum[]
+}
+
+/**
  * User.operationalNotifications
  */
 export type User$operationalNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -6011,6 +7945,78 @@ export type User$auditEventsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.AuditEventScalarFieldEnum | Prisma.AuditEventScalarFieldEnum[]
+}
+
+/**
+ * User.accountChallenges
+ */
+export type User$accountChallengesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AccountChallenge
+   */
+  select?: Prisma.AccountChallengeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AccountChallenge
+   */
+  omit?: Prisma.AccountChallengeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountChallengeInclude<ExtArgs> | null
+  where?: Prisma.AccountChallengeWhereInput
+  orderBy?: Prisma.AccountChallengeOrderByWithRelationInput | Prisma.AccountChallengeOrderByWithRelationInput[]
+  cursor?: Prisma.AccountChallengeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountChallengeScalarFieldEnum | Prisma.AccountChallengeScalarFieldEnum[]
+}
+
+/**
+ * User.securityEvents
+ */
+export type User$securityEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SecurityEvent
+   */
+  select?: Prisma.SecurityEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SecurityEvent
+   */
+  omit?: Prisma.SecurityEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SecurityEventInclude<ExtArgs> | null
+  where?: Prisma.SecurityEventWhereInput
+  orderBy?: Prisma.SecurityEventOrderByWithRelationInput | Prisma.SecurityEventOrderByWithRelationInput[]
+  cursor?: Prisma.SecurityEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SecurityEventScalarFieldEnum | Prisma.SecurityEventScalarFieldEnum[]
+}
+
+/**
+ * User.deviceInstallations
+ */
+export type User$deviceInstallationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeviceInstallation
+   */
+  select?: Prisma.DeviceInstallationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeviceInstallation
+   */
+  omit?: Prisma.DeviceInstallationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeviceInstallationInclude<ExtArgs> | null
+  where?: Prisma.DeviceInstallationWhereInput
+  orderBy?: Prisma.DeviceInstallationOrderByWithRelationInput | Prisma.DeviceInstallationOrderByWithRelationInput[]
+  cursor?: Prisma.DeviceInstallationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeviceInstallationScalarFieldEnum | Prisma.DeviceInstallationScalarFieldEnum[]
 }
 
 /**

@@ -16,5 +16,7 @@ final deviceLocationProvider = Provider<DeviceLocationGateway>(
 );
 
 final mapSelectionProvider = Provider<MapSelectionGateway>(
-  (ref) => const UnconfiguredGoogleMapsGateway(),
+  (ref) => ref.watch(appConfigProvider).googleMapsEnabled
+      ? const ConfiguredGoogleMapsGateway()
+      : const UnconfiguredGoogleMapsGateway(),
 );

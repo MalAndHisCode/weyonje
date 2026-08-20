@@ -45,6 +45,21 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model AccountChallenge
+ * 
+ */
+export type AccountChallenge = Prisma.AccountChallengeModel
+/**
+ * Model SecurityEvent
+ * 
+ */
+export type SecurityEvent = Prisma.SecurityEventModel
+/**
+ * Model DeviceInstallation
+ * 
+ */
+export type DeviceInstallation = Prisma.DeviceInstallationModel
+/**
  * Model ClientProfile
  * 
  */
@@ -64,6 +79,11 @@ export type PhoneChallenge = Prisma.PhoneChallengeModel
  * 
  */
 export type ProviderApprovalDecisionRecord = Prisma.ProviderApprovalDecisionRecordModel
+/**
+ * Model ProviderStatusHistory
+ * 
+ */
+export type ProviderStatusHistory = Prisma.ProviderStatusHistoryModel
 /**
  * Model RegistrationNotification
  * 
@@ -135,6 +155,11 @@ export type DisposalSite = Prisma.DisposalSiteModel
  */
 export type DisposalAssignment = Prisma.DisposalAssignmentModel
 /**
+ * Model DisposalAssignmentHistory
+ * 
+ */
+export type DisposalAssignmentHistory = Prisma.DisposalAssignmentHistoryModel
+/**
  * Model OperationalNotification
  * 
  */
@@ -144,6 +169,11 @@ export type OperationalNotification = Prisma.OperationalNotificationModel
  * 
  */
 export type OutboxEvent = Prisma.OutboxEventModel
+/**
+ * Model DeliveryAttempt
+ * 
+ */
+export type DeliveryAttempt = Prisma.DeliveryAttemptModel
 /**
  * Model IdempotencyRecord
  * 

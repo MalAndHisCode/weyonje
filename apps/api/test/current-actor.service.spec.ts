@@ -19,6 +19,7 @@ function actor(
       phoneVerifiedAt: null,
       mobileMonitoringPermitted: false,
       providerApprovalPermitted: false,
+      callCentreOperationsPermitted: false,
       passwordVersion: 1,
       serviceProviderProfile: null,
       ...overrides,
@@ -33,6 +34,7 @@ describe("CurrentActorService", () => {
     expect(service.resolve(actor())).toEqual({
       actorType: ActorType.client,
       access: ActorAccess.eligible,
+      emailVerified: true,
     });
     expect(service.resolve(actor({ isActive: false }))).toMatchObject({
       access: ActorAccess.denied,
@@ -59,7 +61,12 @@ describe("CurrentActorService", () => {
           },
         }),
       ),
-    ).toEqual({ actorType: ActorType.serviceProvider, access, providerStatus });
+    ).toEqual({
+      actorType: ActorType.serviceProvider,
+      access,
+      emailVerified: true,
+      providerStatus,
+    });
   });
 
   it("returns provider approval details without exposing them to other actors", () => {
@@ -94,9 +101,32 @@ describe("CurrentActorService", () => {
             mobileMonitoringPermitted,
           }),
         ),
-      ).toEqual({ actorType: ActorType.kccaStaff, access });
+      ).toEqual({
+        actorType: ActorType.kccaStaff,
+        access,
+        emailVerified: true,
+        mobileMonitoringPermitted,
+        providerApprovalPermitted: false,
+        callCentreOperationsPermitted: false,
+      });
     },
   );
+
+  it("allows KCCA administration without granting journey monitoring", () => {
+    expect(
+      service.resolve(
+        actor({
+          actorType: ActorType.kccaStaff,
+          providerApprovalPermitted: true,
+          mobileMonitoringPermitted: false,
+        }),
+      ),
+    ).toMatchObject({
+      access: ActorAccess.eligible,
+      mobileMonitoringPermitted: false,
+      providerApprovalPermitted: true,
+    });
+  });
 
   it.each([
     actor({ actorType: ActorType.serviceProvider, providerStatus: null }),

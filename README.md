@@ -2,7 +2,7 @@
 
 Weyonje is an Android Flutter application with a NestJS/Fastify API. It implements native authentication/registration, role eligibility, Client service requests, Provider marketplace acceptance and jobs, KCCA monitoring, collection feedback/follow-up, KCCA-controlled disposal, persisted location tracking, durable notifications/outbox, and authenticated Socket.IO hints with REST reconciliation.
 
-The repository is a development implementation. Railway is the user-confirmed GitHub-connected deployment target with the service rooted at the repository root; its live deployment health and configuration have not been inspected in this task. Neon and all live external integrations remain unverified. Google Maps, push delivery, production background tracking, outbox processing, retention purge, scheduled reminders, and release operations require separate authorisation and production decisions.
+The repository is a development implementation. Railway is the confirmed GitHub-connected target; the API and separate PostgreSQL delivery-worker entry points are present, but no deployment or service setting was changed. Maps, FCM, foreground tracking, reminders, recovery, email verification, and KCCA mobile administration now have repository implementations. Google/Firebase credentials, physical-device background behavior, isolated PostgreSQL migrations/locking, Railway worker topology, live email, retention approval, and release operations remain unverified or externally blocked.
 
 ## Repository
 

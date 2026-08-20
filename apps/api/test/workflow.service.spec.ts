@@ -31,6 +31,7 @@ describe("WorkflowService request policy", () => {
     {} as never,
     {} as never,
     policy,
+    { offsetsMinutes: [120] } as never,
   );
 
   const validate = (input: CreateServiceRequestContract) =>

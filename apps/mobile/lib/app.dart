@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -5,6 +7,8 @@ import 'package:forui/forui.dart';
 import 'features/auth/application/launch_controller.dart';
 import 'navigation/app_router.dart';
 import 'theme/theme.dart';
+import 'core/notifications/push_notification_coordinator.dart';
+import 'features/workflows/application/journey_tracking_coordinator.dart';
 
 class WeyonjeApplication extends ConsumerStatefulWidget {
   const WeyonjeApplication({super.key});
@@ -15,6 +19,7 @@ class WeyonjeApplication extends ConsumerStatefulWidget {
 
 class _WeyonjeApplicationState extends ConsumerState<WeyonjeApplication>
     with WidgetsBindingObserver {
+  StreamSubscription<String>? _pushRoutes;
   @override
   void initState() {
     super.initState();
@@ -22,11 +27,25 @@ class _WeyonjeApplicationState extends ConsumerState<WeyonjeApplication>
     Future.microtask(
       () => ref.read(launchControllerProvider.notifier).initialize(),
     );
+    ref.listenManual<LaunchState>(launchControllerProvider, (_, next) {
+      if (next is LaunchAuthenticated) {
+        final push = ref.read(pushNotificationCoordinatorProvider);
+        push.start();
+        _pushRoutes ??= push.routes.listen(
+          (route) => ref.read(appRouterProvider).go(route),
+        );
+        ref.read(journeyTrackingCoordinatorProvider).restore();
+      } else if (next is LaunchUnauthenticated || next is LaunchAccessDenied) {
+        ref.read(pushNotificationCoordinatorProvider).disable();
+        ref.read(journeyTrackingCoordinatorProvider).clear();
+      }
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _pushRoutes?.cancel();
     super.dispose();
   }
 

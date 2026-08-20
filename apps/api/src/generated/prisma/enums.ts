@@ -194,16 +194,36 @@ export const OperationalNotificationType = {
   DISPOSAL_STARTED: 'DISPOSAL_STARTED',
   DISPOSAL_ARRIVED: 'DISPOSAL_ARRIVED',
   DISPOSAL_COMPLETED: 'DISPOSAL_COMPLETED',
-  REMINDER: 'REMINDER'
+  REMINDER: 'REMINDER',
+  PASSWORD_RECOVERY: 'PASSWORD_RECOVERY',
+  EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
+  PROVIDER_ACCOUNT_UPDATED: 'PROVIDER_ACCOUNT_UPDATED'
 } as const
 
 export type OperationalNotificationType = (typeof OperationalNotificationType)[keyof typeof OperationalNotificationType]
 
 
+export const AccountChallengePurpose = {
+  PASSWORD_RECOVERY: 'PASSWORD_RECOVERY',
+  EMAIL_VERIFICATION: 'EMAIL_VERIFICATION'
+} as const
+
+export type AccountChallengePurpose = (typeof AccountChallengePurpose)[keyof typeof AccountChallengePurpose]
+
+
+export const AccountChallengeChannel = {
+  SMS: 'SMS',
+  EMAIL: 'EMAIL'
+} as const
+
+export type AccountChallengeChannel = (typeof AccountChallengeChannel)[keyof typeof AccountChallengeChannel]
+
+
 export const NotificationDeliveryChannel = {
   IN_APP: 'IN_APP',
   SMS: 'SMS',
-  PUSH: 'PUSH'
+  PUSH: 'PUSH',
+  EMAIL: 'EMAIL'
 } as const
 
 export type NotificationDeliveryChannel = (typeof NotificationDeliveryChannel)[keyof typeof NotificationDeliveryChannel]
@@ -213,7 +233,8 @@ export const OutboxStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
   DELIVERED: 'DELIVERED',
-  FAILED: 'FAILED'
+  FAILED: 'FAILED',
+  DEAD_LETTER: 'DEAD_LETTER'
 } as const
 
 export type OutboxStatus = (typeof OutboxStatus)[keyof typeof OutboxStatus]

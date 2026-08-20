@@ -16,10 +16,12 @@ import '../features/auth/presentation/session_check_screen.dart';
 import '../features/auth/presentation/session_error_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
+import '../features/auth/presentation/account_security_screens.dart';
 import '../features/workflows/presentation/client_request_screens.dart';
 import '../features/workflows/presentation/dashboard_screens.dart';
 import '../features/workflows/presentation/provider_screens.dart';
 import '../features/workflows/presentation/tracking_screen.dart';
+import '../features/workflows/presentation/kcca_admin_screens.dart';
 
 abstract final class AppRoutes {
   static const launch = '/launch';
@@ -42,6 +44,11 @@ abstract final class AppRoutes {
   static const providerPending = '/provider/requests/pending';
   static const providerJobs = '/provider/jobs';
   static const notifications = '/notifications';
+  static const passwordRecovery = '/account/recover';
+  static const emailVerification = '/account/verify-email';
+  static const kccaProviderAdministration = '/kcca/providers';
+  static const kccaCallCentre = '/kcca/call-centre';
+  static const kccaDisposalSites = '/kcca/disposal-sites';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -69,6 +76,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.passwordRecovery,
+        builder: (context, state) => const PasswordRecoveryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.emailVerification,
+        builder: (context, state) => EmailVerificationScreen(
+          initialChallengeId: state.uri.queryParameters['challengeId'],
+          initialCode: state.uri.queryParameters['code'],
+        ),
       ),
       GoRoute(
         path: AppRoutes.clientSignIn,
@@ -114,6 +132,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.kccaMonitoring,
         builder: (context, state) => const KccaMonitoringDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.kccaProviderAdministration,
+        builder: (context, state) => const ProviderAdministrationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.kccaCallCentre,
+        builder: (context, state) => const CallCentreAdministrationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.kccaDisposalSites,
+        builder: (context, state) => const DisposalSiteAdministrationScreen(),
       ),
       GoRoute(
         path: AppRoutes.clientRequestNew,
@@ -192,6 +222,7 @@ bool _isUnauthenticatedPath(String path) =>
     path == AppRoutes.welcome ||
     path == AppRoutes.chooseAccountType ||
     path == AppRoutes.signIn ||
+    path == AppRoutes.passwordRecovery ||
     path == AppRoutes.clientSignIn ||
     path == AppRoutes.phoneVerification ||
     path == AppRoutes.clientRegistration ||
@@ -218,9 +249,16 @@ String? _authenticatedRedirect(CurrentActor actor, String path) {
           path.startsWith('/provider/') ||
           path.startsWith('/tracking/') ||
           path == AppRoutes.notifications ||
+          path == AppRoutes.emailVerification ||
           path == AppRoutes.providerAccountStatus,
     ActorType.kccaStaff =>
       path == AppRoutes.kccaMonitoring ||
+          path == AppRoutes.emailVerification ||
+          (path == AppRoutes.kccaProviderAdministration &&
+              actor.providerApprovalPermitted) ||
+          ((path == AppRoutes.kccaCallCentre ||
+                  path == AppRoutes.kccaDisposalSites) &&
+              actor.callCentreOperationsPermitted) ||
           path.startsWith('/tracking/') ||
           path == AppRoutes.notifications,
   };

@@ -9,6 +9,7 @@ import '../../../ui/weyonje_page.dart';
 import '../application/workflow_providers.dart';
 import '../domain/workflow_models.dart';
 import 'workflow_widgets.dart';
+import 'weyonje_map.dart';
 
 class RequestServiceScreen extends ConsumerStatefulWidget {
   const RequestServiceScreen({super.key});
@@ -250,12 +251,14 @@ class _RequestLocationPickerScreenState
     extends ConsumerState<RequestLocationPickerScreen> {
   final _latitude = TextEditingController();
   final _longitude = TextEditingController();
+  final _search = TextEditingController();
   bool _loading = false;
   String? _error;
   @override
   void dispose() {
     _latitude.dispose();
     _longitude.dispose();
+    _search.dispose();
     super.dispose();
   }
 
@@ -305,12 +308,54 @@ class _RequestLocationPickerScreenState
         children: [
           WeyonjeAlert(
             title: maps.configured
-                ? 'Development map boundary'
+                ? 'Select a location'
                 : 'Google Maps unavailable',
             message: maps.configured
-                ? 'The Google Maps adapter is enabled but no authorised project is bundled in this development build. Use a device or coordinate location.'
+                ? 'Tap the map, use your device location, or enter coordinates. Coordinate text remains available for accessibility.'
                 : 'Google Maps resources and credentials have not been authorised. No map or fabricated place data is shown.',
           ),
+          if (maps.configured) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    textInputAction: TextInputAction.search,
+                    decoration: const InputDecoration(
+                      labelText: 'Search address or place',
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (_) => _searchPlaces(),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Search places',
+                  onPressed: _loading ? null : _searchPlaces,
+                  icon: const Icon(Icons.search),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            WeyonjeMap(
+              destinationLatitude: double.tryParse(_latitude.text) ?? 0.3476,
+              destinationLongitude: double.tryParse(_longitude.text) ?? 32.5825,
+              onSelected: (point) async {
+                setState(() {
+                  _latitude.text = point.latitude.toStringAsFixed(6);
+                  _longitude.text = point.longitude.toStringAsFixed(6);
+                });
+                try {
+                  final address = await ref
+                      .read(workflowRepositoryProvider)
+                      .reverseGeocode(point.latitude, point.longitude);
+                  if (mounted && address != null) _search.text = address;
+                } catch (_) {
+                  // Coordinates remain usable when geocoding is offline.
+                }
+              },
+            ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: 12),
             WeyonjeAlert(title: 'Location unavailable', message: _error!),
@@ -344,6 +389,53 @@ class _RequestLocationPickerScreenState
         ],
       ),
     );
+  }
+
+  Future<void> _searchPlaces() async {
+    if (_search.text.trim().length < 2) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final results = await ref
+          .read(workflowRepositoryProvider)
+          .searchPlaces(_search.text.trim());
+      if (!mounted) return;
+      if (results.isEmpty) {
+        setState(() => _error = 'No matching places were found.');
+        return;
+      }
+      final selected = await showModalBottomSheet<MapPlace>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: ListView(
+            children: results
+                .map(
+                  (place) => ListTile(
+                    title: Text(place.name),
+                    subtitle: Text(
+                      '${place.address}\n${place.latitude}, ${place.longitude}',
+                    ),
+                    onTap: () => Navigator.pop(context, place),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      );
+      if (selected != null) {
+        setState(() {
+          _search.text = selected.address;
+          _latitude.text = selected.latitude.toStringAsFixed(6);
+          _longitude.text = selected.longitude.toStringAsFixed(6);
+        });
+      }
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 }
 

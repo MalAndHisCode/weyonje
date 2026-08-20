@@ -52,10 +52,14 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  AccountChallenge: 'AccountChallenge',
+  SecurityEvent: 'SecurityEvent',
+  DeviceInstallation: 'DeviceInstallation',
   ClientProfile: 'ClientProfile',
   ServiceProviderProfile: 'ServiceProviderProfile',
   PhoneChallenge: 'PhoneChallenge',
   ProviderApprovalDecisionRecord: 'ProviderApprovalDecisionRecord',
+  ProviderStatusHistory: 'ProviderStatusHistory',
   RegistrationNotification: 'RegistrationNotification',
   AuthenticationSession: 'AuthenticationSession',
   RefreshToken: 'RefreshToken',
@@ -70,8 +74,10 @@ export const ModelName = {
   FollowUpCase: 'FollowUpCase',
   DisposalSite: 'DisposalSite',
   DisposalAssignment: 'DisposalAssignment',
+  DisposalAssignmentHistory: 'DisposalAssignmentHistory',
   OperationalNotification: 'OperationalNotification',
   OutboxEvent: 'OutboxEvent',
+  DeliveryAttempt: 'DeliveryAttempt',
   IdempotencyRecord: 'IdempotencyRecord',
   AuditEvent: 'AuditEvent'
 } as const
@@ -117,6 +123,54 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const AccountChallengeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  purpose: 'purpose',
+  channel: 'channel',
+  secretHash: 'secretHash',
+  expiresAt: 'expiresAt',
+  resendAvailableAt: 'resendAvailableAt',
+  attemptsRemaining: 'attemptsRemaining',
+  consumedAt: 'consumedAt',
+  supersededAt: 'supersededAt',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountChallengeScalarFieldEnum = (typeof AccountChallengeScalarFieldEnum)[keyof typeof AccountChallengeScalarFieldEnum]
+
+
+export const SecurityEventScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  subjectHash: 'subjectHash',
+  challengeId: 'challengeId',
+  action: 'action',
+  outcome: 'outcome',
+  createdAt: 'createdAt'
+} as const
+
+export type SecurityEventScalarFieldEnum = (typeof SecurityEventScalarFieldEnum)[keyof typeof SecurityEventScalarFieldEnum]
+
+
+export const DeviceInstallationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  installationId: 'installationId',
+  environment: 'environment',
+  platform: 'platform',
+  tokenLookup: 'tokenLookup',
+  encryptedToken: 'encryptedToken',
+  active: 'active',
+  lastSeenAt: 'lastSeenAt',
+  invalidatedAt: 'invalidatedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeviceInstallationScalarFieldEnum = (typeof DeviceInstallationScalarFieldEnum)[keyof typeof DeviceInstallationScalarFieldEnum]
 
 
 export const ClientProfileScalarFieldEnum = {
@@ -181,6 +235,19 @@ export const ProviderApprovalDecisionRecordScalarFieldEnum = {
 } as const
 
 export type ProviderApprovalDecisionRecordScalarFieldEnum = (typeof ProviderApprovalDecisionRecordScalarFieldEnum)[keyof typeof ProviderApprovalDecisionRecordScalarFieldEnum]
+
+
+export const ProviderStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  providerUserId: 'providerUserId',
+  changedByUserId: 'changedByUserId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ProviderStatusHistoryScalarFieldEnum = (typeof ProviderStatusHistoryScalarFieldEnum)[keyof typeof ProviderStatusHistoryScalarFieldEnum]
 
 
 export const RegistrationNotificationScalarFieldEnum = {
@@ -388,6 +455,17 @@ export const DisposalAssignmentScalarFieldEnum = {
 export type DisposalAssignmentScalarFieldEnum = (typeof DisposalAssignmentScalarFieldEnum)[keyof typeof DisposalAssignmentScalarFieldEnum]
 
 
+export const DisposalAssignmentHistoryScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  disposalSiteId: 'disposalSiteId',
+  assignedByUserId: 'assignedByUserId',
+  assignedAt: 'assignedAt'
+} as const
+
+export type DisposalAssignmentHistoryScalarFieldEnum = (typeof DisposalAssignmentHistoryScalarFieldEnum)[keyof typeof DisposalAssignmentHistoryScalarFieldEnum]
+
+
 export const OperationalNotificationScalarFieldEnum = {
   id: 'id',
   recipientUserId: 'recipientUserId',
@@ -396,7 +474,8 @@ export const OperationalNotificationScalarFieldEnum = {
   title: 'title',
   message: 'message',
   createdAt: 'createdAt',
-  readAt: 'readAt'
+  readAt: 'readAt',
+  sourceOutboxEventId: 'sourceOutboxEventId'
 } as const
 
 export type OperationalNotificationScalarFieldEnum = (typeof OperationalNotificationScalarFieldEnum)[keyof typeof OperationalNotificationScalarFieldEnum]
@@ -413,13 +492,32 @@ export const OutboxEventScalarFieldEnum = {
   status: 'status',
   attempts: 'attempts',
   nextAttemptAt: 'nextAttemptAt',
+  claimedAt: 'claimedAt',
+  claimExpiresAt: 'claimExpiresAt',
+  claimToken: 'claimToken',
   deliveredAt: 'deliveredAt',
+  deadLetteredAt: 'deadLetteredAt',
   lastErrorCode: 'lastErrorCode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type OutboxEventScalarFieldEnum = (typeof OutboxEventScalarFieldEnum)[keyof typeof OutboxEventScalarFieldEnum]
+
+
+export const DeliveryAttemptScalarFieldEnum = {
+  id: 'id',
+  outboxEventId: 'outboxEventId',
+  attemptNumber: 'attemptNumber',
+  channel: 'channel',
+  result: 'result',
+  errorCode: 'errorCode',
+  providerMessageId: 'providerMessageId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type DeliveryAttemptScalarFieldEnum = (typeof DeliveryAttemptScalarFieldEnum)[keyof typeof DeliveryAttemptScalarFieldEnum]
 
 
 export const IdempotencyRecordScalarFieldEnum = {

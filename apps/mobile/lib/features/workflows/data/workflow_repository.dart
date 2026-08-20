@@ -40,6 +40,38 @@ abstract interface class WorkflowRepository {
   Future<List<OperationalNotification>> notifications();
   Future<void> markNotificationRead(String id);
   Future<LocationPolicy> locationPolicy();
+  Future<List<ProviderAdministration>> providers(String status);
+  Future<ProviderAdministration> decideProvider(
+    String id,
+    String decision, {
+    String? reason,
+  });
+  Future<ProviderAdministration> changeProviderStatus(
+    String id,
+    String status, {
+    String? reason,
+  });
+  Future<List<ServiceRequestSummary>> callCentreRequests();
+  Future<List<CallCentreClient>> callCentreClients(String query);
+  Future<List<EligibleProvider>> callCentreProviders();
+  Future<ServiceRequestDetail> createCallCentreRequest(
+    Map<String, Object?> data,
+  );
+  Future<ServiceRequestDetail> assignCallCentreRequest(
+    String id,
+    String providerId, {
+    int? priceUgx,
+  });
+  Future<List<DisposalSite>> disposalSites();
+  Future<DisposalSite> saveDisposalSite(Map<String, Object?> data);
+  Future<List<MapPlace>> searchPlaces(String text);
+  Future<String?> reverseGeocode(double latitude, double longitude);
+  Future<MapRouteGuidance?> routeGuidance(
+    double originLatitude,
+    double originLongitude,
+    double destinationLatitude,
+    double destinationLongitude,
+  );
   Future<String> accessToken();
 }
 
@@ -184,7 +216,7 @@ class NativeWorkflowRepository implements WorkflowRepository {
       'phase': phase,
       'samples': [
         {
-          'sampleId': _uuid.v4(),
+          'sampleId': point.sampleId,
           'deviceTimestamp': point.timestamp.toUtc().toIso8601String(),
           'latitude': point.latitude,
           'longitude': point.longitude,
@@ -245,15 +277,132 @@ class NativeWorkflowRepository implements WorkflowRepository {
       throw _failure(error);
     }
   }
+
+  @override
+  Future<List<ProviderAdministration>> providers(String status) async =>
+      jsonList(
+        await _get('/v1/provider-registrations?status=$status'),
+      ).map(ProviderAdministration.fromJson).toList(growable: false);
+
+  @override
+  Future<ProviderAdministration> decideProvider(
+    String id,
+    String decision, {
+    String? reason,
+  }) async {
+    await _send('POST', '/v1/provider-registrations/$id/decision', {
+      'decision': decision,
+      'reason': ?reason,
+    });
+    return ProviderAdministration.fromJson(
+      await _get('/v1/provider-registrations/$id'),
+    );
+  }
+
+  @override
+  Future<ProviderAdministration> changeProviderStatus(
+    String id,
+    String status, {
+    String? reason,
+  }) async => ProviderAdministration.fromJson(
+    await _send('POST', '/v1/provider-registrations/$id/status', {
+      'status': status,
+      'reason': ?reason,
+    }),
+  );
+
+  @override
+  Future<List<ServiceRequestSummary>> callCentreRequests() async => jsonList(
+    await _get('/v1/call-centre/requests'),
+  ).map(ServiceRequestSummary.fromJson).toList(growable: false);
+
+  @override
+  Future<List<CallCentreClient>> callCentreClients(String query) async =>
+      jsonList(
+        await _get(
+          '/v1/call-centre/clients?query=${Uri.encodeQueryComponent(query)}',
+        ),
+      ).map(CallCentreClient.fromJson).toList(growable: false);
+
+  @override
+  Future<List<EligibleProvider>> callCentreProviders() async => jsonList(
+    await _get('/v1/call-centre/providers'),
+  ).map(EligibleProvider.fromJson).toList(growable: false);
+
+  @override
+  Future<ServiceRequestDetail> createCallCentreRequest(
+    Map<String, Object?> data,
+  ) async => ServiceRequestDetail.fromJson(
+    await _send('POST', '/v1/call-centre/requests', {
+      ...data,
+      'idempotencyKey': _uuid.v4(),
+    }),
+  );
+
+  @override
+  Future<ServiceRequestDetail> assignCallCentreRequest(
+    String id,
+    String providerId, {
+    int? priceUgx,
+  }) async => ServiceRequestDetail.fromJson(
+    await _send('POST', '/v1/call-centre/requests/$id/assignment', {
+      'idempotencyKey': _uuid.v4(),
+      'providerUserId': providerId,
+      'agreedPriceUgx': ?priceUgx,
+    }),
+  );
+
+  @override
+  Future<List<DisposalSite>> disposalSites() async => jsonList(
+    await _get('/v1/kcca/disposal-sites'),
+  ).map(DisposalSite.fromJson).toList(growable: false);
+
+  @override
+  Future<DisposalSite> saveDisposalSite(Map<String, Object?> data) async =>
+      DisposalSite.fromJson(
+        await _send('PUT', '/v1/kcca/disposal-sites', data),
+      );
+
+  @override
+  Future<List<MapPlace>> searchPlaces(String text) async => jsonList(
+    await _send('POST', '/v1/maps/search', {'text': text}),
+  ).map(MapPlace.fromJson).toList(growable: false);
+
+  @override
+  Future<String?> reverseGeocode(double latitude, double longitude) async {
+    final value = jsonObject(
+      await _get('/v1/maps/reverse?latitude=$latitude&longitude=$longitude'),
+    );
+    return value['address'] as String?;
+  }
+
+  @override
+  Future<MapRouteGuidance?> routeGuidance(
+    double originLatitude,
+    double originLongitude,
+    double destinationLatitude,
+    double destinationLongitude,
+  ) async {
+    final value = await _send('POST', '/v1/maps/route', {
+      'origin': {'latitude': originLatitude, 'longitude': originLongitude},
+      'destination': {
+        'latitude': destinationLatitude,
+        'longitude': destinationLongitude,
+      },
+    });
+    return value == null ? null : MapRouteGuidance.fromJson(value);
+  }
 }
 
 class DevicePoint {
   const DevicePoint({
+    required this.sampleId,
     required this.latitude,
     required this.longitude,
     required this.accuracyMetres,
     required this.timestamp,
   });
+  final String sampleId;
   final double latitude;
   final double longitude;
   final double accuracyMetres;
@@ -310,6 +459,7 @@ class PlatformDeviceLocationGateway implements DeviceLocationGateway {
   }
 
   DevicePoint _point(Position position) => DevicePoint(
+    sampleId: const Uuid().v4(),
     latitude: position.latitude,
     longitude: position.longitude,
     accuracyMetres: position.accuracy,
@@ -325,6 +475,12 @@ class UnconfiguredGoogleMapsGateway implements MapSelectionGateway {
   const UnconfiguredGoogleMapsGateway();
   @override
   bool get configured => false;
+}
+
+class ConfiguredGoogleMapsGateway implements MapSelectionGateway {
+  const ConfiguredGoogleMapsGateway();
+  @override
+  bool get configured => true;
 }
 
 class JourneyRealtimeClient {
