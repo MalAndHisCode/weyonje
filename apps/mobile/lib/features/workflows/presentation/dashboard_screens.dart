@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,12 +32,12 @@ class _ClientDashboardScreenState extends ConsumerState<ClientDashboardScreen> {
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Client dashboard',
+    title: 'Client Dashboard',
     child: FutureBuilder<WorkflowDashboard>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(error: snapshot.error!, onRetry: _reload);
@@ -50,21 +51,21 @@ class _ClientDashboardScreenState extends ConsumerState<ClientDashboardScreen> {
                 CountCard(label: 'Pending', value: data.pendingCount),
                 CountCard(label: 'Active', value: data.activeCount),
                 CountCard(
-                  label: 'Action needed',
+                  label: 'Action Needed',
                   value: data.actionRequiredCount,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             WeyonjeButton(
-              label: 'Request a service',
+              label: 'Request a Service',
               onPressed: () => context
                   .push(AppRoutes.clientRequestNew)
                   .then((_) => _reload()),
             ),
             const SizedBox(height: 10),
             WeyonjeButton(
-              label: 'My requests',
+              label: 'My Requests',
               kind: WeyonjeButtonKind.outline,
               onPressed: () =>
                   context.push(AppRoutes.clientRequests).then((_) => _reload()),
@@ -77,7 +78,7 @@ class _ClientDashboardScreenState extends ConsumerState<ClientDashboardScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Recent requests',
+              'Recent Requests',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             if (data.recentRequests.isEmpty)
@@ -96,10 +97,11 @@ class _ClientDashboardScreenState extends ConsumerState<ClientDashboardScreen> {
                   ),
                 ),
             const SizedBox(height: 16),
-            TextButton(
-              onPressed: () =>
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: () =>
                   ref.read(launchControllerProvider.notifier).signOut(),
-              child: const Text('Sign out'),
+              child: Flexible(child: const Text('Sign Out')),
             ),
           ],
         );
@@ -129,12 +131,12 @@ class _ProviderDashboardScreenState
   );
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Provider work dashboard',
+    title: 'Provider Work Dashboard',
     child: FutureBuilder<WorkflowDashboard>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(error: snapshot.error!, onRetry: _reload);
@@ -152,23 +154,23 @@ class _ProviderDashboardScreenState
             Row(
               children: [
                 CountCard(label: 'Available', value: data.pendingCount),
-                CountCard(label: 'My jobs', value: data.activeCount),
+                CountCard(label: 'My Jobs', value: data.activeCount),
                 CountCard(
-                  label: 'Action needed',
+                  label: 'Action Needed',
                   value: data.actionRequiredCount,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             WeyonjeButton(
-              label: 'Pending service requests',
+              label: 'Pending Service Requests',
               onPressed: () => context
                   .push(AppRoutes.providerPending)
                   .then((_) => _reload()),
             ),
             const SizedBox(height: 10),
             WeyonjeButton(
-              label: 'My jobs',
+              label: 'My Jobs',
               kind: WeyonjeButtonKind.outline,
               onPressed: () =>
                   context.push(AppRoutes.providerJobs).then((_) => _reload()),
@@ -190,10 +192,11 @@ class _ProviderDashboardScreenState
                         .then((_) => _reload()),
                   ),
                 ),
-            TextButton(
-              onPressed: () =>
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: () =>
                   ref.read(launchControllerProvider.notifier).signOut(),
-              child: const Text('Sign out'),
+              child: Flexible(child: const Text('Sign Out')),
             ),
           ],
         );
@@ -227,12 +230,12 @@ class _KccaMonitoringDashboardScreenState
   );
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'KCCA monitoring',
+    title: 'KCCA Monitoring',
     child: FutureBuilder<List<ServiceRequestSummary>>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(error: snapshot.error!, onRetry: _reload);
@@ -249,7 +252,7 @@ class _KccaMonitoringDashboardScreenState
             )) ...[
               if (actor.providerApprovalPermitted) ...[
                 WeyonjeButton(
-                  label: 'Provider administration',
+                  label: 'Provider Administration',
                   onPressed: () =>
                       context.push(AppRoutes.kccaProviderAdministration),
                 ),
@@ -257,12 +260,12 @@ class _KccaMonitoringDashboardScreenState
               ],
               if (actor.callCentreOperationsPermitted) ...[
                 WeyonjeButton(
-                  label: 'Manual Call Centre entry',
+                  label: 'Manual Call Centre Entry',
                   onPressed: () => context.push(AppRoutes.kccaCallCentre),
                 ),
                 const SizedBox(height: 10),
                 WeyonjeButton(
-                  label: 'Disposal-site administration',
+                  label: 'Disposal-Site Administration',
                   kind: WeyonjeButtonKind.outline,
                   onPressed: () => context.push(AppRoutes.kccaDisposalSites),
                 ),
@@ -290,10 +293,11 @@ class _KccaMonitoringDashboardScreenState
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () =>
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: () =>
                   ref.read(launchControllerProvider.notifier).signOut(),
-              child: const Text('Sign out'),
+              child: Flexible(child: const Text('Sign Out')),
             ),
           ],
         );
@@ -327,7 +331,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -341,8 +345,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         return Column(
           children: snapshot.requireData
               .map(
-                (item) => Card(
-                  child: ListTile(
+                (item) => FCard(
+                  child: FTile(
                     title: Text(
                       item.title,
                       style: TextStyle(
@@ -352,7 +356,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       ),
                     ),
                     subtitle: Text('${item.message}\n${item.createdAt}'),
-                    onTap: () async {
+                    onPress: () async {
                       await ref
                           .read(workflowRepositoryProvider)
                           .markNotificationRead(item.id);

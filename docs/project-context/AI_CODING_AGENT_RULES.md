@@ -126,6 +126,9 @@ These rules govern AI-assisted changes to the Weyonje mobile and web system. App
 
 ### Forui Design-System Usage
 
+- Default to the pinned Forui components and the central `apps/mobile/lib/theme/` configuration. Reuse Weyonje-owned wrappers in `lib/ui/`; wrappers must compose Forui and preserve its semantics, focus, validation, loading and disabled states. Keep standard mobile touch targets at least 48 dp. Retain native date/time pickers, maps and platform permission integrations where appropriate.
+- Use conventional English Title Case for authored mobile headings and button labels, including loading variants. Keep short articles, conjunctions and prepositions lowercase unless first or last; preserve KCCA, SMS, UGX and proper names. Edit source labels, never apply runtime title casing to user or API content. Body copy and field labels retain sentence case.
+- Provider/KCCA sign-in entry context is presentation only. The existing native endpoint and server-resolved actor/eligibility remain authoritative; never reject cross-role credentials or grant permissions based on the selected welcome action.
 - Apply the approved Weyonje theme, tokens, typography, spacing, and component variants consistently through Forui and application wrappers.
 - Do not scatter literal colours, sizes, or one-off styles through screens.
 - Preserve accessibility and test application wrappers when adapting third-party components.

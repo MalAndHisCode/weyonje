@@ -6,8 +6,8 @@
 
 | Field | Value |
 | --- | --- |
-| Document version | 6.0 |
-| Last updated | 2026-08-20 |
+| Document version | 7.0 |
+| Last updated | 2026-09-10 |
 | Verified against | Local repository at `D:\Dev\weyonje`; no deployment, shared database, external account, billing action, or secret was accessed or changed |
 | System version | Mobile `0.1.0+1`; API/contracts `0.1.0` |
 
@@ -15,7 +15,7 @@
 
 Weyonje is a pnpm monorepo containing a Flutter Android application, NestJS/Fastify API, Prisma/PostgreSQL persistence, shared TypeScript contracts, and generated OpenAPI. Authentication is native Weyonje authentication. Railway remains the confirmed GitHub-connected deployment target. PostgreSQL remains authoritative; no Valkey, Redis, BullMQ, Firebase Authentication, or Firebase database was introduced.
 
-The established Client request, marketplace and Call Centre ingress, atomic Provider acceptance, collection, feedback/follow-up, disposal, persisted GPS, Socket.IO hint, and REST-reconciliation behavior is preserved. This revision adds a PostgreSQL delivery worker, recovery and verification challenges, authorised KCCA administration, Google Maps adapters, foreground journey coordination with a bounded encrypted offline queue, FCM installation lifecycle, and scheduled reminder creation.
+The established Client request, marketplace and Call Centre ingress, atomic Provider acceptance, collection, feedback/follow-up, disposal, persisted GPS, Socket.IO hint, and REST-reconciliation behavior is preserved. Revision 6.0 added a PostgreSQL delivery worker, recovery and verification challenges, authorised KCCA administration, Google Maps adapters, foreground journey coordination with a bounded encrypted offline queue, FCM installation lifecycle, and scheduled reminder creation.
 
 ## Capability status
 
@@ -33,6 +33,16 @@ The established Client request, marketplace and Call Centre ingress, atomic Prov
 | Android foreground/background tracking | **Partially Implemented; device behavior unverified** | An authorised active Provider journey starts a foreground service with persistent disclosure, restores the active session after process restart, uses API policy, preserves sample UUID/device time, and stores at most 200 encrypted samples for 24 hours before chronological upload. It stops on server-reconciled completion, logout or lost app eligibility. Force-stop survival is not claimed. OEM/battery/process-removal behavior and permission UX require physical-device validation and final KCCA approval. |
 | FCM push | **Implemented behind adapter; live FCM unverified** | Android permission, token registration/refresh/delete, per-installation/environment association, encrypted token storage, stale-token invalidation, open/terminated hint routing, private lock-screen visibility, fake push and Firebase Admin delivery exist. Push always routes to REST notification reconciliation. No Firebase project/config/credentials were used. |
 | In-app notifications/Socket.IO | **Implemented** | PostgreSQL notifications remain authoritative. Socket.IO remains an authenticated hint channel with REST reconciliation. |
+
+## Mobile Identity, UI and Architecture Boundaries
+
+**Implemented (2026-09-10):** Android display name is `Weyonje`. Legacy square/round icons and API 26 adaptive icons use the complete unchanged PNG, with white backgrounds and all artwork inside launcher mask bounds. Application ID/namespace remain `ug.go.kcca.weyonje.weyonje`; signing, integration identifiers, deep links, splash and platform targets are unchanged. `apps/mobile/tool/generate_launcher_icons.py` regenerates all five densities with Python/Pillow; the mobile README records exact source dimensions, alpha bounds and safe sizing. The small tagline is retained but may be illegible at launcher size.
+
+**Implemented:** The welcome screen retains its logo and heading, removes the explanatory paragraph, and presents **Create Account**, **Client Sign In**, **Provider Sign In**, **KCCA Sign In** in that order. Create Account is primary; sign-in actions share secondary emphasis. `/sign-in?entry=provider` and `/sign-in?entry=kcca` select headings and introductory copy in the same form. Missing/invalid context at the compatible `/sign-in` route selects the generic heading. Context is never sent to the repository/API or used as authorization. The server-resolved actor determines all successful destinations and restricted Provider handling. Recovery returns to the selected form through the existing back stack; direct-entry back safely falls back to welcome.
+
+**Implemented:** Standard mobile forms, selections, buttons, radios, switches, sliders, cards, tiles, dialogs and progress indicators now compose Forui 0.25.0. `lib/theme/` remains the single palette/typography/style owner, with explicit 48 dp text/select/button constraints and padded radio/switch targets because Forui's defaults are smaller. `WeyonjeSelect` preserves stable values, duplicate display names and validators; `WeyonjeDialog` provides a scrollable Forui dialog body. Existing button/page/logo/alert boundaries remain. Page headings wrap at enlarged text, forms scroll above keyboards, and authored headings/action labels use conventional Title Case. Field labels, body text, enum identifiers and user/API content are unchanged except the requested entry copy. Native date/time pickers, maps and platform permission controls remain. Existing Forui-bundled Inter/Lucide and light-only behavior are retained; no new theme mode or dependency was introduced.
+
+The change remains inside mobile presentation, launcher packaging, tests and documentation. Auth controllers, session lifecycle, API contracts, worker/database/integration/deployment code are unchanged. No environment variables were added or changed.
 
 ## Data and migrations
 
@@ -74,12 +84,39 @@ The API supplies the adopted development defaults: 15-second interval, 25-metre 
 | PostgreSQL migrations | **Not applied.** Isolated test URLs were unavailable; shared Neon/Railway data was untouched. |
 | Android background behavior | **Unknown / Not Yet Verified.** Requires physical Android testing for battery restrictions, process removal, restart and force-stop expectations. |
 
-## Validation evidence
+## Historical Validation Evidence — 2026-08-20
 
 - Baseline before edits: root typecheck passed; 20 API suites/97 tests passed with isolated PostgreSQL skipped; OpenAPI drift passed.
 - Changed API: Prisma format/generation and validation, root TypeScript checks/build, and OpenAPI generation/drift pass. The final API run passed 21 suites and 103 tests; one suite/three tests were intentionally skipped because isolated PostgreSQL URLs were unavailable.
 - Mobile: Dart formatting and analysis pass with no issues. The full Flutter run passed 55 tests. Four affected sign-in goldens were intentionally refreshed and visually inspected. The final route-enabled debug APK was built at `apps/mobile/build/app/outputs/flutter-apk/app-debug.apk` (239,176,990 bytes; SHA-256 `23A82D0F886D348BEDEBBDC031F79879A4C92E40C7031FECFCBE25E611EFC151`).
 - DOCX structural extraction completed. Visual DOCX rendering was unavailable because LibreOffice/`soffice` is absent.
+
+## Mobile Validation Evidence — 2026-09-10
+
+- Formatting check (`dart format --output=none --set-exit-if-changed lib test`) and `flutter analyze --no-pub` passed.
+- Full mobile suite: **85 tests passed**, including authentication, actor resolution, repository behavior, shared selection validation, touch sizing, loading lockout and keyboard-safe dialogs. New entry tests cover both contexts, missing/invalid context, cross-role credentials, restricted Provider states and recovery/back navigation. Tests use local fake data; production services were not contacted.
+- **22 Flutter-rendered visual cases** were inspected: compact/large phones, portrait/landscape, 2× text, keyboard, loading/error states, account choice, and representative Client, Provider and KCCA dashboards. Goldens intentionally load the app's already-bundled fonts instead of Ahem rectangles; this also changes existing account-choice/session-error images. Scrolling naturally moves content above the viewport; persistent headings remain visible and actions are reachable. Physical-device keyboard/focus behavior remains unverified.
+- Debug APK built with `flutter build apk --debug --no-pub` at `apps/mobile/build/app/outputs/flutter-apk/app-debug.apk`. AAPT verified the installed label, unchanged package ID, launcher and round-icon references; 15 packaged PNGs matched generated resources pixel-for-pixel. Circle, rounded-square and square mask previews retained all artwork. Source logo, lockfile, Gradle identity/signing and master state template remained unchanged.
+- No connected Android device was available (`flutter devices` listed desktop/browser targets only), so launcher/app-drawer installation and physical-device behavior were **not verified**. No application was uninstalled or cleared. The existing `flutter_foreground_task` dependency emits a future Kotlin Gradle Plugin compatibility warning; the debug build succeeds. No dependency upgrade was attempted.
+- API/integration/deployment results in the historical section were not rerun or newly validated by this mobile-only change. Existing external-service, release-signing, background execution and operational limitations remain as recorded above.
+
+## Current Priorities and Remaining Limitations
+
+The requested mobile changes are **Implemented** with local build, widget and rendered visual verification. Next device-dependent checks are installation/launcher rendering on an authorized Android device and physical keyboard, accessibility and platform integration behavior. Full-logo tagline legibility at small launcher sizes is inherently limited. External integration and infrastructure maturity remain **Partially Implemented / Unverified** as identified in the capability and external-validation tables; this change does not resolve those gaps.
+
+## Change History
+
+| Date | Version | Change | Evidence |
+| --- | --- | --- | --- |
+| 2026-09-10 | 7.0 | Android launcher identity, Forui controls/touch sizing, Title Case, four welcome actions and presentation-only Provider/KCCA sign-in context | Mobile sources, 85 tests, 22 visual cases, debug APK and packaged-resource inspection |
+| 2026-08-20 | 6.0 | Reliable delivery, account security and operational integrations | Historical validation above |
+
+## References
+
+- `apps/mobile/README.md`: regeneration procedure, routing, UI conventions and local commands.
+- `MOBILE_APPLICATION_TRACEABILITY_AND_DECISIONS.md`: adopted requirements and retained business boundaries.
+- `AI_CODING_AGENT_RULES.md`, `MOBILE_UI_UX_DESIGN_RULES.md`, `BRAND_IDENTITY_GUIDELINES.md`: current Forui, writing and launcher packaging rules.
+- `CURRENT_SYSTEM_STATE_TEMPLATE.md`: immutable structure and status/evidence rules; unchanged.
 
 ## Authority boundary
 

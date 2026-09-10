@@ -105,6 +105,8 @@ The transparent padding in the supplied PNG does not reliably define clear space
 
 ### 4.4 Minimum size
 
+**Authorized Android launcher exception (2026-09-10):** Package the complete supplied logo, including wordmark, tagline and colour accents, as the launcher icon. Preserve the source PNG; crop only empty alpha padding in generated derivatives, use a white background, and keep the entire artwork within adaptive safe bounds. The launcher is necessarily smaller than the screen minimum below, so the tagline may be illegible at small sizes. This exception does not authorize a compact mark, recolouring or a splash redesign. Regenerate with `apps/mobile/tool/generate_launcher_icons.py`; see the mobile README.
+
 **Recommended:** Use the complete logo lockup only at the following minimum widths:
 
 - mobile and high-density application screens: `240 dp` wide;
@@ -258,13 +260,13 @@ Sizes are logical pixels on Flutter and CSS pixels on the web. Keep body text at
 
 **Recommended:**
 
-- Use sentence case for headings, buttons, fields, tabs, and status labels.
+- Use conventional English Title Case for authored mobile headings and button labels, including loading actions: `Create Account`, `Client Sign In`, `Provider Sign In`, `KCCA Sign In`, `Request a Service`, and `Welcome to Weyonje`. Keep short articles, conjunctions and prepositions lowercase unless first or last. Preserve acronyms and proper names. Field labels, body text, help, validation and status values retain existing capitalization; do not transform user or API content.
 - Use bold weight to establish hierarchy, not entire paragraphs in capitals.
 - Keep one `Heading 1` per page or principal screen.
 - Keep web reading lines to approximately `45–75` characters where practical.
 - Do not use colour alone to distinguish headings from body text.
 - Allow device text scaling without clipping, overlap, or lost actions.
-- Use plain, action-oriented labels such as `Submit request`, `Accept request`, and `Confirm collection`.
+- Use plain, action-oriented labels such as `Submit Request`, `Accept Request`, and `Confirm Collection`.
 - Do not put critical instructions only in placeholder text.
 
 ## 7. Iconography
@@ -577,6 +579,8 @@ Client-side Google Maps keys may be technically visible in a built application a
 ### 11.1 Forui theme implementation
 
 **Stack-confirmed:** Forui is the mobile component and design foundation, and frequently reused components should be wrapped in application-owned widgets.
+
+**Adopted mobile implementation (2026-09-10):** Use the locked Forui 0.25.0 APIs, the existing central `lib/theme/` tokens and Weyonje wrappers in `lib/ui/`. Standard fields, selections, buttons, radios, switches, sliders, cards, tiles, dialogs and progress indicators use Forui. Preserve native date/time pickers and specialized maps/platform integrations. Touch sizes are centrally configured to at least 48 dp; Forui 0.25.0 text/select field constraints need their own theme override. The existing light-only application behavior is retained. The existing Forui package already bundles Inter and Lucide; do not add another font/icon package or regenerate over Weyonje customizations based solely on the recommendations below.
 
 **Recommended:** Create one generated Weyonje theme and map the semantic tokens as follows:
 

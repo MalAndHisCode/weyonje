@@ -1,3 +1,5 @@
+import '../../../ui/weyonje_select.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +54,7 @@ class _ServiceProviderRegistrationScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(registrationControllerProvider);
     return WeyonjePage(
-      title: 'Service Provider registration',
+      title: 'Service Provider Registration',
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -62,7 +64,7 @@ class _ServiceProviderRegistrationScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const WeyonjeAlert(
-                title: 'KCCA approval required',
+                title: 'KCCA Approval Required',
                 message:
                     'Your phone number must be verified and KCCA must approve the account before you can receive service requests. A current ESS licence and other applicable operating requirements are required.',
               ),
@@ -88,17 +90,13 @@ class _ServiceProviderRegistrationScreenState
                 autofillHints: const [AutofillHints.telephoneNumber],
               ),
               const SizedBox(height: 20),
-              TextFormField(
+              FTextFormField(
                 key: const Key('provider-email'),
-                controller: _email,
+                control: FTextFieldControl.managed(controller: _email),
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 autocorrect: false,
-                decoration: const InputDecoration(
-                  labelText: 'Email address (required)',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Email address (required)'),
                 validator: (value) {
                   final email = value?.trim() ?? '';
                   return email.isEmpty || !email.contains('@')
@@ -107,38 +105,32 @@ class _ServiceProviderRegistrationScreenState
                 },
               ),
               const SizedBox(height: 20),
-              TextFormField(
+              FTextFormField(
                 key: const Key('provider-password'),
-                controller: _password,
+                control: FTextFieldControl.managed(controller: _password),
                 obscureText: true,
                 keyboardType: TextInputType.visiblePassword,
                 autofillHints: const [AutofillHints.newPassword],
                 autocorrect: false,
                 enableSuggestions: false,
-                decoration: const InputDecoration(
-                  labelText: 'Password (required)',
-                  helperText: 'Use at least 12 characters.',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Password (required)'),
+                description: Text('Use at least 12 characters.'),
                 validator: (value) => (value?.length ?? 0) < 12
                     ? 'Password must be at least 12 characters.'
                     : null,
               ),
               const SizedBox(height: 20),
-              TextFormField(
+              FTextFormField(
                 key: const Key('provider-confirm-password'),
-                controller: _confirmPassword,
+                control: FTextFieldControl.managed(
+                  controller: _confirmPassword,
+                ),
                 obscureText: true,
                 keyboardType: TextInputType.visiblePassword,
                 autofillHints: const [AutofillHints.newPassword],
                 autocorrect: false,
                 enableSuggestions: false,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm password (required)',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Confirm password (required)'),
                 validator: (value) =>
                     value != _password.text ? 'Passwords must match.' : null,
               ),
@@ -150,23 +142,13 @@ class _ServiceProviderRegistrationScreenState
                 maxLines: 2,
               ),
               const SizedBox(height: 20),
-              DropdownButtonFormField<ServiceProviderType>(
+              WeyonjeSelect<ServiceProviderType>(
                 key: const Key('provider-type'),
                 initialValue: _providerType,
-                decoration: const InputDecoration(
-                  labelText: 'Service Provider type (required)',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Service Provider type (required)'),
                 items: const [
-                  DropdownMenuItem(
-                    value: ServiceProviderType.gulper,
-                    child: Text('Gulper'),
-                  ),
-                  DropdownMenuItem(
-                    value: ServiceProviderType.emptier,
-                    child: Text('Emptier'),
-                  ),
+                  (value: ServiceProviderType.gulper, label: 'Gulper'),
+                  (value: ServiceProviderType.emptier, label: 'Emptier'),
                 ],
                 onChanged: (value) => setState(() => _providerType = value),
                 validator: (value) =>
@@ -191,8 +173,8 @@ class _ServiceProviderRegistrationScreenState
                   liveRegion: true,
                   child: WeyonjeAlert(
                     title: state.rateLimited
-                        ? 'Try again later'
-                        : 'Registration not submitted',
+                        ? 'Try Again Later'
+                        : 'Registration Not Submitted',
                     message: message,
                     error: true,
                   ),
@@ -201,7 +183,7 @@ class _ServiceProviderRegistrationScreenState
               const SizedBox(height: 32),
               WeyonjeButton(
                 key: const Key('submit-provider-registration'),
-                label: 'Submit registration',
+                label: 'Submit Registration',
                 loading: state.inProgress,
                 onPressed: () => _submit(state.inProgress),
               ),
@@ -220,18 +202,14 @@ class _ServiceProviderRegistrationScreenState
     TextInputType? keyboardType,
     Iterable<String>? autofillHints,
     int maxLines = 1,
-  }) => TextFormField(
+  }) => FTextFormField(
     key: key,
-    controller: controller,
+    control: FTextFieldControl.managed(controller: controller),
     keyboardType: keyboardType,
     autofillHints: autofillHints,
     maxLines: maxLines,
-    decoration: InputDecoration(
-      labelText: label,
-      hintText: hint,
-      floatingLabelBehavior: FloatingLabelBehavior.always,
-      border: const OutlineInputBorder(),
-    ),
+    label: Text(label),
+    hint: hint,
     validator: (value) => value == null || value.trim().isEmpty
         ? 'Complete this required field.'
         : null,

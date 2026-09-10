@@ -1,16 +1,38 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:weyonje/app.dart';
 import 'package:weyonje/core/auth/auth_providers.dart';
 import 'package:weyonje/core/auth/auth_repository.dart';
+import 'package:weyonje/core/auth/current_actor.dart';
+import 'package:weyonje/features/workflows/application/workflow_providers.dart';
+import 'package:weyonje/features/workflows/data/workflow_repository.dart';
+import 'package:weyonje/features/workflows/domain/workflow_models.dart';
 
 import '../support/fake_auth_repository.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    // Load the fonts already bundled with the app so visual checks assess
+    // readable typography rather than Flutter tests' default Ahem rectangles.
+    final manifest =
+        jsonDecode(await rootBundle.loadString('FontManifest.json')) as List;
+    for (final entry in manifest.cast<Map<String, dynamic>>()) {
+      final loader = FontLoader(entry['family'] as String);
+      for (final font
+          in (entry['fonts'] as List).cast<Map<String, dynamic>>()) {
+        loader.addFont(rootBundle.load(font['asset'] as String));
+      }
+      await loader.load();
+    }
+  });
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
   Future<void> renderRepository(
     WidgetTester tester, {
@@ -25,7 +47,10 @@ void main() {
     });
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [authRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          workflowRepositoryProvider.overrideWithValue(_VisualWorkflows()),
+        ],
         child: const WeyonjeApplication(),
       ),
     );
@@ -75,6 +100,74 @@ void main() {
       matchesGoldenFile('goldens/welcome_compact.png'),
     );
   });
+
+  for (final entry in ['welcome', 'provider', 'kcca']) {
+    for (final landscape in [false, true]) {
+      testWidgets(
+        '$entry at enlarged text ${landscape ? 'landscape' : 'portrait'}',
+        (tester) async {
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          await render(
+            tester,
+            size: landscape ? const Size(640, 360) : const Size(320, 568),
+            outcome: const NoStoredSession(),
+          );
+          final key = Key(
+            entry == 'provider' ? 'staff-sign-in' : 'kcca-sign-in',
+          );
+          await tester.ensureVisible(find.byKey(key));
+          if (entry != 'welcome') {
+            await tester.tap(find.byKey(key));
+            await tester.pumpAndSettle();
+            await tester.ensureVisible(find.byKey(const Key('submit-sign-in')));
+          }
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          await expectLater(
+            find.byType(WeyonjeApplication),
+            matchesGoldenFile(
+              'goldens/${entry}_large_text_${landscape ? 'landscape' : 'portrait'}.png',
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  for (final actor in [
+    const CurrentActor(
+      actorType: ActorType.client,
+      access: ActorAccess.eligible,
+    ),
+    const CurrentActor(
+      actorType: ActorType.serviceProvider,
+      access: ActorAccess.eligible,
+      providerStatus: ProviderStatus.approved,
+    ),
+    const CurrentActor(
+      actorType: ActorType.kccaStaff,
+      access: ActorAccess.eligible,
+      mobileMonitoringPermitted: true,
+      providerApprovalPermitted: true,
+      callCentreOperationsPermitted: true,
+    ),
+  ]) {
+    testWidgets('${actor.actorType.name} dashboard uses shared Forui styling', (
+      tester,
+    ) async {
+      await render(
+        tester,
+        size: const Size(360, 800),
+        outcome: ResolvedSession(actor),
+      );
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byType(WeyonjeApplication),
+        matchesGoldenFile('goldens/${actor.actorType.name}_dashboard.png'),
+      );
+    });
+  }
 
   testWidgets('welcome uses the available space on a large phone', (
     tester,
@@ -297,4 +390,28 @@ void main() {
     pending.complete(const CancelledSignIn());
     await tester.pump(const Duration(milliseconds: 200));
   });
+}
+
+class _VisualWorkflows extends Fake implements WorkflowRepository {
+  static final request = ServiceRequestSummary(
+    id: 'visual-request',
+    reference: 'WEY-001',
+    origin: 'MOBILE',
+    status: 'ACCEPTED',
+    locationLabel: 'Kampala Central',
+    scheduleMode: 'ASAP',
+    updatedAt: DateTime.utc(2026, 9, 10),
+  );
+  Future<WorkflowDashboard> _dashboard() async => WorkflowDashboard(
+    pendingCount: 2,
+    activeCount: 1,
+    actionRequiredCount: 1,
+    recentRequests: [request],
+  );
+  @override
+  Future<WorkflowDashboard> clientDashboard() => _dashboard();
+  @override
+  Future<WorkflowDashboard> providerDashboard() => _dashboard();
+  @override
+  Future<List<ServiceRequestSummary>> kccaMonitoring() async => [request];
 }

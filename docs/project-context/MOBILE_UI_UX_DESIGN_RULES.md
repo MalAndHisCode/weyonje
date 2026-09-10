@@ -1,5 +1,12 @@
 ## Product and UX Architecture
 
+### Adopted Mobile Foundation
+
+Use the repository-pinned Forui components through the central Weyonje theme and existing application-owned wrappers. New standard controls should compose Forui and preserve its anatomy, semantics, focus, validation, loading and disabled behavior. Do not add a competing Material design layer or per-screen palette. Keep at least 48 dp touch targets, including explicit component overrides where Forui defaults are smaller. Preserve native date/time pickers, Google Maps and platform permission interfaces. Retain the existing fonts, icons and light/dark behavior; recommendations do not authorize dependency upgrades.
+
+The welcome screen has the unchanged logo, “Welcome to Weyonje”, and four actions in order: “Create Account” (primary), “Client Sign In”, “Provider Sign In”, “KCCA Sign In” (consistent secondary styling). It has no explanatory paragraph. Provider/KCCA entry context changes the heading and introductory copy of the shared form; API actor resolution remains authoritative.
+
+
 1. Derive every screen, component, and action from a documented requirement, user goal, actor responsibility, business rule, state, or transition.
 
 2. Maintain traceability from each major interface element to the requirement or workflow step it supports.
@@ -266,7 +273,7 @@
 
   9. Ensure sticky controls do not obscure content, system gestures, validation messages, or keyboard interaction.
 
- 10. Write button labels as specific actions, such as “Submit request” or “Save changes,” rather than vague labels such as “Continue” when the outcome matters.
+ 10. Write button labels as specific actions, such as “Submit Request” or “Save Changes,” rather than vague labels such as “Continue” when the outcome matters.
 
  11. Show loading state inside the initiating control when the operation is directly tied to it.
 
@@ -558,7 +565,7 @@
 
  13. Distinguish instructions, explanations, warnings, and errors through wording and presentation.
 
- 14. Use sentence case unless platform convention, language rules, or the brand system requires otherwise.
+ 14. Use conventional English Title Case for authored headings and button labels, including dialogs, sheets and loading actions. Keep short articles, conjunctions and prepositions lowercase unless first or last (for example, “Request a Service” and “Welcome to Weyonje”). Preserve acronyms, proper names, user-entered text and API values. Body text, field labels, help and validation text retain sentence case. Do not introduce runtime title casing.
 
  15. Test microcopy with realistic names, quantities, dates, status labels, and localized text.
 

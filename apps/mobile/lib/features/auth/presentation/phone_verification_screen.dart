@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -55,7 +56,7 @@ class _PhoneVerificationScreenState
       purpose: widget.arguments.purpose,
     );
     return WeyonjePage(
-      title: 'Verify phone number',
+      title: 'Verify Phone Number',
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -72,7 +73,7 @@ class _PhoneVerificationScreenState
                   PhoneCodeDeliveryStatus.failed) ...[
                 const SizedBox(height: 20),
                 const WeyonjeAlert(
-                  title: 'Code not sent',
+                  title: 'Code Not Sent',
                   message:
                       'The SMS provider did not accept the message. Your information was kept; request another code to retry.',
                   error: true,
@@ -81,15 +82,15 @@ class _PhoneVerificationScreenState
               if (_challenge.developmentVerificationCode != null) ...[
                 const SizedBox(height: 20),
                 WeyonjeAlert(
-                  title: 'Development SMS mode',
+                  title: 'Development SMS Mode',
                   message:
                       'No SMS was sent. Use test code ${_challenge.developmentVerificationCode}; it has been filled in below.',
                 ),
               ],
               const SizedBox(height: 24),
-              TextFormField(
+              FTextFormField(
                 key: const Key('verification-code'),
-                controller: _code,
+                control: FTextFieldControl.managed(controller: _code),
                 enabled: !state.inProgress && !state.resending,
                 autofocus: true,
                 keyboardType: TextInputType.number,
@@ -99,16 +100,12 @@ class _PhoneVerificationScreenState
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(6),
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'Verification code',
-                  hintText: 'Six digits',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Verification code'),
+                hint: 'Six digits',
                 validator: (value) => value?.length == 6
                     ? null
                     : 'Enter the six-digit verification code.',
-                onFieldSubmitted: (_) => _verify(state.inProgress, arguments),
+                onSubmit: (_) => _verify(state.inProgress, arguments),
               ),
               if (state.message case final message?) ...[
                 const SizedBox(height: 20),
@@ -116,8 +113,8 @@ class _PhoneVerificationScreenState
                   liveRegion: true,
                   child: WeyonjeAlert(
                     title: state.rateLimited
-                        ? 'Try again later'
-                        : 'Verification not completed',
+                        ? 'Try Again Later'
+                        : 'Verification Not Completed',
                     message: message,
                     error: true,
                   ),
@@ -129,15 +126,15 @@ class _PhoneVerificationScreenState
                 label:
                     widget.arguments.purpose ==
                         PhoneVerificationPurpose.clientSignIn
-                    ? 'Sign in'
-                    : 'Verify and create account',
+                    ? 'Sign In'
+                    : 'Verify and Create Account',
                 loading: state.inProgress,
                 onPressed: () => _verify(state.inProgress, arguments),
               ),
               const SizedBox(height: 12),
               WeyonjeButton(
                 key: const Key('resend-phone-code'),
-                label: _canResend ? 'Send another code' : 'Code recently sent',
+                label: _canResend ? 'Send Another Code' : 'Code Recently Sent',
                 kind: WeyonjeButtonKind.outline,
                 loading: state.resending,
                 onPressed: _canResend && !state.inProgress

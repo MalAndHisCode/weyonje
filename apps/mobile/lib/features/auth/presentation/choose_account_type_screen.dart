@@ -23,7 +23,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Choose account type',
+    title: 'Choose Account Type',
     showBack: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,7 +75,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
           Semantics(
             liveRegion: true,
             child: const WeyonjeAlert(
-              title: 'Account type required',
+              title: 'Account Type Required',
               message: 'Select an account type to continue.',
               error: true,
             ),

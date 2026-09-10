@@ -11,12 +11,17 @@ class WeyonjeLogo extends StatelessWidget {
         image: true,
         label: 'Weyonje',
         child: ExcludeSemantics(
-          child: Image.asset(
-            'assets/branding/weyonje-logo.png',
-            width: width,
-            height: width,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.high,
+          child: ClipRect(
+            child: Align(
+              heightFactor: 0.5,
+              child: Image.asset(
+                'assets/branding/weyonje-logo.png',
+                width: width,
+                height: width,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
           ),
         ),
       );

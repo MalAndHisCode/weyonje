@@ -1,3 +1,5 @@
+import '../../../ui/weyonje_select.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -122,7 +124,7 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen> {
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Request a service',
+    title: 'Request a Service',
     showBack: true,
     child: Form(
       key: _form,
@@ -130,38 +132,28 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (_error != null) ...[
-            WeyonjeAlert(title: 'Request not submitted', message: _error!),
+            WeyonjeAlert(title: 'Request Not Submitted', message: _error!),
             const SizedBox(height: 16),
           ],
           Text('Location', style: Theme.of(context).textTheme.titleMedium),
-          RadioGroup<String>(
-            groupValue: _locationKind,
-            onChanged: (value) {
-              if (value == 'MAP_PIN') {
-                _chooseLocation();
-              } else if (value != null) {
-                setState(() => _locationKind = value);
-              }
-            },
-            child: const Column(
-              children: [
-                RadioListTile<String>(
-                  value: 'TEXT',
-                  title: Text('Describe the location'),
-                ),
-                RadioListTile<String>(
-                  value: 'MAP_PIN',
-                  title: Text('Choose a location pin'),
-                ),
-              ],
-            ),
+          Column(
+            children: [
+              FRadio(
+                value: _locationKind == 'TEXT',
+                onChange: (_) => setState(() => _locationKind = 'TEXT'),
+                label: const Text('Describe the location'),
+              ),
+              FRadio(
+                value: _locationKind == 'MAP_PIN',
+                onChange: (_) => _chooseLocation(),
+                label: const Text('Choose a location pin'),
+              ),
+            ],
           ),
           if (_locationKind == 'TEXT')
-            TextFormField(
-              controller: _location,
-              decoration: const InputDecoration(
-                labelText: 'Location description',
-              ),
+            FTextFormField(
+              control: FTextFieldControl.managed(controller: _location),
+              label: Text('Location description'),
               validator: (value) => value == null || value.trim().isEmpty
                   ? 'Enter the service location.'
                   : null,
@@ -173,55 +165,46 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen> {
                   : '${_latitude!.toStringAsFixed(5)}, ${_longitude!.toStringAsFixed(5)}',
             ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
+          WeyonjeSelect<String>(
             initialValue: _toiletType,
-            decoration: const InputDecoration(
-              labelText: 'Toilet type (optional)',
-            ),
+            label: Text('Toilet type (optional)'),
             items: const [
-              DropdownMenuItem(
-                value: 'PIT_LATRINE',
-                child: Text('Pit latrine'),
-              ),
-              DropdownMenuItem(
-                value: 'SEPTIC_TANK',
-                child: Text('Septic tank'),
-              ),
+              (value: 'PIT_LATRINE', label: 'Pit latrine'),
+              (value: 'SEPTIC_TANK', label: 'Septic tank'),
             ],
             onChanged: (value) => setState(() => _toiletType = value),
           ),
           const SizedBox(height: 16),
-          SwitchListTile(
+          FSwitch(
             value: _asap,
-            onChanged: (value) => setState(() => _asap = value),
-            title: const Text('As soon as possible'),
-            subtitle: const Text(
+            onChange: (value) => setState(() => _asap = value),
+            label: const Text('As soon as possible'),
+            description: const Text(
               'Turn off to request a specific date and time.',
             ),
           ),
           if (!_asap)
-            OutlinedButton(
-              onPressed: _chooseSchedule,
-              child: Text(
-                _scheduled == null
-                    ? 'Choose date and time'
-                    : '${_scheduled!}'.split('.').first,
+            FButton(
+              variant: FButtonVariant.outline,
+              onPress: _chooseSchedule,
+              child: Flexible(
+                child: Text(
+                  _scheduled == null
+                      ? 'Choose Date and Time'
+                      : '${_scheduled!}'.split('.').first,
+                ),
               ),
             ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _contactName,
-            decoration: const InputDecoration(
-              labelText: 'Additional contact name (optional)',
-            ),
+          FTextFormField(
+            control: FTextFieldControl.managed(controller: _contactName),
+            label: Text('Additional contact name (optional)'),
           ),
           const SizedBox(height: 12),
-          TextFormField(
-            controller: _contactPhone,
+          FTextFormField(
+            control: FTextFieldControl.managed(controller: _contactPhone),
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Additional contact phone (optional)',
-            ),
+            label: Text('Additional contact phone (optional)'),
             validator: (_) =>
                 _contactName.text.trim().isEmpty ==
                     _contactPhone.text.trim().isEmpty
@@ -230,7 +213,7 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen> {
           ),
           const SizedBox(height: 24),
           WeyonjeButton(
-            label: 'Submit request',
+            label: 'Submit Request',
             loading: _loading,
             onPressed: _submit,
           ),
@@ -301,15 +284,15 @@ class _RequestLocationPickerScreenState
   Widget build(BuildContext context) {
     final maps = ref.watch(mapSelectionProvider);
     return WeyonjePage(
-      title: 'Request location',
+      title: 'Request Location',
       showBack: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           WeyonjeAlert(
             title: maps.configured
-                ? 'Select a location'
-                : 'Google Maps unavailable',
+                ? 'Select a Location'
+                : 'Google Maps Unavailable',
             message: maps.configured
                 ? 'Tap the map, use your device location, or enter coordinates. Coordinate text remains available for accessibility.'
                 : 'Google Maps resources and credentials have not been authorised. No map or fabricated place data is shown.',
@@ -319,14 +302,11 @@ class _RequestLocationPickerScreenState
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _search,
+                  child: FTextField(
+                    control: FTextFieldControl.managed(controller: _search),
                     textInputAction: TextInputAction.search,
-                    decoration: const InputDecoration(
-                      labelText: 'Search address or place',
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _searchPlaces(),
+                    label: Text('Search address or place'),
+                    onSubmit: (_) => _searchPlaces(),
                   ),
                 ),
                 IconButton(
@@ -358,34 +338,34 @@ class _RequestLocationPickerScreenState
           ],
           if (_error != null) ...[
             const SizedBox(height: 12),
-            WeyonjeAlert(title: 'Location unavailable', message: _error!),
+            WeyonjeAlert(title: 'Location Unavailable', message: _error!),
           ],
           const SizedBox(height: 16),
           WeyonjeButton(
-            label: 'Use my current location',
+            label: 'Use My Current Location',
             loading: _loading,
             onPressed: _device,
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: _latitude,
+          FTextField(
+            control: FTextFieldControl.managed(controller: _latitude),
             keyboardType: const TextInputType.numberWithOptions(
               decimal: true,
               signed: true,
             ),
-            decoration: const InputDecoration(labelText: 'Latitude'),
+            label: Text('Latitude'),
           ),
           const SizedBox(height: 12),
-          TextField(
-            controller: _longitude,
+          FTextField(
+            control: FTextFieldControl.managed(controller: _longitude),
             keyboardType: const TextInputType.numberWithOptions(
               decimal: true,
               signed: true,
             ),
-            decoration: const InputDecoration(labelText: 'Longitude'),
+            label: Text('Longitude'),
           ),
           const SizedBox(height: 20),
-          WeyonjeButton(label: 'Confirm location', onPressed: _confirm),
+          WeyonjeButton(label: 'Confirm Location', onPressed: _confirm),
         ],
       ),
     );
@@ -412,12 +392,12 @@ class _RequestLocationPickerScreenState
           child: ListView(
             children: results
                 .map(
-                  (place) => ListTile(
+                  (place) => FTile(
                     title: Text(place.name),
                     subtitle: Text(
                       '${place.address}\n${place.latitude}, ${place.longitude}',
                     ),
-                    onTap: () => Navigator.pop(context, place),
+                    onPress: () => Navigator.pop(context, place),
                   ),
                 )
                 .toList(),
@@ -458,13 +438,13 @@ class _ClientRequestsScreenState extends ConsumerState<ClientRequestsScreen> {
       _load = ref.read(workflowRepositoryProvider).clientRequests();
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'My requests',
+    title: 'My Requests',
     showBack: true,
     child: FutureBuilder<List<ServiceRequestSummary>>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -476,7 +456,7 @@ class _ClientRequestsScreenState extends ConsumerState<ClientRequestsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             WeyonjeButton(
-              label: 'Request a service',
+              label: 'Request a Service',
               onPressed: () => context
                   .push(AppRoutes.clientRequestNew)
                   .then((_) => setState(_reload)),
@@ -521,13 +501,13 @@ class _ClientRequestDetailsScreenState
       .clientRequest(widget.requestId);
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Request details',
+    title: 'Request Details',
     showBack: true,
     child: FutureBuilder<ServiceRequestDetail>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -556,7 +536,7 @@ class _ClientRequestDetailsScreenState
             if (item.followUpStatus != null) ...[
               const SizedBox(height: 12),
               WeyonjeAlert(
-                title: 'Follow-up case recorded',
+                title: 'Follow-Up Case Recorded',
                 message:
                     'KCCA follow-up: ${humanStatus(item.followUpStatus!)}. Disposal remains separate when waste was collected.',
               ),
@@ -564,7 +544,7 @@ class _ClientRequestDetailsScreenState
             const SizedBox(height: 20),
             if (item.status == 'COLLECTION_REPORTED')
               WeyonjeButton(
-                label: 'Confirm collection and rate',
+                label: 'Confirm Collection and Rate',
                 onPressed: () => context
                     .push('/client/requests/${item.id}/feedback')
                     .then((_) => setState(_reload)),
@@ -572,7 +552,7 @@ class _ClientRequestDetailsScreenState
             if (item.journeyToRequest != null &&
                 item.journeyToRequest!.status != 'COMPLETED')
               WeyonjeButton(
-                label: 'Track provider',
+                label: 'Track Provider',
                 kind: WeyonjeButtonKind.outline,
                 onPressed: () =>
                     context.push('/tracking/${item.id}?phase=TO_REQUEST'),
@@ -633,26 +613,23 @@ class _CollectionFeedbackScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Collection feedback',
+    title: 'Collection Feedback',
     showBack: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_error != null)
-          WeyonjeAlert(title: 'Feedback not recorded', message: _error!),
-        DropdownButtonFormField<String>(
+          WeyonjeAlert(title: 'Feedback Not Recorded', message: _error!),
+        WeyonjeSelect<String>(
           initialValue: _outcome,
-          decoration: const InputDecoration(labelText: 'Collection outcome'),
+          label: Text('Collection outcome'),
           items: const [
-            DropdownMenuItem(value: 'COMPLETED', child: Text('Completed')),
-            DropdownMenuItem(
+            (value: 'COMPLETED', label: 'Completed'),
+            (
               value: 'LEFT_INCOMPLETE',
-              child: Text('Waste collected, but left incomplete'),
+              label: 'Waste collected, but left incomplete',
             ),
-            DropdownMenuItem(
-              value: 'NOT_DONE_AT_ALL',
-              child: Text('Not done at all'),
-            ),
+            (value: 'NOT_DONE_AT_ALL', label: 'Not done at all'),
           ],
           onChanged: (value) => setState(() => _outcome = value!),
         ),
@@ -661,18 +638,28 @@ class _CollectionFeedbackScreenState
           'Rating: $_rating of 5',
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        Slider(
-          value: _rating.toDouble(),
-          min: 1,
-          max: 5,
-          divisions: 4,
-          label: '$_rating',
-          onChanged: (value) => setState(() => _rating = value.round()),
+        FSlider(
+          control: FSliderControl.managedDiscrete(
+            initial: FSliderValue(max: (_rating - 1) / 4),
+            onChange: (value) =>
+                setState(() => _rating = (value.max * 4).round() + 1),
+          ),
+          marks: const [
+            FSliderMark(value: 0),
+            FSliderMark(value: 0.25),
+            FSliderMark(value: 0.5),
+            FSliderMark(value: 0.75),
+            FSliderMark(value: 1),
+          ],
+          trackHitRegionCrossExtent: 48,
+          semanticValueFormatterCallback: (value) =>
+              '${(value * 4).round() + 1} of 5',
+          tooltipBuilder: (_, value) => Text('${(value * 4).round() + 1}'),
         ),
-        TextField(
-          controller: _feedback,
+        FTextField(
+          control: FTextFieldControl.managed(controller: _feedback),
           maxLines: 5,
-          decoration: const InputDecoration(labelText: 'Feedback'),
+          label: Text('Feedback'),
         ),
         const SizedBox(height: 16),
         const Text(
@@ -680,7 +667,7 @@ class _CollectionFeedbackScreenState
         ),
         const SizedBox(height: 20),
         WeyonjeButton(
-          label: 'Submit feedback',
+          label: 'Submit Feedback',
           loading: _loading,
           onPressed: _submit,
         ),

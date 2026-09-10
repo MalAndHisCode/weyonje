@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,8 +9,13 @@ import '../application/sign_in_controller.dart';
 import '../../../navigation/app_router.dart';
 import 'package:go_router/go_router.dart';
 
+/// Presentation only; the server-resolved actor determines access after sign-in.
+enum SignInEntry { provider, kcca }
+
 class SignInScreen extends ConsumerStatefulWidget {
-  const SignInScreen({super.key});
+  const SignInScreen({this.entry, super.key});
+
+  final SignInEntry? entry;
 
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
@@ -33,7 +39,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(signInControllerProvider);
     return WeyonjePage(
-      title: 'Provider or KCCA sign in',
+      title: switch (widget.entry) {
+        SignInEntry.provider => 'Provider Sign In',
+        SignInEntry.kcca => 'KCCA Sign In',
+        null => 'Provider or KCCA Sign In',
+      },
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -43,16 +53,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Enter the email and password for your Service Provider or KCCA account.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
+                Text(switch (widget.entry) {
+                  SignInEntry.provider =>
+                    'Enter the email and password for your Service Provider account.',
+                  SignInEntry.kcca =>
+                    'Enter the email and password for your KCCA account.',
+                  null =>
+                    'Enter the email and password for your Service Provider or KCCA account.',
+                }, style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 24),
                 FocusTraversalOrder(
                   order: const NumericFocusOrder(1),
-                  child: TextFormField(
+                  child: FTextFormField(
                     key: const Key('sign-in-email'),
-                    controller: _email,
+                    control: FTextFieldControl.managed(controller: _email),
                     enabled: !state.inProgress,
                     autofocus: true,
                     keyboardType: TextInputType.emailAddress,
@@ -63,12 +77,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ],
                     autocorrect: false,
                     enableSuggestions: false,
-                    decoration: const InputDecoration(
-                      labelText: 'Email address',
-                      hintText: 'Enter your email address',
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: OutlineInputBorder(),
-                    ),
+                    label: Text('Email address'),
+                    hint: 'Enter your email address',
                     validator: (value) {
                       final email = value?.trim() ?? '';
                       if (email.isEmpty ||
@@ -78,15 +88,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       }
                       return null;
                     },
-                    onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                    onSubmit: (_) => _passwordFocus.requestFocus(),
                   ),
                 ),
                 const SizedBox(height: 20),
                 FocusTraversalOrder(
                   order: const NumericFocusOrder(2),
-                  child: TextFormField(
+                  child: FTextFormField(
                     key: const Key('sign-in-password'),
-                    controller: _password,
+                    control: FTextFieldControl.managed(controller: _password),
                     focusNode: _passwordFocus,
                     enabled: !state.inProgress,
                     obscureText: true,
@@ -95,33 +105,30 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     autofillHints: const [AutofillHints.password],
                     autocorrect: false,
                     enableSuggestions: false,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Enter your password',
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: OutlineInputBorder(),
-                    ),
+                    label: Text('Password'),
+                    hint: 'Enter your password',
                     validator: (value) => value == null || value.isEmpty
                         ? 'Enter your password.'
                         : null,
-                    onFieldSubmitted: (_) => _submit(state.inProgress),
+                    onSubmit: (_) => _submit(state.inProgress),
                   ),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: state.inProgress
+                  child: FButton(
+                    variant: FButtonVariant.ghost,
+                    onPress: state.inProgress
                         ? null
                         : () => context.push(AppRoutes.passwordRecovery),
-                    child: const Text('Forgot password?'),
+                    child: Flexible(child: const Text('Forgot Password?')),
                   ),
                 ),
                 if (state.message case final message?) ...[
                   const SizedBox(height: 24),
                   WeyonjeAlert(
                     title: state.rateLimited
-                        ? 'Try again shortly'
-                        : 'Sign-in not completed',
+                        ? 'Try Again Shortly'
+                        : 'Sign-In Not Completed',
                     message: message,
                     error: true,
                   ),
@@ -131,7 +138,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   order: const NumericFocusOrder(3),
                   child: WeyonjeButton(
                     key: const Key('submit-sign-in'),
-                    label: 'Sign in',
+                    label: 'Sign In',
                     loading: state.inProgress,
                     onPressed: () => _submit(state.inProgress),
                   ),

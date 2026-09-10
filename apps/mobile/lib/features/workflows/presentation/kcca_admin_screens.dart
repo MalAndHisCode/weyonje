@@ -1,3 +1,6 @@
+import '../../../ui/weyonje_dialog.dart';
+import '../../../ui/weyonje_select.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -31,7 +34,7 @@ class _ProviderAdministrationScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Provider administration',
+    title: 'Provider Administration',
     showBack: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,19 +43,16 @@ class _ProviderAdministrationScreenState
           'Review ESS registration details and manage Provider eligibility. Every decision is retained in history.',
         ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
+        WeyonjeSelect<String>(
           initialValue: _status,
-          decoration: const InputDecoration(
-            labelText: 'Provider status',
-            border: OutlineInputBorder(),
-          ),
-          items:
-              const ['PENDING', 'APPROVED', 'REJECTED', 'INACTIVE', 'DISABLED']
-                  .map(
-                    (value) =>
-                        DropdownMenuItem(value: value, child: Text(value)),
-                  )
-                  .toList(),
+          label: Text('Provider status'),
+          items: const [
+            'PENDING',
+            'APPROVED',
+            'REJECTED',
+            'INACTIVE',
+            'DISABLED',
+          ].map((value) => (value: value, label: value)).toList(),
           onChanged: (value) => setState(() {
             _status = value!;
             _reload();
@@ -63,7 +63,7 @@ class _ProviderAdministrationScreenState
           future: _load,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: FCircularProgress());
             }
             if (snapshot.hasError) {
               return WorkflowErrorView(
@@ -86,7 +86,7 @@ class _ProviderAdministrationScreenState
     ),
   );
 
-  Widget _providerCard(ProviderAdministration provider) => Card(
+  Widget _providerCard(ProviderAdministration provider) => FCard(
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -109,9 +109,10 @@ class _ProviderAdministrationScreenState
               label: 'Approve Provider',
               onPressed: () => _confirm(provider, 'APPROVED', decision: true),
             ),
-            TextButton(
-              onPressed: () => _confirm(provider, 'REJECTED', decision: true),
-              child: const Text('Reject with reason'),
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: () => _confirm(provider, 'REJECTED', decision: true),
+              child: Flexible(child: const Text('Reject with Reason')),
             ),
           ] else ...[
             WeyonjeButton(
@@ -125,9 +126,10 @@ class _ProviderAdministrationScreenState
               ),
             ),
             if (provider.status != 'DISABLED')
-              TextButton(
-                onPressed: () => _confirm(provider, 'DISABLED'),
-                child: const Text('Disable with reason'),
+              FButton(
+                variant: FButtonVariant.ghost,
+                onPress: () => _confirm(provider, 'DISABLED'),
+                child: Flexible(child: const Text('Disable with Reason')),
               ),
           ],
         ],
@@ -142,9 +144,11 @@ class _ProviderAdministrationScreenState
   }) async {
     final reason = TextEditingController();
     final requiresReason = status == 'REJECTED' || status == 'DISABLED';
-    final accepted = await showDialog<bool>(
+    final accepted = await showFDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      useRootNavigator: true,
+      useSafeArea: true,
+      builder: (context, _, _) => WeyonjeDialog(
         title: Text('Confirm $status'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -152,25 +156,24 @@ class _ProviderAdministrationScreenState
             Text('Change ${provider.companyName} to $status?'),
             if (requiresReason) ...[
               const SizedBox(height: 12),
-              TextField(
-                controller: reason,
+              FTextField(
+                control: FTextFieldControl.managed(controller: reason),
                 maxLength: 1000,
-                decoration: const InputDecoration(
-                  labelText: 'Reason',
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Reason'),
               ),
             ],
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+          FButton(
+            variant: FButtonVariant.ghost,
+            onPress: () => Navigator.pop(context, false),
+            child: Flexible(child: const Text('Cancel')),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm'),
+          FButton(
+            variant: FButtonVariant.primary,
+            onPress: () => Navigator.pop(context, true),
+            child: Flexible(child: const Text('Confirm')),
           ),
         ],
       ),
@@ -248,7 +251,7 @@ class _CallCentreAdministrationScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Manual Call Centre entry',
+    title: 'Manual Call Centre Entry',
     showBack: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,9 +260,10 @@ class _CallCentreAdministrationScreenState
           'Enter a request received manually through the KCCA Call Centre. This is not an external Call Centre system.',
         ),
         const SizedBox(height: 16),
-        TextButton(
-          onPressed: _findClient,
-          child: const Text('Find an existing Client'),
+        FButton(
+          variant: FButtonVariant.ghost,
+          onPress: _findClient,
+          child: Flexible(child: const Text('Find an Existing Client')),
         ),
         for (final field in [
           (_name, 'Client name', TextInputType.name),
@@ -267,83 +271,66 @@ class _CallCentreAdministrationScreenState
           (_email, 'Email (optional)', TextInputType.emailAddress),
           (_location, 'Location or address', TextInputType.streetAddress),
         ]) ...[
-          TextField(
-            controller: field.$1,
+          FTextField(
+            control: FTextFieldControl.managed(controller: field.$1),
             keyboardType: field.$3,
-            decoration: InputDecoration(
-              labelText: field.$2,
-              border: const OutlineInputBorder(),
-            ),
+            label: Text(field.$2),
           ),
           const SizedBox(height: 12),
         ],
-        DropdownButtonFormField<String>(
+        WeyonjeSelect<String>(
           initialValue: _schedule,
-          decoration: const InputDecoration(
-            labelText: 'Requested service timing',
-            border: OutlineInputBorder(),
-          ),
+          label: Text('Requested service timing'),
           items: const [
-            DropdownMenuItem(value: 'ASAP', child: Text('As soon as possible')),
-            DropdownMenuItem(
-              value: 'SCHEDULED',
-              child: Text('Schedule for tomorrow at 09:00'),
-            ),
+            (value: 'ASAP', label: 'As soon as possible'),
+            (value: 'SCHEDULED', label: 'Schedule for tomorrow at 09:00'),
           ],
           onChanged: (value) => _schedule = value!,
         ),
         const SizedBox(height: 12),
         FutureBuilder<List<EligibleProvider>>(
           future: _providers,
-          builder: (context, snapshot) => DropdownButtonFormField<String>(
-            decoration: const InputDecoration(
-              labelText: 'Assign approved Provider (optional)',
-              border: OutlineInputBorder(),
-            ),
+          builder: (context, snapshot) => WeyonjeSelect<String>(
+            label: Text('Assign approved Provider (optional)'),
             items: (snapshot.data ?? const <EligibleProvider>[])
                 .map(
-                  (provider) => DropdownMenuItem(
-                    value: provider.userId,
-                    child: Text(provider.companyName),
-                  ),
+                  (provider) =>
+                      (value: provider.userId, label: provider.companyName),
                 )
                 .toList(),
             onChanged: (value) => _providerId = value,
           ),
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _price,
+        FTextField(
+          control: FTextFieldControl.managed(controller: _price),
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Agreed whole-number price (UGX, optional)',
-            border: OutlineInputBorder(),
-          ),
+          label: Text('Agreed whole-number price (UGX, optional)'),
         ),
         if (_message case final message?) ...[
           const SizedBox(height: 12),
           WeyonjeAlert(
-            title: 'Request not saved',
+            title: 'Request Not Saved',
             message: message,
             error: true,
           ),
         ],
         const SizedBox(height: 20),
         WeyonjeButton(
-          label: 'Create manual request',
+          label: 'Create Manual Request',
           loading: _busy,
           onPressed: _create,
         ),
         const SizedBox(height: 28),
         Text(
-          'Recent manual requests',
+          'Recent Manual Requests',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         FutureBuilder<List<ServiceRequestSummary>>(
           future: _requests,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const CircularProgressIndicator();
+              return const FCircularProgress();
             }
             if (snapshot.hasError) {
               return WorkflowErrorView(
@@ -373,25 +360,38 @@ class _CallCentreAdministrationScreenState
         .read(workflowRepositoryProvider)
         .callCentreClients(_name.text);
     if (!mounted) return;
-    final selected = await showDialog<CallCentreClient>(
+    final selected = await showFDialog<CallCentreClient>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Select existing Client'),
-        children: clients.isEmpty
-            ? [
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('No matching Client was found.'),
-                ),
-              ]
-            : clients
-                  .map(
-                    (client) => SimpleDialogOption(
-                      onPressed: () => Navigator.pop(context, client),
-                      child: Text('${client.name}\n${client.phoneNumber}'),
-                    ),
-                  )
-                  .toList(),
+      useRootNavigator: true,
+      useSafeArea: true,
+      builder: (context, _, _) => WeyonjeDialog(
+        title: const Text('Select Existing Client'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: clients.isEmpty
+              ? [
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('No matching Client was found.'),
+                  ),
+                ]
+              : clients
+                    .map(
+                      (client) => FTile(
+                        onPress: () => Navigator.pop(context, client),
+                        title: Text(client.name),
+                        subtitle: Text(client.phoneNumber),
+                      ),
+                    )
+                    .toList(),
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.ghost,
+            onPress: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
     );
     if (selected != null) {
@@ -483,7 +483,7 @@ class _DisposalSiteAdministrationScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Disposal-site administration',
+    title: 'Disposal-Site Administration',
     showBack: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -492,13 +492,13 @@ class _DisposalSiteAdministrationScreenState
           'Only KCCA may approve, edit, activate, or deactivate disposal sites.',
         ),
         const SizedBox(height: 16),
-        WeyonjeButton(label: 'Create disposal site', onPressed: () => _edit()),
+        WeyonjeButton(label: 'Create Disposal Site', onPressed: () => _edit()),
         const SizedBox(height: 16),
         FutureBuilder<List<DisposalSite>>(
           future: _load,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const CircularProgressIndicator();
+              return const FCircularProgress();
             }
             if (snapshot.hasError) {
               return WorkflowErrorView(
@@ -512,13 +512,13 @@ class _DisposalSiteAdministrationScreenState
             return Column(
               children: snapshot.requireData
                   .map(
-                    (site) => Card(
-                      child: ListTile(
+                    (site) => FCard(
+                      child: FTile(
                         title: Text(site.name),
                         subtitle: Text(
                           '${site.address}\n${site.latitude}, ${site.longitude}\n${site.active ? 'Active' : 'Inactive'}',
                         ),
-                        onTap: () => _edit(site),
+                        onPress: () => _edit(site),
                       ),
                     ),
                   )
@@ -536,12 +536,14 @@ class _DisposalSiteAdministrationScreenState
     final latitude = TextEditingController(text: site?.latitude?.toString());
     final longitude = TextEditingController(text: site?.longitude?.toString());
     var active = site?.active ?? true;
-    final saved = await showDialog<bool>(
+    final saved = await showFDialog<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setLocal) => AlertDialog(
+      useRootNavigator: true,
+      useSafeArea: true,
+      builder: (context, _, _) => StatefulBuilder(
+        builder: (context, setLocal) => WeyonjeDialog(
           title: Text(
-            site == null ? 'Create disposal site' : 'Edit disposal site',
+            site == null ? 'Create Disposal Site' : 'Edit Disposal Site',
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -553,28 +555,30 @@ class _DisposalSiteAdministrationScreenState
                   (latitude, 'Latitude'),
                   (longitude, 'Longitude'),
                 ]) ...[
-                  TextField(
-                    controller: field.$1,
-                    decoration: InputDecoration(labelText: field.$2),
+                  FTextField(
+                    control: FTextFieldControl.managed(controller: field.$1),
+                    label: Text(field.$2),
                   ),
                   const SizedBox(height: 8),
                 ],
-                SwitchListTile(
+                FSwitch(
                   value: active,
-                  onChanged: (value) => setLocal(() => active = value),
-                  title: const Text('Active and assignable'),
+                  onChange: (value) => setLocal(() => active = value),
+                  label: const Text('Active and assignable'),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: () => Navigator.pop(context, false),
+              child: Flexible(child: const Text('Cancel')),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save'),
+            FButton(
+              variant: FButtonVariant.primary,
+              onPress: () => Navigator.pop(context, true),
+              child: Flexible(child: const Text('Save')),
             ),
           ],
         ),

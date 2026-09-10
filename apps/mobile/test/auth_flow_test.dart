@@ -30,6 +30,124 @@ void main() {
   }
 
   group('AUTH-001 unauthenticated experience', () {
+    for (final entry in ['provider', 'kcca']) {
+      testWidgets('$entry entry preserves heading and recovery back stack', (
+        tester,
+      ) async {
+        await pumpApp(
+          tester,
+          FakeAuthRepository(onResolve: (_) async => const NoStoredSession()),
+        );
+        await tester.pumpAndSettle();
+        final key = Key(entry == 'provider' ? 'staff-sign-in' : 'kcca-sign-in');
+        await tester.ensureVisible(find.byKey(key));
+        await tester.tap(find.byKey(key));
+        await tester.pumpAndSettle();
+        final heading = entry == 'provider'
+            ? 'Provider Sign In'
+            : 'KCCA Sign In';
+        expect(find.text(heading), findsOneWidget);
+        await tester.tap(find.text('Forgot Password?'));
+        await tester.pumpAndSettle();
+        expect(find.text('Recover Your Account'), findsOneWidget);
+        await tester.tap(find.bySemanticsLabel('Back'));
+        await tester.pumpAndSettle();
+        expect(find.text(heading), findsOneWidget);
+        await tester.tap(find.bySemanticsLabel('Back'));
+        await tester.pumpAndSettle();
+        expect(find.text('Welcome to Weyonje'), findsOneWidget);
+      });
+
+      for (final (actor, path) in [
+        (
+          const CurrentActor(
+            actorType: ActorType.client,
+            access: ActorAccess.eligible,
+          ),
+          '/client',
+        ),
+        (
+          const CurrentActor(
+            actorType: ActorType.kccaStaff,
+            access: ActorAccess.eligible,
+            mobileMonitoringPermitted: true,
+          ),
+          '/kcca-monitoring',
+        ),
+        (
+          const CurrentActor(
+            actorType: ActorType.serviceProvider,
+            access: ActorAccess.eligible,
+            providerStatus: ProviderStatus.approved,
+          ),
+          '/provider',
+        ),
+        for (final status in [
+          ProviderStatus.pending,
+          ProviderStatus.rejected,
+          ProviderStatus.inactive,
+          ProviderStatus.disabled,
+        ])
+          (
+            CurrentActor(
+              actorType: ActorType.serviceProvider,
+              access: ActorAccess.restricted,
+              providerStatus: status,
+            ),
+            '/provider-account-status',
+          ),
+      ]) {
+        testWidgets(
+          '$entry entry routes ${actor.actorType} ${actor.providerStatus} by server authority',
+          (tester) async {
+            final repository = FakeAuthRepository(
+              onResolve: (_) async => const NoStoredSession(),
+              onSignIn: (_, _, _) async => ResolvedSession(actor),
+            );
+            await pumpApp(tester, repository);
+            await tester.pumpAndSettle();
+            GoRouter.of(
+              tester.element(find.text('Welcome to Weyonje')),
+            ).push('/sign-in?entry=$entry');
+            await tester.pumpAndSettle();
+            await tester.enterText(
+              find.byKey(const Key('sign-in-email')),
+              'account@example.test',
+            );
+            await tester.enterText(
+              find.byKey(const Key('sign-in-password')),
+              'test-password',
+            );
+            await tester.tap(find.byKey(const Key('submit-sign-in')));
+            await tester.pumpAndSettle();
+            final router = GoRouter.of(
+              tester.element(find.byType(FScaffold).first),
+            );
+            expect(router.routeInformationProvider.value.uri.path, path);
+            expect(repository.signInCalls, 1);
+          },
+        );
+      }
+    }
+
+    for (final route in ['/sign-in', '/sign-in?entry=invalid']) {
+      testWidgets('$route retains compatible fallback and back navigation', (
+        tester,
+      ) async {
+        await pumpApp(
+          tester,
+          FakeAuthRepository(onResolve: (_) async => const NoStoredSession()),
+        );
+        await tester.pumpAndSettle();
+        GoRouter.of(tester.element(find.text('Welcome to Weyonje'))).go(route);
+        await tester.pumpAndSettle();
+        expect(find.text('Provider or KCCA Sign In'), findsOneWidget);
+        await tester.tap(find.bySemanticsLabel('Back'));
+        await tester.pumpAndSettle();
+        expect(find.text('Welcome to Weyonje'), findsOneWidget);
+      });
+    }
+
     testWidgets(
       'renders the approved identity, copy, actions, and no staff registration',
       (tester) async {
@@ -41,9 +159,16 @@ void main() {
 
         expect(find.byType(Image), findsOneWidget);
         expect(find.text('Welcome to Weyonje'), findsOneWidget);
-        expect(find.text('Create account'), findsOneWidget);
-        expect(find.text('Client sign in'), findsOneWidget);
-        expect(find.text('Provider or KCCA sign in'), findsOneWidget);
+        expect(find.text('Create Account'), findsOneWidget);
+        expect(find.text('Client Sign In'), findsOneWidget);
+        expect(find.text('Provider Sign In'), findsOneWidget);
+        expect(find.text('KCCA Sign In'), findsOneWidget);
+        expect(
+          find.text(
+            'Create an account to request or provide waste-collection services.',
+          ),
+          findsNothing,
+        );
         expect(find.textContaining('KCCA Staff'), findsNothing);
 
         final semantics = tester.getSemantics(find.byType(Image));
@@ -70,7 +195,7 @@ void main() {
       await tester.tap(find.byKey(const Key('create-account')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Choose account type'), findsOneWidget);
+      expect(find.text('Choose Account Type'), findsOneWidget);
       expect(find.text('Client'), findsOneWidget);
       expect(find.text('Service Provider'), findsOneWidget);
       expect(find.textContaining('KCCA Staff'), findsNothing);
@@ -83,12 +208,12 @@ void main() {
 
       await tester.tap(find.byKey(const Key('account-continue')));
       await tester.pump();
-      expect(find.text('Account type required'), findsOneWidget);
+      expect(find.text('Account Type Required'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('account-client')));
       await tester.tap(find.byKey(const Key('account-continue')));
       await tester.pumpAndSettle();
-      expect(find.text('Client registration'), findsOneWidget);
+      expect(find.text('Client Registration'), findsOneWidget);
       expect(find.byKey(const Key('client-type-individual')), findsOneWidget);
       expect(find.text('Email address (optional)'), findsOneWidget);
     });
@@ -165,7 +290,7 @@ void main() {
 
         await tester.tap(find.byKey(const Key('account-continue')));
         await tester.pumpAndSettle();
-        expect(find.text('Service Provider registration'), findsOneWidget);
+        expect(find.text('Service Provider Registration'), findsOneWidget);
         expect(find.text('Email address (required)'), findsOneWidget);
         expect(find.text('Password (required)'), findsOneWidget);
       },
@@ -185,10 +310,10 @@ void main() {
       await tester.tap(find.byKey(const Key('account-continue')));
       await tester.tap(find.byKey(const Key('account-continue')));
       await tester.pumpAndSettle();
-      expect(find.text('Client registration'), findsOneWidget);
+      expect(find.text('Client Registration'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
-      expect(find.text('Choose account type'), findsOneWidget);
+      expect(find.text('Choose Account Type'), findsOneWidget);
     });
 
     testWidgets('invalid verification route data fails safely', (tester) async {
@@ -202,7 +327,7 @@ void main() {
       ).go('/verify-phone');
       await tester.pumpAndSettle();
       expect(find.text('Welcome to Weyonje'), findsOneWidget);
-      expect(find.text('Verify phone number'), findsNothing);
+      expect(find.text('Verify Phone Number'), findsNothing);
     });
 
     testWidgets('Client sign in requests and verifies an SMS code', (
@@ -229,7 +354,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('sign-in')));
       await tester.pumpAndSettle();
-      expect(find.text('Client sign in'), findsWidgets);
+      expect(find.text('Client Sign In'), findsWidgets);
       expect(find.text('Password'), findsNothing);
       await tester.enterText(
         find.byKey(const Key('client-sign-in-phone')),
@@ -238,7 +363,7 @@ void main() {
       await tester.tap(find.byKey(const Key('request-client-code')));
       await tester.pumpAndSettle();
       expect(repository.requestClientCodeCalls, 1);
-      expect(find.text('Verify phone number'), findsOneWidget);
+      expect(find.text('Verify Phone Number'), findsOneWidget);
       expect(find.textContaining('+256'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('verification-code')),
@@ -247,7 +372,7 @@ void main() {
       await tester.tap(find.byKey(const Key('verify-phone')));
       await tester.pumpAndSettle();
       expect(repository.verifyClientCodeCalls, 1);
-      expect(find.text('Client dashboard'), findsWidgets);
+      expect(find.text('Client Dashboard'), findsWidgets);
     });
 
     testWidgets('development SMS code is displayed and prefilled', (
@@ -276,17 +401,20 @@ void main() {
       await tester.tap(find.byKey(const Key('request-client-code')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Development SMS mode'), findsOneWidget);
+      expect(find.text('Development SMS Mode'), findsOneWidget);
       expect(
         find.text(
           'No SMS was sent. Use test code 654321; it has been filled in below.',
         ),
         findsOneWidget,
       );
-      final codeField = tester.widget<TextFormField>(
-        find.byKey(const Key('verification-code')),
+      final codeField = tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(const Key('verification-code')),
+          matching: find.byType(EditableText),
+        ),
       );
-      expect(codeField.controller?.text, '654321');
+      expect(codeField.controller.text, '654321');
     });
 
     testWidgets(
@@ -333,7 +461,7 @@ void main() {
         expect(repository.registerClientCalls, 1);
         expect(submitted?.email, isNull);
         expect(submitted?.clientType, ClientType.individual);
-        expect(find.text('Verify phone number'), findsOneWidget);
+        expect(find.text('Verify Phone Number'), findsOneWidget);
       },
     );
 
@@ -413,7 +541,7 @@ void main() {
         expect(repository.registerServiceProviderCalls, 1);
         expect(submitted?.email, 'ops@example.test');
         expect(submitted?.providerType, ServiceProviderType.gulper);
-        expect(find.text('Verify phone number'), findsOneWidget);
+        expect(find.text('Verify Phone Number'), findsOneWidget);
       },
     );
 
@@ -459,7 +587,7 @@ void main() {
         await tester.tap(find.byKey(const Key('submit-sign-in')));
         await tester.pumpAndSettle();
         expect(repository.signInCalls, 1);
-        expect(find.text('Provider work dashboard'), findsWidgets);
+        expect(find.text('Provider Work Dashboard'), findsWidgets);
       },
     );
 
@@ -522,7 +650,7 @@ void main() {
         await tester.pump();
 
         expect(repository.signInCalls, 1);
-        expect(find.text('Sign in'), findsWidgets);
+        expect(find.text('Sign In'), findsWidgets);
         expect(tester.getSize(find.byKey(const Key('submit-sign-in'))), before);
 
         result.complete(
@@ -531,7 +659,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('Try again shortly'), findsOneWidget);
+        expect(find.text('Try Again Shortly'), findsOneWidget);
       },
     );
 
@@ -561,7 +689,7 @@ void main() {
       await tester.tap(find.byKey(const Key('submit-sign-in')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Sign-in not completed'), findsOneWidget);
+      expect(find.text('Sign-In Not Completed'), findsOneWidget);
       expect(find.textContaining('Check your connection'), findsOneWidget);
     });
   });
@@ -605,7 +733,7 @@ void main() {
 
       expect(find.text('Checking your session…'), findsOneWidget);
       expect(find.textContaining('dashboard'), findsNothing);
-      expect(find.text('Create account'), findsNothing);
+      expect(find.text('Create Account'), findsNothing);
       result.complete(const NoStoredSession());
       await tester.pumpAndSettle();
       expect(find.text('Welcome to Weyonje'), findsOneWidget);
@@ -657,7 +785,7 @@ void main() {
         await tester.tap(find.byKey(const Key('retry-session')));
         await tester.pump();
         expect(repository.resolveCalls, 2);
-        expect(find.text('Retry session check'), findsOneWidget);
+        expect(find.text('Retry Session Check'), findsOneWidget);
         retry.complete(const NoStoredSession());
         await tester.pumpAndSettle();
         expect(find.text('Welcome to Weyonje'), findsOneWidget);
@@ -674,7 +802,7 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      expect(find.text('Access denied'), findsOneWidget);
+      expect(find.text('Access Denied'), findsOneWidget);
       expect(
         find.text('This identity is not linked to a permitted profile.'),
         findsOneWidget,
@@ -695,11 +823,11 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      final context = tester.element(find.text('Client dashboard').first);
+      final context = tester.element(find.text('Client Dashboard').first);
       GoRouter.of(context).go('/account-type');
       await tester.pumpAndSettle();
-      expect(find.text('Choose account type'), findsNothing);
-      expect(find.text('Client dashboard'), findsWidgets);
+      expect(find.text('Choose Account Type'), findsNothing);
+      expect(find.text('Client Dashboard'), findsWidgets);
     });
 
     testWidgets(
@@ -723,8 +851,8 @@ void main() {
           expect(
             find.text(
               actor.actorType == ActorType.client
-                  ? 'Client dashboard'
-                  : 'KCCA monitoring',
+                  ? 'Client Dashboard'
+                  : 'KCCA Monitoring',
             ),
             findsWidgets,
           );
@@ -747,7 +875,7 @@ void main() {
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        expect(find.text('Provider work dashboard'), findsWidgets);
+        expect(find.text('Provider Work Dashboard'), findsWidgets);
       },
     );
 
@@ -764,7 +892,7 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      expect(find.text('Access denied'), findsOneWidget);
+      expect(find.text('Access Denied'), findsOneWidget);
       expect(find.textContaining('monitoring dashboard'), findsNothing);
     });
 
@@ -788,8 +916,8 @@ void main() {
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        expect(find.text('Account status'), findsOneWidget);
-        expect(find.textContaining('Provider work dashboard'), findsNothing);
+        expect(find.text('Account Status'), findsOneWidget);
+        expect(find.textContaining('Provider Work Dashboard'), findsNothing);
       });
     }
 

@@ -1,3 +1,5 @@
+import '../../../ui/weyonje_select.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,7 +40,7 @@ class _PasswordRecoveryScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Recover your account',
+    title: 'Recover Your Account',
     showBack: true,
     child: Form(
       child: Column(
@@ -46,45 +48,41 @@ class _PasswordRecoveryScreenState
         children: [
           if (_complete) ...[
             const WeyonjeAlert(
-              title: 'Password changed',
+              title: 'Password Changed',
               message:
                   'Your other sessions were signed out. Use your new password to sign in.',
             ),
             const SizedBox(height: 24),
             WeyonjeButton(
-              label: 'Return to sign in',
-              onPressed: () => context.go(AppRoutes.signIn),
+              label: 'Return to Sign In',
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go(AppRoutes.signIn),
             ),
           ] else if (_challenge == null) ...[
             const Text(
               'For Service Provider and KCCA accounts. We return the same response whether or not an account exists.',
             ),
             const SizedBox(height: 20),
-            TextFormField(
-              controller: _email,
+            FTextFormField(
+              control: FTextFieldControl.managed(controller: _email),
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(
-                labelText: 'Registered email address',
-                border: OutlineInputBorder(),
-              ),
+              label: Text('Registered email address'),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
+            WeyonjeSelect<String>(
               initialValue: _method,
-              decoration: const InputDecoration(
-                labelText: 'Receive code by',
-                border: OutlineInputBorder(),
-              ),
+              label: Text('Receive code by'),
               items: const [
-                DropdownMenuItem(value: 'PHONE', child: Text('Phone (SMS)')),
-                DropdownMenuItem(value: 'EMAIL', child: Text('Email')),
+                (value: 'PHONE', label: 'Phone (SMS)'),
+                (value: 'EMAIL', label: 'Email'),
               ],
               onChanged: _busy ? null : (value) => _method = value!,
             ),
             const SizedBox(height: 24),
             WeyonjeButton(
-              label: 'Request recovery code',
+              label: 'Request Recovery Code',
               loading: _busy,
               onPressed: _request,
             ),
@@ -95,55 +93,47 @@ class _PasswordRecoveryScreenState
             if (_challenge!.developmentCode case final code?) ...[
               const SizedBox(height: 12),
               WeyonjeAlert(
-                title: 'Development fake delivery',
+                title: 'Development Fake Delivery',
                 message: 'No real message was sent. Test code: $code',
               ),
             ],
             const SizedBox(height: 20),
-            TextFormField(
-              controller: _code,
+            FTextFormField(
+              control: FTextFieldControl.managed(controller: _code),
               keyboardType: TextInputType.number,
               maxLength: 6,
-              decoration: const InputDecoration(
-                labelText: 'Verification code',
-                border: OutlineInputBorder(),
-              ),
+              label: Text('Verification code'),
             ),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _password,
+            FTextFormField(
+              control: FTextFieldControl.managed(controller: _password),
               obscureText: true,
               autofillHints: const [AutofillHints.newPassword],
-              decoration: const InputDecoration(
-                labelText: 'New password',
-                helperText: 'Use at least 12 characters.',
-                border: OutlineInputBorder(),
-              ),
+              label: Text('New password'),
+              description: Text('Use at least 12 characters.'),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _confirm,
+            FTextFormField(
+              control: FTextFieldControl.managed(controller: _confirm),
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm new password',
-                border: OutlineInputBorder(),
-              ),
+              label: Text('Confirm new password'),
             ),
             const SizedBox(height: 24),
             WeyonjeButton(
-              label: 'Change password',
+              label: 'Change Password',
               loading: _busy,
               onPressed: _finish,
             ),
-            TextButton(
-              onPressed: _busy ? null : _resend,
-              child: const Text('Request a newer code'),
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: _busy ? null : _resend,
+              child: Flexible(child: const Text('Request a Newer Code')),
             ),
           ],
           if (_message case final message?) ...[
             const SizedBox(height: 16),
             WeyonjeAlert(
-              title: 'Recovery not completed',
+              title: 'Recovery Not Completed',
               message: message,
               error: true,
             ),
@@ -246,14 +236,14 @@ class _EmailVerificationScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Verify email address',
+    title: 'Verify Email Address',
     showBack: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_complete)
           const WeyonjeAlert(
-            title: 'Email verified',
+            title: 'Email Verified',
             message: 'Your registered email address is now verified.',
           )
         else ...[
@@ -263,43 +253,41 @@ class _EmailVerificationScreenState
           if (_challengeId == null) ...[
             const SizedBox(height: 24),
             WeyonjeButton(
-              label: 'Send code by email',
+              label: 'Send Code by Email',
               loading: _busy,
               onPressed: () => _request('EMAIL'),
             ),
             const SizedBox(height: 12),
             WeyonjeButton(
-              label: 'Send code by phone',
+              label: 'Send Code by Phone',
               kind: WeyonjeButtonKind.outline,
               loading: _busy,
               onPressed: () => _request('PHONE'),
             ),
           ] else ...[
             const SizedBox(height: 20),
-            TextFormField(
-              controller: _code,
+            FTextFormField(
+              control: FTextFieldControl.managed(controller: _code),
               keyboardType: TextInputType.number,
               maxLength: 6,
-              decoration: const InputDecoration(
-                labelText: 'Verification code',
-                border: OutlineInputBorder(),
-              ),
+              label: Text('Verification code'),
             ),
             WeyonjeButton(
-              label: 'Verify email',
+              label: 'Verify Email',
               loading: _busy,
               onPressed: _verify,
             ),
-            TextButton(
-              onPressed: _busy ? null : _resend,
-              child: const Text('Request a newer code'),
+            FButton(
+              variant: FButtonVariant.ghost,
+              onPress: _busy ? null : _resend,
+              child: Flexible(child: const Text('Request a Newer Code')),
             ),
           ],
         ],
         if (_message case final message?) ...[
           const SizedBox(height: 16),
           WeyonjeAlert(
-            title: 'Verification not completed',
+            title: 'Verification Not Completed',
             message: message,
             error: true,
           ),

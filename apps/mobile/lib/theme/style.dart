@@ -21,7 +21,14 @@ FStyle _style({
       color: colors.app.focus,
       borderRadius: borderRadius.md,
     ),
-    sizes: FSizes.inherit(touch: touch),
+    sizes: touch
+        ? const FSizes(
+            field: (xs: 48, sm: 48, md: 48, lg: 48),
+            item: 48,
+            tile: 48,
+            calendar: 48,
+          )
+        : FSizes.inherit(touch: false),
     iconStyle: IconThemeData(
       color: colors.foreground,
       size: typography.body.lg.fontSize,

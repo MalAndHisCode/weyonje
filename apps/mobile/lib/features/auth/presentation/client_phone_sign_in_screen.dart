@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,7 @@ class _ClientPhoneSignInScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(clientCodeControllerProvider);
     return WeyonjePage(
-      title: 'Client sign in',
+      title: 'Client Sign In',
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -45,24 +46,20 @@ class _ClientPhoneSignInScreenState
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 24),
-              TextFormField(
+              FTextFormField(
                 key: const Key('client-sign-in-phone'),
-                controller: _phone,
+                control: FTextFieldControl.managed(controller: _phone),
                 enabled: !state.inProgress,
                 autofocus: true,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.telephoneNumber],
-                decoration: const InputDecoration(
-                  labelText: 'Phone number',
-                  hintText: 'e.g. 0700 000000',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Phone number'),
+                hint: 'e.g. 0700 000000',
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Enter your phone number.'
                     : null,
-                onFieldSubmitted: (_) => _submit(state.inProgress),
+                onSubmit: (_) => _submit(state.inProgress),
               ),
               if (state.message case final message?) ...[
                 const SizedBox(height: 20),
@@ -70,8 +67,8 @@ class _ClientPhoneSignInScreenState
                   liveRegion: true,
                   child: WeyonjeAlert(
                     title: state.rateLimited
-                        ? 'Try again later'
-                        : 'Code not sent',
+                        ? 'Try Again Later'
+                        : 'Code Not Sent',
                     message: message,
                     error: true,
                   ),
@@ -80,7 +77,7 @@ class _ClientPhoneSignInScreenState
               const SizedBox(height: 32),
               WeyonjeButton(
                 key: const Key('request-client-code'),
-                label: 'Send sign-in code',
+                label: 'Send Sign-In Code',
                 loading: state.inProgress,
                 onPressed: () => _submit(state.inProgress),
               ),

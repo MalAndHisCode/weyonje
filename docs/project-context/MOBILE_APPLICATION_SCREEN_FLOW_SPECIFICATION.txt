@@ -300,7 +300,11 @@ None.
 **User actions:**
 
 * **Create Account:** Opens `Choose Account Type`.
-* **Sign In:** Opens `Sign In`.
+* **Client Sign In:** Opens the Client phone-code sign-in experience.
+* **Provider Sign In:** Opens the shared email/password form with the `Provider Sign In` heading (`/sign-in?entry=provider`).
+* **KCCA Sign In:** Opens the same form with the `KCCA Sign In` heading (`/sign-in?entry=kcca`).
+
+Adopted 2026-09-10: Retain the logo and `Welcome to Weyonje`; remove the explanatory account-creation paragraph. Show the four actions above in order, with Create Account primary and all sign-in actions secondary. Missing/invalid sign-in context retains the compatible generic form. Entry context is presentation only; server actor resolution and eligibility determine all post-authentication routes and permissions.
 
 **Business rules, decisions, and validations:**
 

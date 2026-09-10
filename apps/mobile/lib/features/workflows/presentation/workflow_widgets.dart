@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 
 import '../../../ui/weyonje_alert.dart';
@@ -32,13 +33,17 @@ class WorkflowErrorView extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       WeyonjeAlert(
-        title: 'Could not load this work',
+        title: 'Could Not Load This Work',
         message: error is WorkflowException
             ? (error as WorkflowException).message
             : 'Check your connection and try again.',
       ),
       const SizedBox(height: 16),
-      FilledButton(onPressed: onRetry, child: const Text('Retry')),
+      FButton(
+        variant: FButtonVariant.primary,
+        onPress: onRetry,
+        child: Flexible(child: const Text('Retry')),
+      ),
     ],
   );
 }
@@ -53,15 +58,15 @@ class RequestSummaryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: ListTile(
-      onTap: onTap,
+  Widget build(BuildContext context) => FCard(
+    child: FTile(
+      onPress: onTap,
       title: Text(request.reference),
       subtitle: Text(
         '${humanStatus(request.status)}\n${request.locationLabel}\n${scheduleLabel(request.scheduleMode, request.requestedServiceAt)}',
       ),
-      isThreeLine: true,
-      trailing: const Icon(Icons.chevron_right),
+
+      suffix: const Icon(Icons.chevron_right),
     ),
   );
 }
@@ -73,7 +78,7 @@ class CountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Card(
+    child: FCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

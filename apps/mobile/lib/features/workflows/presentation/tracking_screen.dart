@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -128,11 +129,11 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
   @override
   Widget build(BuildContext context) => WeyonjePage(
     title: widget.phase == 'TO_REQUEST'
-        ? 'Journey to request'
-        : 'Journey to disposal site',
+        ? 'Journey to Request'
+        : 'Journey to Disposal Site',
     showBack: true,
     child: _loading
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(child: FCircularProgress())
         : _snapshot == null
         ? WorkflowErrorView(
             error:
@@ -157,7 +158,7 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
       ],
       if (!ref.watch(mapSelectionProvider).configured)
         const WeyonjeAlert(
-          title: 'Live map unavailable',
+          title: 'Live Map Unavailable',
           message:
               'The authorised Google Maps project is not configured. Weyonje shows authenticated, persisted coordinates and status without fabricating a map.',
         ),
@@ -170,7 +171,7 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
           encodedRoute: _route?.encodedPolyline,
         ),
       const SizedBox(height: 16),
-      Card(
+      FCard(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -214,9 +215,10 @@ class _JourneyTrackingScreenState extends ConsumerState<JourneyTrackingScreen> {
         ),
       ],
       const SizedBox(height: 16),
-      OutlinedButton(
-        onPressed: _reconcile,
-        child: const Text('Refresh from server'),
+      FButton(
+        variant: FButtonVariant.outline,
+        onPress: _reconcile,
+        child: Flexible(child: const Text('Refresh from Server')),
       ),
     ],
   );

@@ -53,7 +53,7 @@ class _ClientRegistrationScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(registrationControllerProvider);
     return WeyonjePage(
-      title: 'Client registration',
+      title: 'Client Registration',
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -158,17 +158,13 @@ class _ClientRegistrationScreenState
                 autofillHints: const [AutofillHints.telephoneNumber],
               ),
               const SizedBox(height: 20),
-              TextFormField(
+              FTextFormField(
                 key: const Key('client-email'),
-                controller: _email,
+                control: FTextFieldControl.managed(controller: _email),
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 autocorrect: false,
-                decoration: const InputDecoration(
-                  labelText: 'Email address (optional)',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+                label: Text('Email address (optional)'),
                 validator: (value) {
                   final email = value?.trim() ?? '';
                   return email.isNotEmpty && !email.contains('@')
@@ -182,8 +178,8 @@ class _ClientRegistrationScreenState
                   liveRegion: true,
                   child: WeyonjeAlert(
                     title: state.rateLimited
-                        ? 'Try again later'
-                        : 'Registration not submitted',
+                        ? 'Try Again Later'
+                        : 'Registration Not Submitted',
                     message: message,
                     error: true,
                   ),
@@ -192,7 +188,7 @@ class _ClientRegistrationScreenState
               const SizedBox(height: 32),
               WeyonjeButton(
                 key: const Key('submit-client-registration'),
-                label: 'Submit registration',
+                label: 'Submit Registration',
                 loading: state.inProgress,
                 onPressed: () => _submit(state.inProgress),
               ),
@@ -210,17 +206,13 @@ class _ClientRegistrationScreenState
     String? hint,
     TextInputType? keyboardType,
     Iterable<String>? autofillHints,
-  }) => TextFormField(
+  }) => FTextFormField(
     key: key,
-    controller: controller,
+    control: FTextFieldControl.managed(controller: controller),
     keyboardType: keyboardType,
     autofillHints: autofillHints,
-    decoration: InputDecoration(
-      labelText: label,
-      hintText: hint,
-      floatingLabelBehavior: FloatingLabelBehavior.always,
-      border: const OutlineInputBorder(),
-    ),
+    label: Text(label),
+    hint: hint,
     validator: (value) => value == null || value.trim().isEmpty
         ? 'Complete this required field.'
         : null,

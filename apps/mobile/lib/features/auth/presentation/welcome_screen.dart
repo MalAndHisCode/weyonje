@@ -7,6 +7,7 @@ import '../../../ui/weyonje_button.dart';
 import '../../../ui/weyonje_logo.dart';
 import '../../../ui/weyonje_page.dart';
 import '../application/launch_controller.dart';
+import '../../../navigation/app_router.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
@@ -29,38 +30,39 @@ class WelcomeScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Create an account to request or provide waste-collection services.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge,
           ),
           if (message != null) ...[
             const SizedBox(height: 24),
-            WeyonjeAlert(title: 'Session ended', message: message),
+            WeyonjeAlert(title: 'Session Ended', message: message),
           ],
           const SizedBox(height: 32),
           WeyonjeButton(
             key: const Key('create-account'),
-            label: 'Create account',
+            label: 'Create Account',
             onPressed: () => context.push('/account-type'),
           ),
           const SizedBox(height: 12),
           WeyonjeButton(
             key: const Key('sign-in'),
-            label: 'Client sign in',
+            label: 'Client Sign In',
             kind: WeyonjeButtonKind.secondary,
             onPressed: () => context.push('/sign-in/client'),
           ),
           const SizedBox(height: 12),
           WeyonjeButton(
             key: const Key('staff-sign-in'),
-            label: 'Provider or KCCA sign in',
-            kind: WeyonjeButtonKind.outline,
-            onPressed: () => context.push('/sign-in'),
+            label: 'Provider Sign In',
+            kind: WeyonjeButtonKind.secondary,
+            onPressed: () => context.push(AppRoutes.providerSignIn),
+          ),
+          const SizedBox(height: 12),
+          WeyonjeButton(
+            key: const Key('kcca-sign-in'),
+            label: 'KCCA Sign In',
+            kind: WeyonjeButtonKind.secondary,
+            onPressed: () => context.push(AppRoutes.kccaSignIn),
           ),
         ],
       ),

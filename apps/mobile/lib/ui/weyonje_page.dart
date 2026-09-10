@@ -22,12 +22,19 @@ class WeyonjePage extends StatelessWidget {
     header: title == null
         ? null
         : FHeader.nested(
-            title: Text(title!),
+            title: Text(
+              title!,
+              maxLines: 4,
+              softWrap: true,
+              overflow: TextOverflow.visible,
+              textAlign: TextAlign.center,
+            ),
             prefixes: [
               if (showBack)
                 FHeaderAction.back(
                   semanticsLabel: 'Back',
-                  onPress: context.canPop() ? context.pop : null,
+                  onPress: () =>
+                      context.canPop() ? context.pop() : context.go('/welcome'),
                 ),
             ],
           ),

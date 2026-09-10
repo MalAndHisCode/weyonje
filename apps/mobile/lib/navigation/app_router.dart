@@ -28,6 +28,8 @@ abstract final class AppRoutes {
   static const welcome = '/welcome';
   static const chooseAccountType = '/account-type';
   static const signIn = '/sign-in';
+  static const providerSignIn = '/sign-in?entry=provider';
+  static const kccaSignIn = '/sign-in?entry=kcca';
   static const clientSignIn = '/sign-in/client';
   static const clientRegistration = '/register/client';
   static const serviceProviderRegistration = '/register/service-provider';
@@ -75,7 +77,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.signIn,
-        builder: (context, state) => const SignInScreen(),
+        builder: (context, state) => SignInScreen(
+          entry: switch (state.uri.queryParameters['entry']) {
+            'provider' => SignInEntry.provider,
+            'kcca' => SignInEntry.kcca,
+            _ => null,
+          },
+        ),
       ),
       GoRoute(
         path: AppRoutes.passwordRecovery,

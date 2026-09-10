@@ -1,3 +1,4 @@
+import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,13 +30,13 @@ class _PendingServiceRequestsScreenState
       _load = ref.read(workflowRepositoryProvider).pendingProviderRequests();
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Pending service requests',
+    title: 'Pending Service Requests',
     showBack: true,
     child: FutureBuilder<List<ProviderPendingRequest>>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -51,15 +52,15 @@ class _PendingServiceRequestsScreenState
         return Column(
           children: snapshot.requireData
               .map(
-                (item) => Card(
-                  child: ListTile(
+                (item) => FCard(
+                  child: FTile(
                     title: Text(item.reference),
                     subtitle: Text(
                       '${item.origin == 'CALL_CENTRE' ? 'Call Centre assignment' : 'Marketplace request'}\n${item.locationLabel}\n${scheduleLabel(item.scheduleMode, item.requestedServiceAt)}${item.toiletType == null ? '' : '\n${humanStatus(item.toiletType!)}'}',
                     ),
-                    isThreeLine: true,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context
+
+                    suffix: const Icon(Icons.chevron_right),
+                    onPress: () => context
                         .push('/provider/requests/${item.id}')
                         .then((_) => setState(_reload)),
                   ),
@@ -149,13 +150,13 @@ class _ProviderRequestDetailsScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Request details',
+    title: 'Request Details',
     showBack: true,
     child: FutureBuilder<ServiceRequestDetail>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -168,7 +169,7 @@ class _ProviderRequestDetailsScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_error != null) ...[
-              WeyonjeAlert(title: 'Action not completed', message: _error!),
+              WeyonjeAlert(title: 'Action Not Completed', message: _error!),
               const SizedBox(height: 12),
             ],
             Text(
@@ -193,25 +194,22 @@ class _ProviderRequestDetailsScreenState
             ),
             if (item.origin == 'MOBILE_APP') ...[
               const SizedBox(height: 16),
-              TextField(
-                controller: _price,
+              FTextField(
+                control: FTextFieldControl.managed(controller: _price),
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Agreed price (whole UGX)',
-                  prefixText: 'UGX ',
-                ),
+                label: Text('Agreed price (whole UGX)'),
               ),
             ],
             const SizedBox(height: 20),
             WeyonjeButton(
-              label: 'Accept request',
+              label: 'Accept Request',
               loading: _loading,
               onPressed: () => _accept(item),
             ),
             if (item.origin == 'CALL_CENTRE') ...[
               const SizedBox(height: 10),
               WeyonjeButton(
-                label: 'Reject assignment',
+                label: 'Reject Assignment',
                 kind: WeyonjeButtonKind.outline,
                 loading: _loading,
                 onPressed: () => _reject(item),
@@ -241,13 +239,13 @@ class _ProviderJobsScreenState extends ConsumerState<ProviderJobsScreen> {
   void _reload() => _load = ref.read(workflowRepositoryProvider).providerJobs();
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'My jobs',
+    title: 'My Jobs',
     showBack: true,
     child: FutureBuilder<List<ServiceRequestSummary>>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -314,13 +312,13 @@ class _ProviderJobDetailsScreenState
 
   @override
   Widget build(BuildContext context) => WeyonjePage(
-    title: 'Job details',
+    title: 'Job Details',
     showBack: true,
     child: FutureBuilder<ServiceRequestDetail>(
       future: _load,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FCircularProgress());
         }
         if (snapshot.hasError) {
           return WorkflowErrorView(
@@ -333,7 +331,7 @@ class _ProviderJobDetailsScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_error != null) ...[
-              WeyonjeAlert(title: 'Action not completed', message: _error!),
+              WeyonjeAlert(title: 'Action Not Completed', message: _error!),
               const SizedBox(height: 12),
             ],
             Text(
@@ -354,7 +352,7 @@ class _ProviderJobDetailsScreenState
             if (item.followUpStatus != null) ...[
               const SizedBox(height: 12),
               WeyonjeAlert(
-                title: 'Separate follow-up case',
+                title: 'Separate Follow-Up Case',
                 message:
                     'KCCA follow-up is ${humanStatus(item.followUpStatus!)}. Continue disposal if the recorded outcome confirms waste was collected.',
               ),
@@ -362,7 +360,7 @@ class _ProviderJobDetailsScreenState
             const SizedBox(height: 20),
             if (item.latitude == null && item.status == 'ACCEPTED') ...[
               const WeyonjeAlert(
-                title: 'Coordinate tracking unavailable',
+                title: 'Coordinate Tracking Unavailable',
                 message:
                     'This request uses a text location. Initiate the job normally; Weyonje will not fabricate a map or coordinate journey.',
               ),
@@ -371,8 +369,8 @@ class _ProviderJobDetailsScreenState
             if (item.status == 'ACCEPTED')
               WeyonjeButton(
                 label: item.latitude == null
-                    ? 'Initiate job'
-                    : 'Initiate job and location tracking',
+                    ? 'Initiate Job'
+                    : 'Initiate Job and Location Tracking',
                 loading: _loading,
                 onPressed: () =>
                     _command(
@@ -390,7 +388,7 @@ class _ProviderJobDetailsScreenState
             if (item.status == 'ACTIVE') ...[
               if (item.latitude != null)
                 WeyonjeButton(
-                  label: 'Open journey tracking',
+                  label: 'Open Journey Tracking',
                   kind: WeyonjeButtonKind.outline,
                   onPressed: () => context.push(
                     '/tracking/${item.id}?phase=TO_REQUEST&provider=true',
@@ -398,7 +396,7 @@ class _ProviderJobDetailsScreenState
                 ),
               if (item.latitude != null) const SizedBox(height: 10),
               WeyonjeButton(
-                label: 'Report collection completed',
+                label: 'Report Collection Completed',
                 loading: _loading,
                 onPressed: () => _command(
                   () => ref
@@ -409,20 +407,20 @@ class _ProviderJobDetailsScreenState
             ],
             if (item.status == 'COLLECTION_REPORTED')
               const WeyonjeAlert(
-                title: 'Waiting for collection confirmation',
+                title: 'Waiting for Collection Confirmation',
                 message:
                     'The Client or Call Centre must record the actual outcome before disposal can proceed.',
               ),
             if (item.status == 'FOLLOW_UP_REQUIRED')
               const WeyonjeAlert(
-                title: 'Follow-up required',
+                title: 'Follow-Up Required',
                 message:
                     'Waste was recorded as not collected, so disposal cannot begin. KCCA follow-up is separate.',
               ),
             if (item.status == 'COLLECTION_COMPLETED' &&
                 item.disposalJourney == null)
               WeyonjeButton(
-                label: 'Start disposal journey',
+                label: 'Start Disposal Journey',
                 loading: _loading,
                 onPressed: item.disposalSite == null
                     ? null
@@ -442,7 +440,7 @@ class _ProviderJobDetailsScreenState
             if (item.status == 'COLLECTION_COMPLETED' &&
                 item.disposalJourney != null) ...[
               WeyonjeButton(
-                label: 'Open disposal tracking',
+                label: 'Open Disposal Tracking',
                 kind: WeyonjeButtonKind.outline,
                 onPressed: () => context.push(
                   '/tracking/${item.id}?phase=TO_DISPOSAL&provider=true',
@@ -451,7 +449,7 @@ class _ProviderJobDetailsScreenState
               if (item.disposalJourney!.status == 'ARRIVED') ...[
                 const SizedBox(height: 10),
                 WeyonjeButton(
-                  label: 'Confirm disposal completed',
+                  label: 'Confirm Disposal Completed',
                   loading: _loading,
                   onPressed: () => _command(
                     () => ref
@@ -463,7 +461,7 @@ class _ProviderJobDetailsScreenState
             ],
             if (item.status == 'COMPLETED')
               const WeyonjeAlert(
-                title: 'Job complete',
+                title: 'Job Complete',
                 message:
                     'The collection outcome and disposal completion are recorded.',
               ),

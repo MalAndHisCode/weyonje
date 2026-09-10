@@ -33,12 +33,79 @@ FThemeData get lightTheme {
 
   final style = _style(colors: colors, typography: typography, touch: touch);
 
+  final fields = FTextFieldSizeStyles(
+    FTextFieldSizeStyles.inherit(
+      colors: colors,
+      typography: typography,
+      style: style,
+      touch: touch,
+    ).apply([.all(const .delta(constraints: BoxConstraints(minHeight: 48)))]),
+  );
+  final labels = FLabelStyles.inherit(style: style);
+  final leadingChoiceLabel = labels.horizontalLeadingStyle.copyWith(
+    childPadding: const .value(
+      EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    ),
+  );
+  final trailingChoiceLabel = labels.horizontalTrailingStyle.copyWith(
+    childPadding: const .value(
+      EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+    ),
+  );
+
   return FThemeData(
     colors: colors,
     typography: typography,
     icons: icons,
     style: style,
     touch: touch,
+    textFieldStyles: fields,
+    radioStyle: FRadioStyle.inherit(colors: colors, style: style, touch: touch)
+        .copyWith(
+          leadingLabelStyle: leadingChoiceLabel,
+          trailingLabelStyle: trailingChoiceLabel,
+        ),
+    switchStyle: FSwitchStyle.inherit(colors: colors, style: style).copyWith(
+      leadingLabelStyle: labels.horizontalLeadingStyle.copyWith(
+        childPadding: const .value(
+          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+      trailingLabelStyle: labels.horizontalTrailingStyle.copyWith(
+        childPadding: const .value(
+          EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        ),
+      ),
+    ),
+    buttonStyles:
+        FButtonStyles.inherit(
+          colors: colors,
+          typography: typography,
+          style: style,
+          touch: touch,
+        ).apply([
+          .all(
+            .delta([
+              .all(
+                const .delta(
+                  contentStyle: .delta(
+                    constraints: BoxConstraints(minWidth: 48, minHeight: 48),
+                  ),
+                  iconContentStyle: .delta(
+                    constraints: BoxConstraints(minWidth: 48, minHeight: 48),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ]),
+    selectStyle: FSelectStyle.inherit(
+      colors: colors,
+      icons: icons,
+      typography: typography,
+      style: style,
+      touch: touch,
+    ).copyWith(fieldStyles: fields),
   );
 }
 

@@ -24,14 +24,14 @@ class SessionErrorScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           WeyonjeAlert(
-            title: 'Session check failed',
+            title: 'Session Check Failed',
             message: error.message,
             error: true,
           ),
           const SizedBox(height: 24),
           WeyonjeButton(
             key: const Key('retry-session'),
-            label: 'Retry session check',
+            label: 'Retry Session Check',
             loading: error.retryInProgress,
             onPressed: () =>
                 ref.read(launchControllerProvider.notifier).retry(),

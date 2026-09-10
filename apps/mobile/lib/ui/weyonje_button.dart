@@ -40,12 +40,13 @@ class WeyonjeButton extends StatelessWidget {
               const SizedBox(width: 12),
               SizedBox.square(
                 dimension: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(
-                    kind == WeyonjeButtonKind.primary
-                        ? context.theme.colors.primaryForeground
-                        : context.theme.colors.secondaryForeground,
+                child: FCircularProgress(
+                  style: FCircularProgressStyleDelta.delta(
+                    iconStyle: IconThemeDataDelta.delta(
+                      color: kind == WeyonjeButtonKind.primary
+                          ? context.theme.colors.primaryForeground
+                          : context.theme.colors.secondaryForeground,
+                    ),
                   ),
                 ),
               ),

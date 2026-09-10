@@ -21,13 +21,13 @@ class AuthorizedDestinationUnavailableScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         WeyonjeAlert(
-          title: '$destinationName unavailable',
+          title: '$destinationName Unavailable',
           message:
               'Your session and access were verified, but $destinationName functionality is outside this application version. No protected work data has been loaded.',
         ),
         const SizedBox(height: 24),
         WeyonjeButton(
-          label: 'Sign out',
+          label: 'Sign Out',
           onPressed: () =>
               ref.read(launchControllerProvider.notifier).signOut(),
         ),

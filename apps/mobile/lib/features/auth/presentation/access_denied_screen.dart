@@ -21,10 +21,10 @@ class AccessDeniedScreen extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          WeyonjeAlert(title: 'Access denied', message: message, error: true),
+          WeyonjeAlert(title: 'Access Denied', message: message, error: true),
           const SizedBox(height: 24),
           WeyonjeButton(
-            label: 'Sign out',
+            label: 'Sign Out',
             onPressed: () =>
                 ref.read(launchControllerProvider.notifier).signOut(),
           ),

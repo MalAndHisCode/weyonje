@@ -26,13 +26,13 @@ class WeyonjeMap extends StatelessWidget {
       Marker(
         markerId: const MarkerId('destination'),
         position: destination,
-        infoWindow: const InfoWindow(title: 'Selected destination'),
+        infoWindow: const InfoWindow(title: 'Selected Destination'),
       ),
       if (providerLatitude != null && providerLongitude != null)
         Marker(
           markerId: const MarkerId('provider'),
           position: LatLng(providerLatitude!, providerLongitude!),
-          infoWindow: const InfoWindow(title: 'Provider position'),
+          infoWindow: const InfoWindow(title: 'Provider Position'),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueAzure,
           ),

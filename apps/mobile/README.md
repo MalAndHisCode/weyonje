@@ -4,6 +4,20 @@ The Android application implements guarded native authentication/registration pl
 
 The sign-in page has persistent Email address and Password labels, obscures the password, uses explicit keyboard/focus order, prevents duplicate submissions, and contains no browser, identity-provider, OIDC, or PKCE handoff. The API remains authoritative; GoRouter guards prevent protected-content flash but are not authorization controls.
 
+## Mobile Identity and UI Conventions
+
+The Android display name is **Weyonje**. Application ID and namespace remain `ug.go.kcca.weyonje.weyonje`. The welcome screen contains Create Account, Client Sign In, Provider Sign In, and KCCA Sign In, in that order. The three sign-in actions use the same secondary emphasis. Provider and KCCA use `/sign-in?entry=provider` and `/sign-in?entry=kcca`; `/sign-in` and unknown context retain the generic form. Entry context changes presentation only. Authentication, eligibility and permissions come from the existing native API; cross-role credentials follow server authority. Back from recovery returns to the selected entry; direct-link back falls back safely to welcome.
+
+Use Forui 0.25.0 (the lockfile version), the central `lib/theme/` configuration and `lib/ui/` wrappers for standard mobile UI. Text/select/button constraints and radio/switch padding explicitly enforce at least 48 dp touch sizing, with responsive labels and scrollable forms/dialogs. Keep native date/time pickers, maps and platform interfaces. Existing Forui-bundled Inter/Lucide and light-only application behavior are retained; no dependencies were added or upgraded. Authored headings and button labels use conventional Title Case. Field labels, body text and user/API content keep their existing capitalization.
+
+## Regenerate Android Launcher Resources
+
+From `apps/mobile`, run `python tool/generate_launcher_icons.py` using Python 3 and Pillow (local build tooling only). The generator reads `assets/branding/weyonje-logo.png` without modifying it. The source is RGBA, 554 × 554; nonzero alpha bounds are `(41, 203, 513, 351)`, containing the complete 472 × 148 artwork. Derivatives trim only empty transparent padding and preserve aspect ratio and all visible logo elements.
+
+The script generates 48 dp legacy square/round icons and 108 dp adaptive foreground layers at mdpi through xxxhdpi, plus API 26 adaptive XML. Legacy artwork uses 80% of the icon width on white. Adaptive artwork is 60 dp wide; its approximately 62.9 dp bounding diagonal fits inside the 66 dp safe circle. Both adaptive backgrounds are white. The optional monochrome themed-icon layer is deliberately absent because no recoloured mark is authorized. The tagline is retained but may be illegible at small launcher sizes. Splash resources are unchanged.
+
+Validation commands: `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze --no-pub`, `flutter test --no-pub`, and `flutter build apk --debug --no-pub`. Visual tests load the fonts already bundled with the application, use fake authentication/workflow data and mock secure storage, and cover compact/large phones, landscape, enlarged text, keyboard, loading/error states and representative role dashboards. Use `flutter test --no-pub test/visual/auth_visual_test.dart --update-goldens` only for intentional changes, then inspect the resulting PNGs before accepting them.
+
 ## Compile-time configuration
 
 Copy `config/auth.example.json` to ignored `config/auth.local.json` and replace `WEYONJE_API_BASE_URL` with the HTTPS Railway API URL:
