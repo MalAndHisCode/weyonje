@@ -65,6 +65,8 @@ The last migration backfills Provider decision history and current disposal assi
 
 ## Configuration and topology
 
+**Implemented locally (2026-09-10):** `MapsModule` imports `AuthModule` so its controller's `AccessTokenGuard` can resolve the exported token and session services. This fixes the missing dependency reported in the supplied Railway startup log. Authentication remains enforced; no environment variables, credentials, database schema or deployment settings changed. Railway recovery is **not yet verified**; the fix has not been deployed by this task.
+
 The API process serves HTTP/WebSocket traffic. Production reliable processing requires a separate Railway service using the same build and variables with run command `pnpm --filter @weyonje/api start:worker`. Development can run `start:worker:dev`. Running the worker inside the API is intentionally unsupported.
 
 New `.env.example` families cover delivery batch/lease/backoff/retention, account-challenge TTL/resend/attempt/rate limits, fake/unconfigured email, reminder offsets, server Maps key/timeout, FCM provider and Firebase service credentials. Mobile compile-time flags include API URL, environment, Maps enablement and FCM enablement. The Android Maps SDK key is supplied as a Gradle property/manifest placeholder, not as a Dart or server key.
@@ -104,12 +106,19 @@ The API supplies the adopted development defaults: 15-second interval, 25-metre 
 
 ## Current Priorities and Remaining Limitations
 
+### Railway startup fix validation — 2026-09-10
+
+- `pnpm build` and `pnpm --filter @weyonje/api typecheck` passed.
+- Focused `maps.module.spec.ts` and `access-token.guard.spec.ts`: **2 suites, 8 tests passed**. The real Maps/Auth module imports initialize under Nest/Fastify; requests without authentication return 401, and a locally signed token reaches the Maps handler after session authentication. Database/session and Maps operations use local fakes; no external service was contacted.
+- This verifies the affected module startup and guard wiring, not full production startup or Railway recovery. Deployment and a subsequent health/startup check remain outstanding. Earlier API and mobile evidence above was not rerun by this fix.
+
 The requested mobile changes are **Implemented** with local build, widget and rendered visual verification. Next device-dependent checks are installation/launcher rendering on an authorized Android device and physical keyboard, accessibility and platform integration behavior. Full-logo tagline legibility at small launcher sizes is inherently limited. External integration and infrastructure maturity remain **Partially Implemented / Unverified** as identified in the capability and external-validation tables; this change does not resolve those gaps.
 
 ## Change History
 
 | Date | Version | Change | Evidence |
 | --- | --- | --- | --- |
+| 2026-09-10 | 7.0 | Fix MapsModule authentication dependency import causing Railway startup failure | Build, API typecheck and 8 focused tests passed; Railway recovery pending deployment |
 | 2026-09-10 | 7.0 | Android launcher identity, Forui controls/touch sizing, Title Case, four welcome actions and presentation-only Provider/KCCA sign-in context | Mobile sources, 85 tests, 22 visual cases, debug APK and packaged-resource inspection |
 | 2026-08-20 | 6.0 | Reliable delivery, account security and operational integrations | Historical validation above |
 
