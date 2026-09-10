@@ -6,9 +6,9 @@
 
 | Field | Value |
 | --- | --- |
-| Document version | 7.0 |
+| Document version | 8.0 |
 | Last updated | 2026-09-10 |
-| Verified against | Local repository at `D:\Dev\weyonje`; no deployment, shared database, external account, billing action, or secret was accessed or changed |
+| Verified against | Local repository at `D:\Dev\weyonje`; no deployment, shared database or billing action; ignored SMS configuration checked without exposing values; provider dashboard requires user sign-in |
 | System version | Mobile `0.1.0+1`; API/contracts `0.1.0` |
 
 ## Current project summary
@@ -21,7 +21,7 @@ The established Client request, marketplace and Call Centre ingress, atomic Prov
 
 | Capability | Status | Repository reality |
 | --- | --- | --- |
-| Native authentication/registration | **Implemented** | Existing session rotation, phone verification, Provider review and role eligibility remain server-authoritative. |
+| Native authentication/registration | **Implemented locally; live SMS unverified** | Automatic six-box Client verification, pending registration recovery and atomic OTP/account/session completion extend existing native endpoints. Provider review and role eligibility remain server-authoritative. |
 | Password recovery | **Implemented; live email/SMS unverified** | Provider/KCCA recovery supports registered phone or email, non-enumerating requests, throttling, expiry, attempt limits, supersession, HMAC-only secrets, one-time use, password rules, session revocation, audit events, guarded fake SMS/email, and mobile request/code/password/success states. |
 | Email verification | **Implemented; access gating unresolved** | Authenticated request, phone/email method selection, resend, supersession, expiry, one-time verification, `emailVerifiedAt`, audit events, mobile flow and deep-link route exist. No new Provider/KCCA access block was imposed because the Business Process Specification does not clearly approve that rule. |
 | PostgreSQL reliable delivery | **Implemented locally; production worker unprovisioned** | Leased `FOR UPDATE SKIP LOCKED` claims, attempts, retry/backoff, dead letters, abandoned-claim recovery, cleanup, graceful shutdown, worker entry point, health endpoint and per-event isolation exist. In-app completion is deduplicated by source outbox ID. External exactly-once delivery still depends on provider idempotency semantics. |
@@ -42,11 +42,23 @@ The established Client request, marketplace and Call Centre ingress, atomic Prov
 
 **Implemented:** Standard mobile forms, selections, buttons, radios, switches, sliders, cards, tiles, dialogs and progress indicators now compose Forui 0.25.0. `lib/theme/` remains the single palette/typography/style owner, with explicit 48 dp text/select/button constraints and padded radio/switch targets because Forui's defaults are smaller. `WeyonjeSelect` preserves stable values, duplicate display names and validators; `WeyonjeDialog` provides a scrollable Forui dialog body. Existing button/page/logo/alert boundaries remain. Page headings wrap at enlarged text, forms scroll above keyboards, and authored headings/action labels use conventional Title Case. The Choose Account Type descriptions and Client Registration authored form labels use Title Case as a scoped presentation exception; this does not introduce application-wide runtime title-casing. Native date/time pickers, maps and platform permission controls remain. Existing Forui-bundled Inter/Lucide and light-only behavior are retained; no new theme mode or dependency was introduced.
 
-The change remains inside mobile presentation, launcher packaging, tests and documentation. Auth controllers, session lifecycle, API contracts, worker/database/integration/deployment code are unchanged. No environment variables were added or changed.
+The earlier branding change was limited to presentation and packaging. Subsequent phone-flow changes below extend existing auth controllers, SMS delivery and completion transactions. API contracts, workers, schema and deployment configuration remain unchanged.
+
+## Client Phone Registration and Sign-In — 2026-09-10
+
+**Implemented locally:** Service Provider description is exactly **Receive and Handle Service Requests**. Client registration preserves conditional fields, required/optional indicators, optional email, normalized phones and post-verification numbering. Repeating registration for an unverified Client resumes its original pending profile without unauthenticated profile replacement. Both Client flows retain their purpose-specific endpoints. Unknown/inactive Client sign-in creates no account and adds no eligibility disclosure.
+
+**Implemented locally:** `WeyonjeOtpField` wraps pinned Forui 0.25.0 `FOtpField`. Manual entry/paste, numeric keyboard, leading zeroes and one-time-code autofill share a guarded automatic six-digit server request. Only text edits clear invalid styling. Checking, red invalid input, expiry/exhaustion, transient failure with explicit retry and green server-confirmed success have distinct feedback and live-region messages. Success remains visible for 650 ms before existing actor routing; leaving cancels the transition. Actor-resolution failure after secure storage uses existing session-error retry without replaying the OTP.
+
+**Implemented; physical retrieval unverified:** A focused Dart/native boundary starts SMS Retriever before delivery/resend, buffers up to four transient UUID-scoped candidates, ignores obsolete references and disposes receivers/timers. Google's `play-services-auth-api-phone:18.3.1` is the only new runtime dependency. No SMS-reading permission, Flutter package, extra design system or identity store was introduced. Manual input remains available without services/hash/receipt. Package/signing configuration is unchanged; debug identity was derived from its real public certificate. Proper production release signing remains **Not Implemented**.
+
+**Implemented locally:** Reusable OTP composition uses configured TTL, validates the trusted 11-character server hash and enforces 140 UTF-8 bytes. Africa's Talking must explicitly accept the intended recipient with a message ID; this does not prove handset receipt. Unconfirmed acceptance retains a challenge for controlled resend, with no blind timeout retry. Fake is prohibited in production. The only new environment variable is optional server-owned `SMS_ANDROID_APP_HASH`; credentials/live settings were unchanged. See `docs/PHONE_VERIFICATION_SETUP.md` for setup, official references and remaining external steps.
 
 ## Data and migrations
 
-Forward-only migrations added after the established workflow migration:
+**Phone-flow transaction update (2026-09-10):** No schema/migration change. Issuance serializes protected phone/purpose requests with a PostgreSQL advisory transaction lock before limits/cooldown/supersession. Correct-code consumption atomically rechecks remaining attempts, expiry and one-time status and shares the transaction with activation, account numbering/Provider notification, native session and refresh-hash creation. Completion failure rolls back those writes; wrong-code decrements remain durable. Lost responses after commit require fresh sign-in if credentials were not saved. Consumed OTPs cannot be replayed. Actual PostgreSQL lock/rollback testing remains unavailable without isolated URLs.
+
+Historical forward-only migrations added after the established workflow migration:
 
 - `20260820110000_reliable_delivery_foundation`: email delivery channel, leased claims, dead letters and immutable delivery attempts.
 - `20260820130000_account_recovery_verification`: recovery/verification challenges and security events.
@@ -81,7 +93,7 @@ The API supplies the adopted development defaults: 15-second interval, 25-metre 
 | --- | --- |
 | Google Maps Platform | **Unknown / Not Yet Verified.** Requires authorised non-production Google Cloud project, billing/quota budget and alerts, Maps SDK for Android, Places API (New), Geocoding API, Routes API, restricted Android key and separate restricted server key. |
 | Firebase/FCM | **Unknown / Not Yet Verified.** Requires authorised Firebase project, Android app registration/config, Railway service credentials and physical-device foreground/background/terminated tests. |
-| SMS/email | **Temporarily Disabled/Fake.** Fake SMS/email/push are prohibited in the Weyonje production environment. No real message was sent. Live email provider remains unselected. |
+| SMS/email | **Live SMS adapter configured locally.** User-generated live key saved in ignored .env; default sender supported by omitting from. One connection test accepted (HTTP 201/status 100, UGX 27), with user-provided dashboard Sent record from AFRICASTKNG. Local provider selects Africa's Talking. No deployed settings changed; live registration/sign-in completion and physical autofill remain unverified. Production fake is prohibited. Live email provider remains unselected. |
 | Railway worker | **Not Implemented externally.** Code and command exist; creating the worker service, variables, health monitoring and capacity is an external authorisation. |
 | PostgreSQL migrations | **Not applied.** Isolated test URLs were unavailable; shared Neon/Railway data was untouched. |
 | Android background behavior | **Unknown / Not Yet Verified.** Requires physical Android testing for battery restrictions, process removal, restart and force-stop expectations. |
@@ -104,6 +116,14 @@ The API supplies the adopted development defaults: 15-second interval, 25-metre 
 - No connected Android device was available (`flutter devices` listed desktop/browser targets only), so launcher/app-drawer installation and physical-device behavior were **not verified**. No application was uninstalled or cleared. The existing `flutter_foreground_task` dependency emits a future Kotlin Gradle Plugin compatibility warning; the debug build succeeds. No dependency upgrade was attempted.
 - API/integration/deployment results in the historical section were not rerun or newly validated by this mobile-only change. Existing external-service, release-signing, background execution and operational limitations remain as recorded above.
 
+## Phone Flow Validation — 2026-09-10
+
+- API: `pnpm --filter @weyonje/api test --runInBand` passed **23 suites / 124 tests**; **one suite / four isolated PostgreSQL tests skipped** because isolated URLs are absent. Coverage includes retained Provider/password flows, provider acceptance/rejection/malformed responses, no blind timeout retry, fake configuration, purpose isolation, expiry, exhaustion, conditional concurrent consumption and pending Client recovery.
+- `pnpm typecheck` and `pnpm build` passed, including Prisma validation/generation. No shared/test migration was applied. API contracts are unchanged.
+- Final `flutter test --no-pub --reporter compact` passed **106 tests**, including abandoned/overlapping flows and unconfirmed-delivery recovery. Dart formatting checked 61 files with no changes; full Flutter analysis and final targeted Dart analysis passed. Eleven account-choice/verification renders were inspected, including compact, 2× text and keyboard layouts; clipping and a programmatic cursor assertion were corrected. `pnpm openapi:check` passed without contract changes.
+- Final `flutter build apk --debug --no-pub` passed. APK: `apps/mobile/build/app/outputs/flutter-apk/app-debug.apk` (239,199,435 bytes; SHA-256 `830F5C7D432E89993C3821B2D8DD02A61DF43A722865C1DD245C1ABF0901885D`). Manifest inspection confirmed the existing application ID and no SMS-reading permissions. A pre-existing `flutter_foreground_task` Kotlin Gradle Plugin future-compatibility warning remains. No connected Android device was present in `adb devices -l`. Provider acceptance, handset receipt, physical retrieval and live verification remain separately **Not Verified**.
+- Business Process DOCX was structurally inspected for Client/Provider registration requirements; no source document was edited. The immutable state template remains unchanged.
+
 ## Current Priorities and Remaining Limitations
 
 ### Railway startup fix validation — 2026-09-10
@@ -118,6 +138,7 @@ The requested mobile changes are **Implemented** with local build, widget and re
 
 | Date | Version | Change | Evidence |
 | --- | --- | --- | --- |
+| 2026-09-10 | 8.0 | Automatic phone verification, Android Retriever, provider acceptance and atomic completion | Local code/tests/build; external SMS/device/database evidence pending |
 | 2026-09-10 | 7.0 | Fix MapsModule authentication dependency import causing Railway startup failure | Build, API typecheck and 8 focused tests passed; Railway recovery pending deployment |
 | 2026-09-10 | 7.0 | Android launcher identity, Forui controls/touch sizing, Title Case, four welcome actions and presentation-only Provider/KCCA sign-in context | Mobile sources, 85 tests, 22 visual cases, debug APK and packaged-resource inspection |
 | 2026-08-20 | 6.0 | Reliable delivery, account security and operational integrations | Historical validation above |
@@ -132,3 +153,7 @@ The requested mobile changes are **Implemented** with local build, widget and re
 ## Authority boundary
 
 No external account, database, deployment, Railway setting, Google/Firebase resource, credential, billing configuration, real message, Git commit, push or destructive data action was performed. `CURRENT_SYSTEM_STATE_TEMPLATE.md` remains unchanged.
+
+### Default SMS sender integration follow-up (2026-09-10)
+
+The optional sender configuration omits the provider `from` field when blank. Local live settings use this supported route for the shared registration/sign-in SMS service. API regression suite: 124 passed, four isolated PostgreSQL tests skipped; targeted Flutter authentication/verification suite: 67 passed. API typecheck passed. No additional SMS sends or deployment performed.

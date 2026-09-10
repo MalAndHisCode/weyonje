@@ -11,6 +11,14 @@ import {
   OutboxStatus,
 } from "../src/generated/prisma/enums";
 import { DeliveryProcessor } from "../src/delivery/delivery.processor";
+import { PhoneChallengeService } from "../src/registration/phone-challenge.service";
+import { PhoneSecurityService } from "../src/registration/phone-security.service";
+import { DevelopmentFakeSmsGateway } from "../src/registration/sms-gateway";
+import { PhoneChallengePurpose } from "../src/generated/prisma/enums";
+import { SessionService } from "../src/auth/session.service";
+import { TokenService } from "../src/auth/token.service";
+import { PrismaService } from "../src/database/prisma.service";
+import { testAuthConfig } from "./support/auth-config";
 
 const runtimeUrl = process.env.TEST_DATABASE_URL;
 const directUrl = process.env.TEST_DIRECT_URL;
@@ -21,6 +29,14 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
   let prisma: PrismaClient;
 
   beforeAll(async () => {
+    if (
+      runtimeUrl === process.env.DATABASE_URL ||
+      directUrl === process.env.DIRECT_URL
+    ) {
+      throw new Error(
+        "Use separately isolated test database URLs, never shared application data.",
+      );
+    }
     execFileSync(
       process.platform === "win32" ? "pnpm.cmd" : "pnpm",
       ["prisma", "migrate", "deploy"],
@@ -37,6 +53,101 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
   });
 
   afterAll(async () => prisma?.$disconnect());
+
+  it("rolls back OTP/account/session completion and consumes once under concurrent retry", async () => {
+    const config = testAuthConfig();
+    const phones = new PhoneSecurityService(config);
+    const database = prisma as unknown as PrismaService;
+    const service = new PhoneChallengeService(
+      database,
+      phones,
+      new DevelopmentFakeSmsGateway(),
+      config,
+      {
+        provider: "FAKE",
+        username: "",
+        apiKey: "",
+        senderId: "",
+        baseUrl: "",
+        timeoutMilliseconds: 8000,
+      },
+    );
+    const sessions = new SessionService(
+      database,
+      new TokenService(config),
+      config,
+    );
+    const phone = `+2567${Date.now().toString().slice(-8)}`;
+    const user = await prisma.user.create({
+      data: {
+        actorType: ActorType.CLIENT,
+        phoneLookup: phones.lookup(phone),
+        encryptedPhone: phones.encrypt(phone),
+        isActive: false,
+        loginEnabled: false,
+      },
+    });
+    const challenge = await service.create(
+      phone,
+      PhoneChallengePurpose.REGISTRATION,
+      user.id,
+    );
+    try {
+      await expect(
+        service.verifyAndComplete(
+          challenge.challengeId,
+          challenge.developmentVerificationCode!,
+          PhoneChallengePurpose.REGISTRATION,
+          async (_, tx) => {
+            await tx.user.update({
+              where: { id: user.id },
+              data: {
+                phoneVerifiedAt: new Date(),
+                loginEnabled: true,
+                isActive: true,
+              },
+            });
+            await sessions.create(user, tx);
+            throw new Error("synthetic interruption after session creation");
+          },
+        ),
+      ).rejects.toThrow("synthetic interruption");
+      expect(
+        await prisma.phoneChallenge.findUniqueOrThrow({
+          where: { id: challenge.challengeId },
+        }),
+      ).toMatchObject({ consumedAt: null });
+      expect(
+        await prisma.user.findUniqueOrThrow({ where: { id: user.id } }),
+      ).toMatchObject({ phoneVerifiedAt: null, loginEnabled: false });
+      expect(
+        await prisma.authenticationSession.count({
+          where: { userId: user.id },
+        }),
+      ).toBe(0);
+      const results = await Promise.allSettled(
+        [1, 2].map(() =>
+          service.verifyAndComplete(
+            challenge.challengeId,
+            challenge.developmentVerificationCode!,
+            PhoneChallengePurpose.REGISTRATION,
+            async (_, tx) => sessions.create(user, tx),
+          ),
+        ),
+      );
+      expect(
+        results.filter((result) => result.status === "fulfilled"),
+      ).toHaveLength(1);
+      expect(
+        await prisma.authenticationSession.count({
+          where: { userId: user.id },
+        }),
+      ).toBe(1);
+    } finally {
+      await prisma.phoneChallenge.deleteMany({ where: { userId: user.id } });
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  });
 
   it("enforces protected-email uniqueness and Provider consistency", async () => {
     const lookup = Buffer.from(randomUUID()).toString("base64url");

@@ -8,11 +8,18 @@ import { ApiErrorCode } from "@weyonje/contracts";
 import { randomUUID } from "node:crypto";
 
 import { smsConfig } from "../config/sms.config";
+import { composeOtpMessage } from "./otp-message";
+
+export interface OtpMessageContext {
+  challengeId: string;
+  ttlSeconds: number;
+}
 
 export abstract class SmsGateway {
   abstract sendVerificationCode(
     phoneNumber: string,
     code: string,
+    context: OtpMessageContext,
   ): Promise<string>;
 }
 
@@ -26,6 +33,7 @@ export class AfricasTalkingSmsGateway implements SmsGateway {
   async sendVerificationCode(
     phoneNumber: string,
     code: string,
+    context: OtpMessageContext,
   ): Promise<string> {
     const controller = new AbortController();
     const timeout = setTimeout(
@@ -36,9 +44,14 @@ export class AfricasTalkingSmsGateway implements SmsGateway {
       const body = new URLSearchParams({
         username: this.config.username,
         to: phoneNumber,
-        message: `Your Weyonje verification code is ${code}. It expires in 10 minutes. Do not share this code.`,
-        from: this.config.senderId,
+        message: composeOtpMessage(
+          code,
+          context.challengeId,
+          context.ttlSeconds,
+          this.config.androidAppHash,
+        ),
       });
+      if (this.config.senderId) body.set("from", this.config.senderId);
       const response = await fetch(
         `${this.config.baseUrl}/version1/messaging`,
         {
@@ -59,14 +72,17 @@ export class AfricasTalkingSmsGateway implements SmsGateway {
             messageId?: string;
             status?: string;
             statusCode?: number;
+            number?: string;
           }>;
         };
       };
       const recipient = value.SMSMessageData?.Recipients?.[0];
       if (
-        !recipient?.messageId ||
-        recipient.status?.toLowerCase().includes("fail") ||
-        (recipient.statusCode !== undefined && recipient.statusCode >= 400)
+        value.SMSMessageData?.Recipients?.length !== 1 ||
+        typeof recipient?.messageId !== "string" ||
+        !recipient.messageId.trim() ||
+        recipient.number !== phoneNumber ||
+        ![100, 101, 102].includes(recipient.statusCode ?? -1)
       ) {
         throw new Error("SMS provider rejected the message");
       }
@@ -74,7 +90,8 @@ export class AfricasTalkingSmsGateway implements SmsGateway {
     } catch {
       throw new ServiceUnavailableException({
         code: ApiErrorCode.dependencyUnavailable,
-        message: "The verification code could not be sent. Try again.",
+        message:
+          "SMS acceptance could not be confirmed. Wait before requesting a new code.",
       });
     } finally {
       clearTimeout(timeout);

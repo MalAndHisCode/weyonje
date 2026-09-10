@@ -235,7 +235,7 @@ void main() {
         );
         expect(
           find.bySemanticsLabel(
-            'Service Provider. Receive and Handle Service Requests After Satisfying KCCA Approval Requirements.',
+            'Service Provider. Receive and Handle Service Requests',
           ),
           findsOneWidget,
         );
@@ -369,7 +369,9 @@ void main() {
         find.byKey(const Key('verification-code')),
         '123456',
       );
-      await tester.tap(find.byKey(const Key('verify-phone')));
+      await tester.pump();
+      expect(find.text('Phone Verified'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 700));
       await tester.pumpAndSettle();
       expect(repository.verifyClientCodeCalls, 1);
       expect(find.text('Client Dashboard'), findsWidgets);
@@ -401,10 +403,10 @@ void main() {
       await tester.tap(find.byKey(const Key('request-client-code')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Development SMS Mode'), findsOneWidget);
+      expect(find.textContaining('Development SMS mode'), findsOneWidget);
       expect(
         find.text(
-          'No SMS was sent. Use test code 654321; it has been filled in below.',
+          'Development SMS mode: no SMS was sent. A test code is filled in automatically.',
         ),
         findsOneWidget,
       );

@@ -27,6 +27,14 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 | Scheduled reminders | **Implemented for creation/delivery** | Transactional scheduled outbox events, offset config, restart-safe claims, eligibility recheck, in-app/push | No current public timing-edit/cancel command exists; corresponding reschedule/cancel hooks and tests remain. |
 | Reliable delivery | **Implemented locally** | PostgreSQL leases, skip-locked claims, attempt history, backoff, dead-letter, crash lease recovery, cleanup, health, worker | Two-processor real PostgreSQL test is opt-in and skipped without isolated URLs. Railway worker service is not created. |
 
+## Phone Verification Completion — 2026-09-10
+
+- **Implemented locally:** Native registration/Client sign-in endpoints and session authority are retained. Shared Forui six-box verification submits complete changed input, preserves leading zeroes/manual/paste, announces checking/error/success and shows green success for 650 ms before actor routing. Resend, expiry, exhaustion, transient failures, abandonment and saved-session recovery have distinct guarded behavior.
+- **Implemented locally:** Service Provider description is exactly **Receive and Handle Service Requests**. Client conditional fields and post-verification account numbering remain unchanged.
+- **Implemented; device evidence pending:** First-party SMS Retriever starts before request/resend, buffers UUID-scoped transient candidates and needs no broad SMS permission. Optional trusted server hash comes from actual package/certificate identity. Existing package/signing configuration is preserved.
+- **Implemented locally:** Provider-neutral TTL/hash composition, strict Africa's Talking recipient acceptance, guarded fake, no blind retries, resumable pending registration, issuance locks and atomic OTP/account/session completion. No outbox, identity-store or schema redesign.
+- **Partially Implemented externally:** Local provider entries fail username validation; dashboard needs secure sign-in. No connected device, authorized recipient/allowance or isolated PostgreSQL URLs. Provider acceptance, handset receipt, physical autofill and real verification are not claimed. See `../PHONE_VERIFICATION_SETUP.md` and current state for evidence and remaining steps.
+
 ## Adopted decisions
 
 ### Mobile Branding and Access Entry Update — 2026-09-10

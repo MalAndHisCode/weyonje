@@ -27,7 +27,16 @@ import { PhoneSecurityService } from "./phone-security.service";
         config: ConfigType<typeof smsConfig>,
         africasTalking: AfricasTalkingSmsGateway,
         fake: DevelopmentFakeSmsGateway,
-      ) => (config.provider === "AFRICAS_TALKING" ? africasTalking : fake),
+      ) => {
+        switch (config.provider) {
+          case "AFRICAS_TALKING":
+            return africasTalking;
+          case "FAKE":
+            return fake;
+          default:
+            throw new Error("Unsupported SMS_PROVIDER");
+        }
+      },
     },
   ],
   exports: [PhoneChallengeService, PhoneSecurityService],

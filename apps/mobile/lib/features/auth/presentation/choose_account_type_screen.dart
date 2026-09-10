@@ -54,11 +54,9 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
                 key: const Key('account-provider'),
                 value: _selection == RegistrationAccountType.serviceProvider,
                 semanticsLabel:
-                    'Service Provider. Receive and Handle Service Requests After Satisfying KCCA Approval Requirements.',
+                    'Service Provider. Receive and Handle Service Requests',
                 label: const Text('Service Provider'),
-                description: const Text(
-                  'Receive and Handle Service Requests After Satisfying KCCA Approval Requirements.',
-                ),
+                description: const Text('Receive and Handle Service Requests'),
                 onChange: (_) =>
                     _select(RegistrationAccountType.serviceProvider),
               ),

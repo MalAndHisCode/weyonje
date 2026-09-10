@@ -110,24 +110,26 @@ export class AuthService {
     challengeId: string,
     code: string,
   ): Promise<SessionCredentialsContract> {
-    const userId = await this.challenges.verify(
+    return this.challenges.verifyAndComplete(
       challengeId,
       code,
       PhoneChallengePurpose.CLIENT_SIGN_IN,
-    );
-    if (!userId) throw this.invalidClientCode();
-    const user = await this.prisma.user.findFirst({
-      where: {
-        id: userId,
-        actorType: ActorType.CLIENT,
-        phoneVerifiedAt: { not: null },
-        loginEnabled: true,
-        isActive: true,
+      async (userId, transaction) => {
+        if (!userId) throw this.invalidClientCode();
+        const user = await transaction.user.findFirst({
+          where: {
+            id: userId,
+            actorType: ActorType.CLIENT,
+            phoneVerifiedAt: { not: null },
+            loginEnabled: true,
+            isActive: true,
+          },
+          select: { id: true, passwordVersion: true },
+        });
+        if (!user) throw this.invalidClientCode();
+        return this.sessions.create(user, transaction);
       },
-      select: { id: true, passwordVersion: true },
-    });
-    if (!user) throw this.invalidClientCode();
-    return this.sessions.create(user);
+    );
   }
 
   private invalidCredentials(): UnauthorizedException {

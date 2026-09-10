@@ -52,3 +52,7 @@ Password recovery and email-verification mobile flows use guarded fake delivery 
 ## Live validation
 
 For Maps, enable Maps SDK for Android, Places API (New), Geocoding API and Routes API; set quota budgets/alerts; use separate restricted Android/server keys; then test map load, tap/search/reverse/route plus invalid-key, quota, offline and timeout fallbacks. For FCM, provide the authorised Android Firebase configuration outside source control, enable the flag, and verify token rotation, logout removal, invalid-token cleanup, foreground/background/terminated opens and expired-session routing on a physical device. Test foreground tracking across backgrounding, recent-app removal, process restart, disabled GPS, permission denial and battery restrictions; do not describe force-stop as supported.
+
+## Client phone verification
+
+The existing registration and Client code-sign-in screens share automatic six-box Forui verification and Android SMS Retriever. Server-confirmed success remains visible before actor routing; manual entry and paste remain available. See [phone verification setup](../../docs/PHONE_VERIFICATION_SETUP.md) for lifecycle/recovery, trusted app hashes, the first-party Android dependency, exact signing limitations, and the bounded live-SMS test procedure. Live delivery/autofill remains unverified.

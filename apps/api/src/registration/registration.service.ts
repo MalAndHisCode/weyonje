@@ -63,6 +63,23 @@ export class RegistrationService {
     const contactPhone = request.contactPersonPhone
       ? this.phones.normalize(request.contactPersonPhone)
       : null;
+    // Resume the original pending profile after a lost response; never overwrite
+    // its data from an unauthenticated request.
+    const pending = await this.prisma.user.findFirst({
+      where: {
+        phoneLookup: this.phones.lookup(phone),
+        actorType: PrismaActorType.CLIENT,
+        phoneVerifiedAt: null,
+        loginEnabled: false,
+      },
+      select: { id: true },
+    });
+    if (pending)
+      return this.challenges.create(
+        phone,
+        PhoneChallengePurpose.REGISTRATION,
+        pending.id,
+      );
     await this.assertIdentifiersAvailable(phone, email);
     let user: { id: string };
     try {
@@ -165,56 +182,55 @@ export class RegistrationService {
     challengeId: string,
     code: string,
   ): Promise<SessionCredentialsContract> {
-    const userId = await this.challenges.verify(
+    return this.challenges.verifyAndComplete(
       challengeId,
       code,
       PhoneChallengePurpose.REGISTRATION,
-    );
-    if (!userId) throw new NotFoundException();
-    const now = new Date();
-    const user = await this.prisma.$transaction(async (transaction) => {
-      const current = await transaction.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          actorType: true,
-          phoneVerifiedAt: true,
-          passwordVersion: true,
-        },
-      });
-      if (!current || current.phoneVerifiedAt !== null) {
-        throw this.conflict("This registration has already been verified.");
-      }
-      await transaction.user.update({
-        where: { id: current.id },
-        data: {
-          phoneVerifiedAt: now,
-          loginEnabled: true,
-          isActive: current.actorType === PrismaActorType.CLIENT,
-        },
-      });
-      if (current.actorType === PrismaActorType.CLIENT) {
-        await transaction.clientProfile.update({
-          where: { userId: current.id },
-          data: { clientNumber: accountNumber("WCL") },
-        });
-      } else if (current.actorType === PrismaActorType.SERVICE_PROVIDER) {
-        await transaction.registrationNotification.create({
-          data: {
-            recipientActorType: PrismaActorType.KCCA_STAFF,
-            type: NotificationType.PROVIDER_REVIEW_REQUIRED,
-            subjectUserId: current.id,
+      async (userId, transaction) => {
+        if (!userId) throw new NotFoundException();
+        const now = new Date();
+        const current = await transaction.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            actorType: true,
+            phoneVerifiedAt: true,
+            passwordVersion: true,
           },
         });
-      } else {
-        throw new BadRequestException({
-          code: ApiErrorCode.invalidRequest,
-          message: "This registration cannot be verified here.",
+        if (!current || current.phoneVerifiedAt !== null) {
+          throw this.conflict("This registration has already been verified.");
+        }
+        await transaction.user.update({
+          where: { id: current.id },
+          data: {
+            phoneVerifiedAt: now,
+            loginEnabled: true,
+            isActive: current.actorType === PrismaActorType.CLIENT,
+          },
         });
-      }
-      return current;
-    });
-    return this.sessions.create(user);
+        if (current.actorType === PrismaActorType.CLIENT) {
+          await transaction.clientProfile.update({
+            where: { userId: current.id },
+            data: { clientNumber: accountNumber("WCL") },
+          });
+        } else if (current.actorType === PrismaActorType.SERVICE_PROVIDER) {
+          await transaction.registrationNotification.create({
+            data: {
+              recipientActorType: PrismaActorType.KCCA_STAFF,
+              type: NotificationType.PROVIDER_REVIEW_REQUIRED,
+              subjectUserId: current.id,
+            },
+          });
+        } else {
+          throw new BadRequestException({
+            code: ApiErrorCode.invalidRequest,
+            message: "This registration cannot be verified here.",
+          });
+        }
+        return this.sessions.create(current, transaction);
+      },
+    );
   }
 
   async pendingProviders(
@@ -494,7 +510,9 @@ export class RegistrationService {
         data: {
           recipientUserId: providerUserId,
           type: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
-          title: approved ? "Provider registration approved" : "Provider registration reviewed",
+          title: approved
+            ? "Provider registration approved"
+            : "Provider registration reviewed",
           message: accountMessage,
         },
       });
@@ -504,7 +522,10 @@ export class RegistrationService {
           channel: NotificationDeliveryChannel.PUSH,
           eventType: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
           deduplicationKey: `provider:${providerUserId}:review:${approved ? "approved" : "rejected"}`,
-          payload: { providerUserId, decision: approved ? "APPROVED" : "REJECTED" },
+          payload: {
+            providerUserId,
+            decision: approved ? "APPROVED" : "REJECTED",
+          },
         },
       });
       return approved

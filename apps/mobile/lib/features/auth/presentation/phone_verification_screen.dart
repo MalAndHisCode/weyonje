@@ -1,21 +1,20 @@
-import 'package:forui/forui.dart';
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/registration_models.dart';
+import '../../../core/auth/sms_retriever.dart';
 import '../../../ui/weyonje_alert.dart';
 import '../../../ui/weyonje_button.dart';
+import '../../../ui/weyonje_otp_field.dart';
 import '../../../ui/weyonje_page.dart';
 import '../application/registration_controller.dart';
 
 class PhoneVerificationScreen extends ConsumerStatefulWidget {
   const PhoneVerificationScreen({required this.arguments, super.key});
-
   final PhoneVerificationArguments arguments;
-
   @override
   ConsumerState<PhoneVerificationScreen> createState() =>
       _PhoneVerificationScreenState();
@@ -23,124 +22,185 @@ class PhoneVerificationScreen extends ConsumerStatefulWidget {
 
 class _PhoneVerificationScreenState
     extends ConsumerState<PhoneVerificationScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _code = TextEditingController();
+  final _code = FOtpController(
+    value: const TextEditingValue(
+      selection: TextSelection.collapsed(offset: 0),
+    ),
+  );
   late PhoneChallenge _challenge;
+  late SmsRetrieval _retrieval;
+  late int _retrievalGeneration;
+  late PhoneVerificationController _controller;
+  late final _controllerProvider = phoneVerificationControllerProvider(
+    widget.arguments.challenge.id,
+  );
   Timer? _timer;
+  bool _replacing = false;
+  String? _lastText;
+
+  PhoneVerificationArguments get _arguments => PhoneVerificationArguments(
+    challenge: _challenge,
+    purpose: widget.arguments.purpose,
+  );
+  bool get _canResend =>
+      !DateTime.now().toUtc().isBefore(_challenge.resendAvailableAt);
+  bool get _expired => !DateTime.now().toUtc().isBefore(_challenge.expiresAt);
 
   @override
   void initState() {
     super.initState();
     _challenge = widget.arguments.challenge;
-    _applyDevelopmentCode();
+    _retrieval = ref.read(smsRetrievalProvider);
+    _retrievalGeneration = _retrieval.generation;
+    _controller = ref.read(_controllerProvider.notifier);
+    _retrieval.addListener(_received);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && !_canResend) setState(() {});
+      if (mounted) setState(() {});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _fill(_challenge.developmentVerificationCode ?? '');
+      _received();
+      _changed();
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _retrieval.removeListener(_received);
+    _controller.abandon();
+    unawaited(_retrieval.stopIfCurrent(_retrievalGeneration));
     _code.dispose();
     super.dispose();
   }
 
-  bool get _canResend =>
-      !DateTime.now().toUtc().isBefore(_challenge.resendAvailableAt);
+  void _received() {
+    if (!mounted || _replacing) return;
+    final state = ref.read(_controllerProvider);
+    if (state.inProgress || state.resending) return;
+    final candidate = _retrieval.takeCandidate(_challenge.id);
+    if (candidate == null) return;
+    _fill(candidate.code);
+    _changed();
+  }
+
+  void _fill(String code) {
+    _code.value = TextEditingValue(
+      text: code,
+      selection: TextSelection.collapsed(offset: code.length),
+    );
+  }
+
+  void _changed() {
+    if (_replacing || !mounted) return;
+    if (_challenge.deliveryStatus == PhoneCodeDeliveryStatus.failed) return;
+    if (_lastText == _code.text) return;
+    _lastText = _code.text;
+    final controller = ref.read(_controllerProvider.notifier);
+    controller.edited();
+    if (_code.text.length == 6) {
+      unawaited(controller.verify(_arguments, _code.text));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(phoneVerificationControllerProvider);
-    final arguments = PhoneVerificationArguments(
-      challenge: _challenge,
-      purpose: widget.arguments.purpose,
-    );
-    return WeyonjePage(
-      title: 'Verify Phone Number',
-      showBack: true,
-      child: Material(
-        color: Colors.transparent,
-        child: Form(
-          key: _formKey,
+    final state = ref.watch(_controllerProvider);
+    final failed = _challenge.deliveryStatus == PhoneCodeDeliveryStatus.failed;
+    final verified = state.phase == VerificationPhase.success;
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _controller.abandon();
+          unawaited(_retrieval.stopIfCurrent(_retrievalGeneration));
+        }
+      },
+      child: WeyonjePage(
+        title: 'Verify Phone Number',
+        showBack: true,
+        child: Material(
+          color: Colors.transparent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Enter the six-digit code sent to ${_challenge.maskedPhone}.',
+                'Verify ${_challenge.maskedPhone}.',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
-              if (_challenge.deliveryStatus ==
-                  PhoneCodeDeliveryStatus.failed) ...[
-                const SizedBox(height: 20),
-                const WeyonjeAlert(
-                  title: 'Code Not Sent',
-                  message:
-                      'The SMS provider did not accept the message. Your information was kept; request another code to retry.',
-                  error: true,
-                ),
-              ],
-              if (_challenge.developmentVerificationCode != null) ...[
-                const SizedBox(height: 20),
-                WeyonjeAlert(
-                  title: 'Development SMS Mode',
-                  message:
-                      'No SMS was sent. Use test code ${_challenge.developmentVerificationCode}; it has been filled in below.',
-                ),
-              ],
+              const SizedBox(height: 12),
+              Text(
+                failed
+                    ? 'SMS acceptance could not be confirmed. Your information was kept. Wait before requesting another code to continue; a delayed SMS may still arrive.'
+                    : _challenge.developmentVerificationCode != null
+                    ? 'Development SMS mode: no SMS was sent. A test code is filled in automatically.'
+                    : 'A code was submitted for SMS delivery. Enter it below when it arrives.',
+              ),
               const SizedBox(height: 24),
-              FTextFormField(
-                key: const Key('verification-code'),
-                control: FTextFieldControl.managed(controller: _code),
-                enabled: !state.inProgress && !state.resending,
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                autofillHints: const [AutofillHints.oneTimeCode],
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(6),
-                ],
-                label: Text('Verification code'),
-                hint: 'Six digits',
-                validator: (value) => value?.length == 6
-                    ? null
-                    : 'Enter the six-digit verification code.',
-                onSubmit: (_) => _verify(state.inProgress, arguments),
+              WeyonjeOtpField(
+                controller: _code,
+                onChanged: _changed,
+                enabled: !failed && !state.inProgress && !state.resending,
+                invalid: state.phase == VerificationPhase.invalid,
+                verified: verified,
               ),
               if (state.message case final message?) ...[
                 const SizedBox(height: 20),
                 Semantics(
                   liveRegion: true,
                   child: WeyonjeAlert(
-                    title: state.rateLimited
-                        ? 'Try Again Later'
+                    title: verified
+                        ? 'Phone Verified'
+                        : state.phase == VerificationPhase.checking
+                        ? 'Checking Code'
                         : 'Verification Not Completed',
                     message: message,
-                    error: true,
+                    error:
+                        !verified && state.phase != VerificationPhase.checking,
                   ),
                 ),
               ],
-              const SizedBox(height: 32),
-              WeyonjeButton(
-                key: const Key('verify-phone'),
-                label:
-                    widget.arguments.purpose ==
-                        PhoneVerificationPurpose.clientSignIn
-                    ? 'Sign In'
-                    : 'Verify and Create Account',
-                loading: state.inProgress,
-                onPressed: () => _verify(state.inProgress, arguments),
-              ),
-              const SizedBox(height: 12),
+              if (_expired && !verified) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  'The code expiry time has passed. Request another code.',
+                ),
+              ],
+              if (state.phase == VerificationPhase.network) ...[
+                const SizedBox(height: 20),
+                WeyonjeButton(
+                  key: const Key('verify-phone'),
+                  label: 'Retry Verification',
+                  onPressed: () => ref
+                      .read(_controllerProvider.notifier)
+                      .verify(_arguments, _code.text, retry: true),
+                ),
+              ],
+              const SizedBox(height: 24),
               WeyonjeButton(
                 key: const Key('resend-phone-code'),
-                label: _canResend ? 'Send Another Code' : 'Code Recently Sent',
+                label: _canResend
+                    ? 'Send Another Code'
+                    : 'Please Wait to Resend',
                 kind: WeyonjeButtonKind.outline,
                 loading: state.resending,
-                onPressed: _canResend && !state.inProgress
-                    ? () => _resend(arguments)
+                onPressed: _canResend && !state.inProgress && !state.resending
+                    ? _resend
                     : null,
               ),
+              if (!state.inProgress) ...[
+                const SizedBox(height: 12),
+                WeyonjeButton(
+                  label: 'Return to Sign In',
+                  kind: WeyonjeButtonKind.outline,
+                  onPressed: () => context.go(
+                    widget.arguments.purpose ==
+                            PhoneVerificationPurpose.clientSignIn
+                        ? '/sign-in/client'
+                        : '/welcome',
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -148,25 +208,19 @@ class _PhoneVerificationScreenState
     );
   }
 
-  void _verify(bool inProgress, PhoneVerificationArguments arguments) {
-    if (inProgress || !_formKey.currentState!.validate()) return;
-    ref
-        .read(phoneVerificationControllerProvider.notifier)
-        .verify(arguments, _code.text);
-  }
-
-  Future<void> _resend(PhoneVerificationArguments arguments) async {
-    final challenge = await ref
-        .read(phoneVerificationControllerProvider.notifier)
-        .resend(arguments);
-    if (!mounted || challenge == null) return;
-    setState(() {
-      _challenge = challenge;
-      _applyDevelopmentCode();
-    });
-  }
-
-  void _applyDevelopmentCode() {
-    _code.text = _challenge.developmentVerificationCode ?? '';
+  Future<void> _resend() async {
+    _replacing = true;
+    _lastText = null;
+    _code.clear();
+    final request = ref.read(_controllerProvider.notifier).resend(_arguments);
+    _retrievalGeneration = _retrieval.generation;
+    final challenge = await request;
+    if (!mounted) return;
+    _replacing = false;
+    if (challenge == null) return;
+    setState(() => _challenge = challenge);
+    _fill(challenge.developmentVerificationCode ?? '');
+    _received();
+    _changed();
   }
 }

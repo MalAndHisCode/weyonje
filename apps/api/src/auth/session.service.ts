@@ -37,16 +37,21 @@ export class SessionService {
     private readonly config: ConfigType<typeof authConfig>,
   ) {}
 
-  async create(user: {
-    id: string;
-    passwordVersion: number;
-  }): Promise<SessionCredentialsContract> {
+  async create(
+    user: {
+      id: string;
+      passwordVersion: number;
+    },
+    database:
+      Pick<PrismaService, "authenticationSession"> | TransactionClient = this
+      .prisma,
+  ): Promise<SessionCredentialsContract> {
     const now = new Date();
     const refreshExpiresAt = new Date(
       now.getTime() + this.config.refreshTokenTtlSeconds * 1000,
     );
     const refresh = this.tokens.generateRefreshToken();
-    const session = await this.prisma.authenticationSession.create({
+    const session = await database.authenticationSession.create({
       data: {
         userId: user.id,
         familyId: randomUUID(),

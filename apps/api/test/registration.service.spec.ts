@@ -119,6 +119,23 @@ describe("RegistrationService submissions", () => {
     );
   });
 
+  it("resumes a pending Client without overwriting the profile or creating a duplicate", async () => {
+    const value = harness();
+    value.user.findFirst.mockResolvedValueOnce({ id: "pending-client" });
+    await value.service.registerClient({
+      clientType: ClientType.individual,
+      firstName: "New",
+      lastName: "Submission",
+      phoneNumber: "0700000123",
+    });
+    expect(value.user.create).not.toHaveBeenCalled();
+    expect(value.challenge.create).toHaveBeenCalledWith(
+      "+256700000123",
+      PhoneChallengePurpose.REGISTRATION,
+      "pending-client",
+    );
+  });
+
   it("requires a reason before a KCCA rejection can reach persistence", async () => {
     const value = harness();
     const reviewer = {

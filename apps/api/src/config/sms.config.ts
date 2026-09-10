@@ -7,9 +7,16 @@ export interface SmsConfig {
   senderId: string;
   baseUrl: string;
   timeoutMilliseconds: number;
+  androidAppHash?: string | undefined;
 }
 
 export const smsConfig = registerAs("sms", (): SmsConfig => {
+  const androidAppHash = process.env.SMS_ANDROID_APP_HASH?.trim() || undefined;
+  if (androidAppHash && !/^[A-Za-z0-9+/]{11}$/.test(androidAppHash)) {
+    throw new Error(
+      "Invalid configuration: SMS_ANDROID_APP_HASH must be 11 base64 characters",
+    );
+  }
   const environment = process.env.WEYONJE_ENVIRONMENT?.trim();
   const provider = (
     process.env.SMS_PROVIDER ?? (environment === "production" ? "" : "FAKE")
@@ -32,6 +39,7 @@ export const smsConfig = registerAs("sms", (): SmsConfig => {
       senderId: "",
       baseUrl: "",
       timeoutMilliseconds: 8_000,
+      androidAppHash,
     };
   }
   const baseUrl = process.env.AFRICASTALKING_API_BASE_URL ?? "";
@@ -45,7 +53,7 @@ export const smsConfig = registerAs("sms", (): SmsConfig => {
   }
   const username = required("AFRICASTALKING_USERNAME");
   const apiKey = required("AFRICASTALKING_API_KEY");
-  const senderId = required("AFRICASTALKING_SENDER_ID");
+  const senderId = process.env.AFRICASTALKING_SENDER_ID?.trim() || "";
   return {
     provider,
     username,
@@ -53,6 +61,7 @@ export const smsConfig = registerAs("sms", (): SmsConfig => {
     senderId,
     baseUrl,
     timeoutMilliseconds: 8_000,
+    androidAppHash,
   };
 });
 

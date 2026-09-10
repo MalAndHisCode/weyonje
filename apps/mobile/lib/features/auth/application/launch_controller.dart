@@ -115,6 +115,12 @@ class LaunchController extends Notifier<LaunchState> {
       RateLimitedAuthFailure(:final message) => LaunchTransientError(message),
       DeniedSession(:final message) => LaunchAccessDenied(message),
       CancelledSignIn() => const LaunchUnauthenticated(),
+      CodeVerificationFailure(:final message) => LaunchUnauthenticated(
+        message: message,
+      ),
+      VerifiedSessionPending() => const LaunchTransientError(
+        'Phone verified. Retry the session check to continue.',
+      ),
     };
   }
 

@@ -82,3 +82,7 @@ Creating the Railway worker, applying migrations, and setting private Maps/Fireb
 - Account challenge and delivery lease/backoff/retention settings are listed in the root `.env.example`.
 
 Swagger UI is exposed at `/internal/docs` only when `NODE_ENV` is not production. Generate and check the committed safe contract with `pnpm openapi:generate` and `pnpm openapi:check`.
+
+## Phone OTP delivery and recovery
+
+See [phone verification setup](../../docs/PHONE_VERIFICATION_SETUP.md) for the existing native endpoint flows, provider-neutral message composition, Africa's Talking acceptance validation, SMS_ANDROID_APP_HASH, transaction/recovery limits and isolated/live test requirements. OTP delivery remains on SmsGateway; operational messaging is unchanged.

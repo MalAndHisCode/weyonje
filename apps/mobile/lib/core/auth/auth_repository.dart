@@ -43,6 +43,20 @@ class CancelledSignIn extends AuthOutcome {
   const CancelledSignIn();
 }
 
+enum CodeFailureKind { invalid, expired, exhausted }
+
+class CodeVerificationFailure extends AuthOutcome {
+  const CodeVerificationFailure(this.kind, this.message);
+  final CodeFailureKind kind;
+  final String message;
+}
+
+/// Credentials were saved; retry actor resolution, never consume the OTP again.
+class VerifiedSessionPending extends AuthOutcome {
+  const VerifiedSessionPending(this.outcome);
+  final AuthOutcome outcome;
+}
+
 abstract interface class AuthRepository {
   Future<AuthOutcome> resolveStoredSession(CancelToken cancelToken);
   Future<AuthOutcome> signInWithEmail(
@@ -123,6 +137,7 @@ class NativeAuthRepository implements AuthRepository {
         cancelToken: cancelToken,
       );
       final credentials = SessionCredentials.fromJson(response.data);
+      if (cancelToken.isCancelled) return const CancelledSignIn();
       await _sessionStore.write(credentials);
       return _resolve(credentials, cancelToken, allowRefresh: true);
     } on DioException catch (error) {
@@ -287,27 +302,48 @@ class NativeAuthRepository implements AuthRepository {
         cancelToken: cancelToken,
       );
       final credentials = SessionCredentials.fromJson(response.data);
+      if (cancelToken.isCancelled) return const CancelledSignIn();
       await _sessionStore.write(credentials);
-      return _resolve(credentials, cancelToken, allowRefresh: true);
+      final resolved = await _resolve(
+        credentials,
+        cancelToken,
+        allowRefresh: true,
+      );
+      return resolved is ResolvedSession || resolved is DeniedSession
+          ? resolved
+          : VerifiedSessionPending(resolved);
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) return const CancelledSignIn();
       if (error.response?.statusCode == 401) {
-        return const InvalidSession(
-          'The verification code is incorrect, expired, or no longer usable.',
+        final data = error.response?.data;
+        if (data is Map && data['code'] == 'AUTH_VERIFICATION_EXPIRED') {
+          return const CodeVerificationFailure(
+            CodeFailureKind.expired,
+            'This code has expired. Request another code.',
+          );
+        }
+        return const CodeVerificationFailure(
+          CodeFailureKind.invalid,
+          'This code is incorrect or no longer usable. Check it or request another code.',
         );
       }
       if (error.response?.statusCode == 429) {
-        return const RateLimitedAuthFailure(
-          'Too many verification attempts. Try again later.',
+        return const CodeVerificationFailure(
+          CodeFailureKind.exhausted,
+          'No verification attempts remain. Request another code when available.',
         );
       }
       return const TransientAuthFailure(
-        'Weyonje could not verify the code. Check your connection and try again.',
+        'The verification response was interrupted. Check your connection and retry. If the code is no longer usable, return to sign in for a new code.',
       );
     } on FormatException {
       await _sessionStore.clear();
-      return const InvalidSession(
-        'Verification returned an invalid session. Try again.',
+      return const TransientAuthFailure(
+        'The verification response was interrupted. Request a new sign-in code if retry fails.',
+      );
+    } catch (_) {
+      return const TransientAuthFailure(
+        'Your session could not be saved. Retry or request a new sign-in code.',
       );
     }
   }

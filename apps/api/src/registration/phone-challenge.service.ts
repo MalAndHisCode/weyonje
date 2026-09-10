@@ -29,6 +29,10 @@ import {
 import { PhoneSecurityService } from "./phone-security.service";
 import { SmsGateway } from "./sms-gateway";
 
+type TransactionClient = Parameters<
+  Parameters<PrismaService["$transaction"]>[0]
+>[0];
+
 @Injectable()
 export class PhoneChallengeService {
   constructor(
@@ -48,23 +52,6 @@ export class PhoneChallengeService {
   ): Promise<PhoneChallengeContract> {
     const now = new Date();
     const phoneLookup = this.phones.lookup(normalizedPhone);
-    const recent = await this.prisma.phoneChallenge.count({
-      where: {
-        phoneLookup,
-        purpose,
-        createdAt: { gte: new Date(now.getTime() - 3_600_000) },
-      },
-    });
-    if (recent >= this.config.otpMaxRequestsPerHour) {
-      throw new HttpException(
-        {
-          code: ApiErrorCode.rateLimited,
-          message:
-            "Too many verification codes were requested. Try again later.",
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
     const id = randomUUID();
     const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
     const expiresAt = new Date(
@@ -74,6 +61,36 @@ export class PhoneChallengeService {
       now.getTime() + this.config.otpResendSeconds * 1000,
     );
     await this.prisma.$transaction(async (transaction) => {
+      // Serialize issuance for the protected phone/purpose, including empty sets.
+      await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${phoneLookup + ":" + purpose}, 0))::text`;
+      const recent = await transaction.phoneChallenge.count({
+        where: {
+          phoneLookup,
+          purpose,
+          createdAt: { gte: new Date(now.getTime() - 3_600_000) },
+        },
+      });
+      if (recent >= this.config.otpMaxRequestsPerHour) {
+        throw new HttpException(
+          {
+            code: ApiErrorCode.rateLimited,
+            message:
+              "Too many verification codes were requested. Try again later.",
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+
+      const latest = await transaction.phoneChallenge.findFirst({
+        where: { phoneLookup, purpose },
+        orderBy: { createdAt: "desc" },
+      });
+      if (latest && latest.resendAvailableAt > now) {
+        throw new BadRequestException({
+          code: ApiErrorCode.invalidRequest,
+          message: "Wait before requesting another verification code.",
+        });
+      }
       await transaction.phoneChallenge.updateMany({
         where: { phoneLookup, purpose, consumedAt: null },
         data: { consumedAt: now },
@@ -97,6 +114,7 @@ export class PhoneChallengeService {
       const messageId = await this.sms.sendVerificationCode(
         normalizedPhone,
         code,
+        { challengeId: id, ttlSeconds: this.config.otpTtlSeconds },
       );
       await this.prisma.phoneChallenge.update({
         where: { id },
@@ -156,6 +174,23 @@ export class PhoneChallengeService {
     code: string,
     expectedPurpose: PhoneChallengePurpose,
   ): Promise<string | null> {
+    return this.verifyAndComplete(
+      challengeId,
+      code,
+      expectedPurpose,
+      async (userId) => userId,
+    );
+  }
+
+  async verifyAndComplete<T>(
+    challengeId: string,
+    code: string,
+    expectedPurpose: PhoneChallengePurpose,
+    complete: (
+      userId: string | null,
+      transaction: TransactionClient,
+    ) => Promise<T>,
+  ): Promise<T> {
     if (!/^\d{6}$/.test(code)) throw this.invalidCode();
     const challenge = await this.prisma.phoneChallenge.findUnique({
       where: { id: challengeId },
@@ -165,10 +200,18 @@ export class PhoneChallengeService {
       !challenge ||
       challenge.purpose !== expectedPurpose ||
       challenge.deliveryStatus !== PhoneChallengeDeliveryStatus.SENT ||
-      challenge.consumedAt !== null ||
-      challenge.attemptsRemaining <= 0
+      challenge.consumedAt !== null
     ) {
       throw this.invalidCode();
+    }
+    if (challenge.attemptsRemaining <= 0) {
+      throw new HttpException(
+        {
+          code: ApiErrorCode.rateLimited,
+          message: "No verification attempts remain. Request another code.",
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
     if (challenge.expiresAt <= now) {
       throw new UnauthorizedException({
@@ -192,12 +235,20 @@ export class PhoneChallengeService {
       });
       throw this.invalidCode();
     }
-    const consumed = await this.prisma.phoneChallenge.updateMany({
-      where: { id: challenge.id, consumedAt: null },
-      data: { consumedAt: now },
+    return this.prisma.$transaction(async (transaction) => {
+      const consumed = await transaction.phoneChallenge.updateMany({
+        where: {
+          id: challenge.id,
+          consumedAt: null,
+          attemptsRemaining: { gt: 0 },
+          expiresAt: { gt: new Date() },
+          deliveryStatus: PhoneChallengeDeliveryStatus.SENT,
+        },
+        data: { consumedAt: now },
+      });
+      if (consumed.count !== 1) throw this.invalidCode();
+      return complete(challenge.userId, transaction);
     });
-    if (consumed.count !== 1) throw this.invalidCode();
-    return challenge.userId;
   }
 
   private hash(challengeId: string, code: string): string {
