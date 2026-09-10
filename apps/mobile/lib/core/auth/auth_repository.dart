@@ -253,12 +253,58 @@ class NativeAuthRepository implements AuthRepository {
         data: data,
         cancelToken: cancelToken,
       );
-      return ChallengeCreated(PhoneChallenge.fromJson(response.data));
+      final body = response.data;
+      if (path == '/v1/auth/client-code/request' &&
+          body is Map<String, dynamic> &&
+          body['outcome'] == 'REGISTRATION_REQUIRED') {
+        return const RegistrationRequired();
+      }
+      return ChallengeCreated(PhoneChallenge.fromJson(body));
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) {
         return const ChallengeFailure('The request was cancelled. Try again.');
       }
       final status = error.response?.statusCode;
+      final body = error.response?.data;
+      if (body is Map<String, dynamic> && (status == 400 || status == 429)) {
+        final category = switch (body['limitCategory']) {
+          'OTP_HOURLY' => RequestLimitCategory.hourly,
+          'OTP_COOLDOWN' => RequestLimitCategory.cooldown,
+          'CLIENT_REQUEST' => RequestLimitCategory.clientRequest,
+          _ => null,
+        };
+        final rawRetry = body['retryAt'];
+        final retryAt = rawRetry is String
+            ? DateTime.tryParse(rawRetry)?.toUtc()
+            : null;
+        if (category != null && retryAt != null) {
+          final local = retryAt.toLocal();
+          final time = [
+            local.hour,
+            local.minute,
+            local.second,
+          ].map((part) => part.toString().padLeft(2, '0')).join(':');
+          final reason = switch (category) {
+            RequestLimitCategory.hourly =>
+              'The hourly verification-code limit has been reached.',
+            RequestLimitCategory.cooldown =>
+              'Please wait before requesting another code.',
+            RequestLimitCategory.clientRequest =>
+              'Too many Client sign-in requests.',
+          };
+          return ChallengeFailure(
+            '$reason Try again at $time.',
+            rateLimited: true,
+            retryAt: retryAt,
+            limitCategory: category,
+          );
+        }
+      }
+      if (status == 401 || status == 403) {
+        return const ChallengeFailure(
+          'Client sign-in is unavailable. If registration is unfinished, return to Client Registration to complete it.',
+        );
+      }
       if (status == 409) {
         return const ChallengeFailure(
           'These registration details are already in use. Sign in or correct the form.',

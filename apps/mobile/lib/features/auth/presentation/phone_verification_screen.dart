@@ -131,7 +131,7 @@ class _PhoneVerificationScreenState
               Text(
                 failed
                     ? 'SMS acceptance could not be confirmed. Your information was kept. Wait before requesting another code to continue; a delayed SMS may still arrive.'
-                    : 'A code was submitted for SMS delivery. Enter it below when it arrives.',
+                    : 'A code has been sent to you via SMS. Enter it below.',
               ),
               const SizedBox(height: 24),
               WeyonjeOtpField(
@@ -163,7 +163,8 @@ class _PhoneVerificationScreenState
                   'The code expiry time has passed. Request another code.',
                 ),
               ],
-              if (state.phase == VerificationPhase.network) ...[
+              if (state.phase == VerificationPhase.network &&
+                  _code.text.length == 6) ...[
                 const SizedBox(height: 20),
                 WeyonjeButton(
                   key: const Key('verify-phone'),
@@ -176,12 +177,16 @@ class _PhoneVerificationScreenState
               const SizedBox(height: 24),
               WeyonjeButton(
                 key: const Key('resend-phone-code'),
-                label: _canResend
+                label: _canResend && !_controller.waitingToResend
                     ? 'Send Another Code'
                     : 'Please Wait to Resend',
                 kind: WeyonjeButtonKind.outline,
                 loading: state.resending,
-                onPressed: _canResend && !state.inProgress && !state.resending
+                onPressed:
+                    _canResend &&
+                        !_controller.waitingToResend &&
+                        !state.inProgress &&
+                        !state.resending
                     ? _resend
                     : null,
               ),

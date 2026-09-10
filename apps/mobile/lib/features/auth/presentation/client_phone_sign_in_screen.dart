@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,11 +20,21 @@ class ClientPhoneSignInScreen extends ConsumerStatefulWidget {
 
 class _ClientPhoneSignInScreenState
     extends ConsumerState<ClientPhoneSignInScreen> {
+  Timer? _timer;
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   final _formKey = GlobalKey<FormState>();
   final _phone = TextEditingController();
 
   @override
   void dispose() {
+    _timer?.cancel();
     _phone.dispose();
     super.dispose();
   }
@@ -41,11 +52,6 @@ class _ClientPhoneSignInScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Enter the verified phone number for your Client account. We will send a six-digit sign-in code.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 24),
               FTextFormField(
                 key: const Key('client-sign-in-phone'),
                 control: FTextFieldControl.managed(controller: _phone),
@@ -54,7 +60,7 @@ class _ClientPhoneSignInScreenState
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.telephoneNumber],
-                label: Text('Phone number'),
+                label: Text('Phone Number'),
                 hint: 'e.g. 0700 000000',
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Enter your phone number.'
@@ -79,7 +85,9 @@ class _ClientPhoneSignInScreenState
                 key: const Key('request-client-code'),
                 label: 'Send Sign-In Code',
                 loading: state.inProgress,
-                onPressed: () => _submit(state.inProgress),
+                onPressed: state.waiting
+                    ? null
+                    : () => _submit(state.inProgress),
               ),
             ],
           ),
@@ -93,7 +101,15 @@ class _ClientPhoneSignInScreenState
     final challenge = await ref
         .read(clientCodeControllerProvider.notifier)
         .requestCode(_phone.text);
-    if (!mounted || challenge == null) return;
+    if (!mounted) return;
+    if (ref.read(clientCodeControllerProvider).registrationRequired) {
+      context.push(
+        '/register/client',
+        extra: ClientRegistrationArguments(_phone.text),
+      );
+      return;
+    }
+    if (challenge == null) return;
     context.push(
       '/verify-phone',
       extra: PhoneVerificationArguments(

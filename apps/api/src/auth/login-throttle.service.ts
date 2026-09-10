@@ -24,6 +24,80 @@ export class LoginThrottleService {
     private readonly config: ConfigType<typeof authConfig>,
   ) {}
 
+  // Separate namespaces preserve password-login counters. Consume before lookup,
+  // under locks, so absent phones and concurrent requests cannot evade protection.
+  async consumeClientRequest(
+    phoneLookup: string,
+    sourceIp: string,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (transaction) => {
+      const keys = [
+        [
+          ThrottleScope.IP,
+          this.key("client-request-ip", sourceIp),
+          this.config.ipMaxAttempts,
+        ],
+        [
+          ThrottleScope.EMAIL,
+          this.key("client-request-phone", phoneLookup),
+          this.config.accountMaxAttempts,
+        ],
+      ] as const;
+      for (const [, key] of keys) {
+        await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))::text`;
+      }
+      const now = new Date();
+      const rows = await Promise.all(
+        keys.map(([scope, keyHash]) =>
+          transaction.loginThrottle.findUnique({
+            where: { scope_keyHash: { scope, keyHash } },
+          }),
+        ),
+      );
+      const retryAt = rows.reduce(
+        (latest, row) => Math.max(latest, row?.lockedUntil?.getTime() ?? 0),
+        0,
+      );
+      if (retryAt > now.getTime())
+        throw new HttpException(
+          {
+            code: ApiErrorCode.rateLimited,
+            message:
+              "Too many Client sign-in requests. Please wait before trying again.",
+            limitCategory: "CLIENT_REQUEST",
+            retryAt: new Date(retryAt).toISOString(),
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      for (const [index, [scope, keyHash, maximum]] of keys.entries()) {
+        const row = rows[index];
+        const withinWindow =
+          row &&
+          now.getTime() - row.windowStartedAt.getTime() <
+            this.config.throttleWindowSeconds * 1000;
+        const failedAttempts = withinWindow ? row.failedAttempts + 1 : 1;
+        const data = {
+          failedAttempts,
+          windowStartedAt: withinWindow ? row.windowStartedAt : now,
+          lockedUntil:
+            failedAttempts >= maximum
+              ? new Date(now.getTime() + this.config.lockSeconds * 1000)
+              : null,
+          expiresAt: new Date(
+            now.getTime() +
+              (this.config.throttleWindowSeconds + this.config.lockSeconds) *
+                1000,
+          ),
+        };
+        await transaction.loginThrottle.upsert({
+          where: { scope_keyHash: { scope, keyHash } },
+          create: { scope, keyHash, ...data },
+          update: data,
+        });
+      }
+    });
+  }
+
   async assertAllowed(emailLookup: string, sourceIp: string): Promise<void> {
     const now = new Date();
     const keys = this.keys(emailLookup, sourceIp);

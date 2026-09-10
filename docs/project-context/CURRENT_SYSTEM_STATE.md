@@ -6,7 +6,7 @@
 
 | Field | Value |
 | --- | --- |
-| Document version | 8.1 |
+| Document version | 8.2 |
 | Last updated | 2026-09-10 |
 | Verified against | Local repository at `D:\Dev\weyonje`; no deployment, shared database or billing action; ignored SMS configuration validated without exposing values; Railway process and installed APK not verified |
 | System version | Mobile `0.1.0+1`; API/contracts `0.1.0` |
@@ -46,13 +46,30 @@ The earlier branding change was limited to presentation and packaging. Subsequen
 
 ## Client Phone Registration and Sign-In — 2026-09-10
 
-**Implemented locally:** Service Provider description is exactly **Receive and Handle Service Requests**. Client registration preserves conditional fields, required/optional indicators, optional email, normalized phones and post-verification numbering. Repeating registration for an unverified Client resumes its original pending profile without unauthenticated profile replacement. Both Client flows retain their purpose-specific endpoints. Unknown/inactive Client sign-in creates no account and adds no eligibility disclosure.
+**Implemented locally:** Service Provider description is exactly **Receive and Handle Service Requests**. Client registration preserves conditional fields, required/optional indicators, optional email, normalized phones and post-verification numbering. Repeating registration for an unverified Client resumes its original pending profile without unauthenticated profile replacement. Both Client flows retain their purpose-specific endpoints. Client sign-in now distinguishes genuine phone absence as described below; existing ineligible accounts receive a generic response and cannot enter registration through that branch.
 
 **Implemented locally:** `WeyonjeOtpField` wraps pinned Forui 0.25.0 `FOtpField`. Manual entry/paste, numeric keyboard, leading zeroes and one-time-code autofill share a guarded automatic six-digit server request. Only text edits clear invalid styling. Checking, red invalid input, expiry/exhaustion, transient failure with explicit retry and green server-confirmed success have distinct feedback and live-region messages. Success remains visible for 650 ms before existing actor routing; leaving cancels the transition. Actor-resolution failure after secure storage uses existing session-error retry without replaying the OTP.
 
 **Implemented; physical retrieval unverified:** A focused Dart/native boundary starts SMS Retriever before delivery/resend, buffers up to four transient UUID-scoped candidates, ignores obsolete references and disposes receivers/timers. Google's `play-services-auth-api-phone:18.3.1` is the only new runtime dependency. No SMS-reading permission, Flutter package, extra design system or identity store was introduced. Manual input remains available without services/hash/receipt. Package/signing configuration is unchanged; debug identity was derived from its real public certificate. Proper production release signing remains **Not Implemented**.
 
 **Implemented locally:** Reusable OTP composition uses configured TTL, validates the trusted 11-character server hash and enforces 140 UTF-8 bytes. Africa's Talking must explicitly accept the intended recipient with a message ID; this does not prove handset receipt. Unconfirmed acceptance retains a challenge for controlled resend, with no blind timeout retry. Fake is prohibited in production. The only new environment variable is optional server-owned `SMS_ANDROID_APP_HASH`; credentials/live settings were unchanged. See `docs/PHONE_VERIFICATION_SETUP.md` for setup, official references and remaining external steps.
+
+
+### Client sign-in branching and OTP recovery — 2026-09-10
+
+**Implemented locally; not deployed by this task:** Client Sign In removes the introductory paragraph and labels the field **Phone Number**. After an explicit valid submission, the existing request endpoint preserves the eligible Client challenge response or returns only `{ outcome: "REGISTRATION_REQUIRED" }` for a genuinely absent normalized phone. That branch creates no challenge, SMS or account. GoRouter extra carries the entered phone in memory to Client Registration; initialization happens once, the field stays editable, and direct entry, conditional fields and the existing back-stack draft remain supported. Phone numbers are not added to URLs or diagnostics.
+
+**Intentional product distinction:** Absence is now distinguishable from registration. Pending, inactive, disabled and other-actor accounts receive the same generic unavailable response with no profile data; none are classified as absent. Pending Clients still recover by explicitly submitting the existing registration form, which resumes the original profile without replacing its data. Only successful verification activates it. Existing Provider/KCCA authentication is unchanged.
+
+**Contract and protection:** Shared contracts, DTOs, generated OpenAPI and mobile parsing add the registration outcome and optional safe error fields `retryAt` (UTC) and `limitCategory` (`OTP_HOURLY`, `OTP_COOLDOWN`, `CLIENT_REQUEST`). Initial Client requests atomically consume separately HMAC-namespaced phone/IP counters in the existing LoginThrottle table before account lookup, using existing AUTH limit settings and PostgreSQL advisory locks. The legacy EMAIL scope stores the protected phone key under a separate namespace; password counters and account lock fields are untouched. Resends retain existing OTP protection. No new endpoint, dependency, schema or migration was added.
+
+**Copy:** Successful gateway submission displays exactly **A code has been sent to you via SMS. Enter it below.** The shared field displays **Verification Code**, retains six-digit accessibility semantics, and removes the paste/automatic-check explanatory sentence. Unconfirmed delivery keeps its separate feedback. Manual entry, paste, matching SMS, empty input without an allowed source, no response-driven autofill, red invalid feedback and green server-confirmed success remain intact.
+
+**Diagnosis:** The code and fake-gateway tests confirm that failed sends and repeated intentional initial requests count in the same rolling hourly phone/purpose allowance as resends. No duplicate issuance from builds, listeners or automatic verification was found; existing overlapping-request guards remain. The API previously omitted retry evidence and mobile replaced every issuance 429 with generic text. Hourly retry now uses the relevant stored challenge creation boundary, combined with the latest cooldown. Initial request throttles and resend cooldowns also include any later hourly boundary, so one limit does not advertise retry before another permits it. The UI displays the local retry time and blocks requests until the server deadline. The resend deadline survives subsequent code edits and verification attempts; empty-code retry buttons are hidden. Expiry, attempt limits, one-time consumption and atomic completion remain server-authoritative. No limit was increased and failed sends remain counted. The exact reported live incident remains unconfirmed because affected challenge history/provider outcomes were not inspected.
+
+**Configuration evidence:** Local OTP policy is 5/hour, 60-second resend cooldown, 600-second TTL and 5 attempts. Read-only Railway inspection of deployment `1a28a4f2-6650-410f-9861-a46bd6d2f471` found 27 service variables, nine shared references, the existing SMS references attached, and no OTP policy overrides among service variables. The deployed code defaults therefore imply the same OTP policy; this is configuration inference, not a runtime counter inspection. Railway AUTH settings were read as 5/account, 20/IP, 900-second window and 900-second lock. The deployment was sleeping. The configured mobile build targets the Railway HTTPS API; this local change is not installed or deployed. No environment values changed; .env.example only documents reuse of AUTH settings for the new bounded request branch.
+
+**Compatibility:** Eligible challenge payloads remain compatible. Older mobile builds safely reject the new absence response as an invalid challenge; the new registration branch requires the updated mobile and API together. An updated mobile against the old API retains its old unknown-number behavior. Existing server deadlines assume a reasonably accurate device clock, and other concurrent requests may consume newly available allowance.
 
 ### OTP input correction — 2026-09-10
 
@@ -141,6 +158,15 @@ The API supplies the adopted development defaults: 15-second interval, 25-metre 
 - **Debug APK passed:** `flutter build apk --debug --no-pub --dart-define-from-file=config/auth.local.json --build-number=20260910`. Artifact: `apps/mobile/build/app/outputs/flutter-apk/app-debug.apk`; version 0.1.0 / code 20260910, 171411948 bytes, SHA-256 `066E875740BFF9D0F67F977C81E075AA229ADD9CB37D621B73A7B2E0977A35D5`. It explicitly targets `https://weyonje-api-production.up.railway.app` with mobile environment development and NativeAuthRepository. Manifest label/package remain Weyonje / ug.go.kcca.weyonje.weyonje; no READ_SMS or RECEIVE_SMS permission. Existing flutter_foreground_task Kotlin Gradle Plugin future-compatibility warning remains.
 - **External limits:** No connected Android device, SMS send, simulator/handset receipt, physical autofill, full external authentication, or Railway variable/process verification in this correction. Operator deployment and authorized device testing remain separate steps; existing live credentials were preserved, with no new paid service switch. Root .env values were unchanged; .env.example comments now explain fake waiting behavior. The current-state master template is unchanged.
 
+## Client Sign-In and Retry Validation — 2026-09-10
+
+- **Passed:** `pnpm --filter @weyonje/api test`: 23 suites / 146 tests; four isolated PostgreSQL tests skipped because isolated test URLs are absent. Final combined-deadline and authentication checks passed 32 focused tests, followed by the full passing API suite. Fake gateways only; no live SMS or shared-database writes.
+- **Passed:** `pnpm typecheck`, `pnpm lint` (repository TypeScript lint gate), `pnpm build`, `pnpm openapi:generate`, `pnpm openapi:check`, changed-file Prettier checks, and `git diff --check`. No separate ESLint/Commitlint gate is configured for this change.
+- **Passed:** `flutter test --no-pub --reporter expanded`: 132 tests. The final shared phone-verification suite passed 24 tests after hiding empty-code retry. `flutter analyze --no-pub` reports no issues; `dart format --output=none --set-exit-if-changed lib test` checks 61 unchanged files.
+- **Rendered and inspected:** six new Client sign-in/registration prefill goldens (320-pixel compact, 2× text and keyboard insets), six intentionally updated shared verification goldens (waiting, checking, invalid, success, 2× text and keyboard), and one new throttled-resend golden. Narrow enlarged-text registration uses the existing wrapped heading and scrollable form. Prefill edits survive rebuild/type changes and back navigation; direct entry remains empty. Physical screen-reader and keyboard behavior is not established by widget renders.
+- **Final debug APK passed:** `flutter build apk --debug --no-pub --dart-define-from-file=config/auth.local.json --build-number=20260910`. Artifact: `apps/mobile/build/app/outputs/flutter-apk/app-debug.apk`, 204258529 bytes, SHA-256 `745BFE42C970D2A874B6F422B43285A0A831B862FFA17014A8ACF41EF98E4AE1`. Targets the configured Railway HTTPS API. Existing flutter_foreground_task KGP future-compatibility warning remains. `adb devices -l` listed no devices; installation, live SMS/authentication and physical autofill are unverified.
+- Existing documentation edits and their historical Railway audit/deployment evidence were preserved. This task made only a read-only Railway configuration inspection. No environment value, credential, deployment, account, Git commit/push or production data was changed. The state template matches its original Git object exactly.
+
 ## Current Priorities and Remaining Limitations
 
 ### Railway startup fix validation — 2026-09-10
@@ -155,6 +181,7 @@ The requested mobile changes are **Implemented** with local build, widget and re
 
 | Date | Version | Change | Evidence |
 | --- | --- | --- | --- |
+| 2026-09-10 | 8.2 | Client registration branching, simpler verification copy and server-derived retry recovery | 146 API tests, 132 Flutter tests, reviewed renders and configured APK; read-only Railway settings audit |
 | 2026-09-10 | 8.1 | Remove response-driven OTP verification and resolve local API root configuration | Regression suites and contract checks; device/Railway verification pending |
 | 2026-09-10 | 8.0 | Automatic phone verification, Android Retriever, provider acceptance and atomic completion | Local code/tests/build; external SMS/device/database evidence pending |
 | 2026-09-10 | 7.0 | Fix MapsModule authentication dependency import causing Railway startup failure | Build, API typecheck and 8 focused tests passed; Railway recovery pending deployment |
@@ -175,3 +202,15 @@ No external account, database, deployment, Railway setting, Google/Firebase reso
 ### Default SMS sender integration follow-up (2026-09-10)
 
 The optional sender configuration omits the provider `from` field when blank. Local live settings use this supported route for the shared registration/sign-in SMS service. API regression suite: 124 passed, four isolated PostgreSQL tests skipped; targeted Flutter authentication/verification suite: 67 passed. API typecheck passed. No additional SMS sends or deployment performed.
+
+
+### Railway SMS variable audit — 2026-09-10
+
+**Confirmed configuration gap:** Signed-in Railway inspection shows the phone-input fix deployed (deployment c98b3d21), with Client code request/resend HTTP 200 and verify HTTP 401 in network logs. The service has 21 variables and uses only three project shared variables; SMS_PROVIDER, AFRICASTALKING_API_BASE_URL, AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY, AFRICASTALKING_SENDER_ID and SMS_ANDROID_APP_HASH are available as shared variables but not attached to weyonje-api. Its WEYONJE_ENVIRONMENT is development, so the missing provider selects FAKE by the current code. HTTP 200 alone is not evidence of SMS delivery.
+
+The shared non-secret settings are AFRICAS_TALKING, the live endpoint, username weyonje, blank sender and public debug hash iRKzuOXzxKg. The key remains masked and its validity was not tested. The signed-in Africa’s Talking application is Weyonje / weyonje. Required correction: link these six existing shared settings to the API service and redeploy, subject to the user's explicit deployment approval. No remote variables changed or SMS sent during this audit. A bounded authorized live test must distinguish API acceptance, outbox entry, handset receipt and completed authentication.
+
+
+### Approved Railway SMS attachment — 2026-09-10
+
+**Implemented externally:** Following explicit user approval, attached the six existing shared SMS variables to weyonje-api: SMS_PROVIDER, AFRICASTALKING_API_BASE_URL, AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY, AFRICASTALKING_SENDER_ID and SMS_ANDROID_APP_HASH. Railway now reports 27 service variables and nine shared references in use. Reviewed exactly six staged reference additions and deployed them. Deployment 1a28a4f2-6650-410f-9861-a46bd6d2f471 reports ACTIVE / Deployment successful. The existing key was neither revealed nor replaced. No SMS was sent; actual provider acceptance, outbox entry, handset receipt and authentication still require a bounded authorized live test. This supersedes the preceding pending-attachment/deployment status.

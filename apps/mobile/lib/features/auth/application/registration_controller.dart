@@ -13,11 +13,16 @@ class RegistrationState {
     this.inProgress = false,
     this.message,
     this.rateLimited = false,
+    this.retryAt,
+    this.registrationRequired = false,
   });
 
   final bool inProgress;
   final String? message;
   final bool rateLimited;
+  final DateTime? retryAt;
+  final bool registrationRequired;
+  bool get waiting => retryAt != null && DateTime.now().isBefore(retryAt!);
 }
 
 final registrationControllerProvider =
@@ -56,7 +61,7 @@ class RegistrationController extends Notifier<RegistrationState> {
   Future<PhoneChallenge?> _submit(
     Future<ChallengeOutcome> Function(CancelToken token) operation,
   ) async {
-    if (_inProgress) return null;
+    if (_inProgress || state.waiting) return null;
     _inProgress = true;
     final token = CancelToken();
     _cancelToken = token;
@@ -68,15 +73,25 @@ class RegistrationController extends Notifier<RegistrationState> {
     _inProgress = false;
     _cancelToken = null;
     return switch (outcome) {
+      RegistrationRequired() => () {
+        unawaited(ref.read(smsRetrievalProvider).stop());
+        state = const RegistrationState(registrationRequired: true);
+        return null;
+      }(),
       ChallengeCreated(:final challenge) => () {
         state = const RegistrationState();
         return challenge;
       }(),
-      ChallengeFailure(:final message, :final rateLimited) => () {
-        unawaited(ref.read(smsRetrievalProvider).stop());
-        state = RegistrationState(message: message, rateLimited: rateLimited);
-        return null;
-      }(),
+      ChallengeFailure(:final message, :final rateLimited, :final retryAt) =>
+        () {
+          unawaited(ref.read(smsRetrievalProvider).stop());
+          state = RegistrationState(
+            message: message,
+            rateLimited: rateLimited,
+            retryAt: retryAt,
+          );
+          return null;
+        }(),
     };
   }
 }
@@ -101,7 +116,7 @@ class ClientCodeController extends Notifier<RegistrationState> {
   }
 
   Future<PhoneChallenge?> requestCode(String phoneNumber) async {
-    if (_inProgress) return null;
+    if (_inProgress || state.waiting) return null;
     _inProgress = true;
     final token = CancelToken();
     _cancelToken = token;
@@ -115,15 +130,25 @@ class ClientCodeController extends Notifier<RegistrationState> {
     _inProgress = false;
     _cancelToken = null;
     return switch (outcome) {
+      RegistrationRequired() => () {
+        unawaited(ref.read(smsRetrievalProvider).stop());
+        state = const RegistrationState(registrationRequired: true);
+        return null;
+      }(),
       ChallengeCreated(:final challenge) => () {
         state = const RegistrationState();
         return challenge;
       }(),
-      ChallengeFailure(:final message, :final rateLimited) => () {
-        unawaited(ref.read(smsRetrievalProvider).stop());
-        state = RegistrationState(message: message, rateLimited: rateLimited);
-        return null;
-      }(),
+      ChallengeFailure(:final message, :final rateLimited, :final retryAt) =>
+        () {
+          unawaited(ref.read(smsRetrievalProvider).stop());
+          state = RegistrationState(
+            message: message,
+            rateLimited: rateLimited,
+            retryAt: retryAt,
+          );
+          return null;
+        }(),
     };
   }
 }
@@ -142,10 +167,13 @@ class PhoneVerificationState {
   const PhoneVerificationState({
     this.phase = VerificationPhase.entry,
     this.resending = false,
+    this.retryAt,
     this.message,
   });
   final VerificationPhase phase;
   final bool resending;
+  final DateTime? retryAt;
+  bool get waiting => retryAt != null && DateTime.now().isBefore(retryAt!);
   final String? message;
   bool get inProgress =>
       phase == VerificationPhase.checking || phase == VerificationPhase.success;
@@ -164,6 +192,9 @@ class PhoneVerificationController extends Notifier<PhoneVerificationState> {
   Timer? _successTimer;
   String? _attempt;
   bool _closed = false;
+  DateTime? _resendRetryAt;
+  bool get waitingToResend =>
+      _resendRetryAt != null && DateTime.now().isBefore(_resendRetryAt!);
 
   @override
   PhoneVerificationState build() {
@@ -272,7 +303,9 @@ class PhoneVerificationController extends Notifier<PhoneVerificationState> {
   }
 
   Future<PhoneChallenge?> resend(PhoneVerificationArguments arguments) async {
-    if (_closed || state.inProgress || state.resending) return null;
+    if (_closed || state.inProgress || state.resending || waitingToResend) {
+      return null;
+    }
     final token = CancelToken();
     _cancelToken = token;
     state = const PhoneVerificationState(resending: true);
@@ -300,10 +333,17 @@ class PhoneVerificationController extends Notifier<PhoneVerificationState> {
         _attempt = null;
         state = const PhoneVerificationState();
         return challenge;
-      case ChallengeFailure(:final message):
+      case RegistrationRequired():
+        state = const PhoneVerificationState(
+          message: 'The resend response was invalid.',
+        );
+        return null;
+      case ChallengeFailure(:final message, :final retryAt):
+        _resendRetryAt = retryAt;
         state = PhoneVerificationState(
           phase: VerificationPhase.network,
           message: message,
+          retryAt: retryAt,
         );
         return null;
     }

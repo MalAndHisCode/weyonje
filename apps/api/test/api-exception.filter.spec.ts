@@ -51,6 +51,39 @@ describe("ApiExceptionFilter", () => {
     });
   });
 
+  it("preserves safe retry evidence and discards unrecognized metadata", () => {
+    filter.catch(
+      new HttpException(
+        {
+          code: ApiErrorCode.rateLimited,
+          message: "Wait.",
+          retryAt: "2026-09-10T12:00:00Z",
+          limitCategory: "OTP_HOURLY",
+          phone: "private",
+          codeValue: "private",
+        },
+        429,
+      ),
+      host,
+    );
+    expect(send).toHaveBeenCalledWith({
+      code: ApiErrorCode.rateLimited,
+      message: "Wait.",
+      retryAt: "2026-09-10T12:00:00.000Z",
+      limitCategory: "OTP_HOURLY",
+      requestId: "request-id",
+    });
+    send.mockClear();
+    filter.catch(
+      new HttpException(
+        { message: "Wait.", retryAt: "invalid", limitCategory: "OTHER" },
+        429,
+      ),
+      host,
+    );
+    expect(send.mock.calls[0]?.[0]).not.toHaveProperty("retryAt");
+  });
+
   it("does not leak unexpected exception details", () => {
     filter.catch(new Error("database-password-and-subject"), host);
 

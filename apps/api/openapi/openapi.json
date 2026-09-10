@@ -55,6 +55,7 @@
     },
     "/v1/auth/client-code/request": {
       "post": {
+        "description": "Returns REGISTRATION_REQUIRED only for genuine phone absence. Existing ineligible accounts receive a generic error. Valid initial requests consume protected phone/IP throttles before lookup.",
         "operationId": "AuthController_requestClientCode",
         "parameters": [],
         "requestBody": {
@@ -73,7 +74,34 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/PhoneChallengeDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RegistrationRequiredDto"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Generic unavailable response without account details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -89,7 +117,7 @@
             }
           }
         },
-        "summary": "Send a sign-in code to a Client phone number",
+        "summary": "Request a Client sign-in code or registration",
         "tags": [
           "authentication"
         ]
@@ -158,6 +186,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OTP cooldown with retryAt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Hourly issuance limit with retryAt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -310,6 +358,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
           "409": {
             "description": "",
             "content": {
@@ -348,6 +406,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -422,6 +490,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -1624,6 +1702,55 @@
       }
     },
     "schemas": {
+      "PhoneChallengeDto": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maskedPhone": {
+            "type": "string",
+            "example": "+256 •••••• 123"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resendAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": [
+              "SENT",
+              "FAILED"
+            ]
+          }
+        },
+        "required": [
+          "challengeId",
+          "maskedPhone",
+          "expiresAt",
+          "resendAvailableAt",
+          "deliveryStatus"
+        ]
+      },
+      "RegistrationRequiredDto": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "REGISTRATION_REQUIRED"
+            ]
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
       "SignInDto": {
         "type": "object",
         "properties": {
@@ -1670,6 +1797,18 @@
       "ApiErrorDto": {
         "type": "object",
         "properties": {
+          "retryAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "limitCategory": {
+            "type": "string",
+            "enum": [
+              "OTP_HOURLY",
+              "OTP_COOLDOWN",
+              "CLIENT_REQUEST"
+            ]
+          },
           "code": {
             "type": "string",
             "example": "AUTH_ACCESS_DENIED"
@@ -1698,41 +1837,6 @@
         },
         "required": [
           "phoneNumber"
-        ]
-      },
-      "PhoneChallengeDto": {
-        "type": "object",
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "maskedPhone": {
-            "type": "string",
-            "example": "+256 •••••• 123"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "resendAvailableAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "deliveryStatus": {
-            "type": "string",
-            "enum": [
-              "SENT",
-              "FAILED"
-            ]
-          }
-        },
-        "required": [
-          "challengeId",
-          "maskedPhone",
-          "expiresAt",
-          "resendAvailableAt",
-          "deliveryStatus"
         ]
       },
       "VerifyPhoneCodeDto": {

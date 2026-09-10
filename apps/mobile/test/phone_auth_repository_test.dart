@@ -7,6 +7,63 @@ import 'auth_repository_test.dart' show MemorySessionStore, credentialsJson;
 
 void main() {
   const config = AppConfig(apiBaseUrl: 'https://api.example.test');
+  test('parses registration outcome without writing a session', () async {
+    final store = MemorySessionStore();
+    final dio = Dio()
+      ..interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (request, handler) => handler.resolve(
+            Response(
+              requestOptions: request,
+              data: {'outcome': 'REGISTRATION_REQUIRED'},
+            ),
+          ),
+        ),
+      );
+    final repository = NativeAuthRepository(config, store, dio);
+    expect(
+      await repository.requestClientCode('0700000123', CancelToken()),
+      isA<RegistrationRequired>(),
+    );
+    expect(store.writes, 0);
+    expect(
+      await repository.resendClientCode('challenge', CancelToken()),
+      isA<ChallengeFailure>(),
+    );
+  });
+  for (final category in ['OTP_HOURLY', 'OTP_COOLDOWN', 'CLIENT_REQUEST']) {
+    test('preserves server retry timing for $category', () async {
+      final dio = Dio()
+        ..interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (request, handler) => handler.reject(
+              DioException(
+                requestOptions: request,
+                response: Response(
+                  requestOptions: request,
+                  statusCode: category == 'OTP_COOLDOWN' ? 400 : 429,
+                  data: {
+                    'limitCategory': category,
+                    'retryAt': '2026-09-10T12:00:00Z',
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      final outcome =
+          await NativeAuthRepository(
+                config,
+                MemorySessionStore(),
+                dio,
+              ).requestClientCode('0700000123', CancelToken())
+              as ChallengeFailure;
+      expect(outcome.retryAt, DateTime.utc(2026, 9, 10, 12));
+      expect(outcome.rateLimited, isTrue);
+      expect(outcome.limitCategory, isNotNull);
+      expect(outcome.message, contains('Try again at'));
+    });
+  }
   for (final registration in [true, false]) {
     for (final legacy in [
       '001234',

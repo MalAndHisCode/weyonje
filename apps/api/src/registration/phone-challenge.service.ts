@@ -47,7 +47,7 @@ export class PhoneChallengeService {
     purpose: PhoneChallengePurpose,
     userId: string | null,
   ): Promise<PhoneChallengeContract> {
-    const now = new Date();
+    let now = new Date();
     const phoneLookup = this.phones.lookup(normalizedPhone);
     const id = randomUUID();
     const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
@@ -60,6 +60,11 @@ export class PhoneChallengeService {
     await this.prisma.$transaction(async (transaction) => {
       // Serialize issuance for the protected phone/purpose, including empty sets.
       await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${phoneLookup + ":" + purpose}, 0))::text`;
+      now = new Date();
+      expiresAt.setTime(now.getTime() + this.config.otpTtlSeconds * 1000);
+      resendAvailableAt.setTime(
+        now.getTime() + this.config.otpResendSeconds * 1000,
+      );
       const recent = await transaction.phoneChallenge.count({
         where: {
           phoneLookup,
@@ -68,9 +73,33 @@ export class PhoneChallengeService {
         },
       });
       if (recent >= this.config.otpMaxRequestsPerHour) {
+        const boundary = await transaction.phoneChallenge.findFirst({
+          where: {
+            phoneLookup,
+            purpose,
+            createdAt: { gte: new Date(now.getTime() - 3_600_000) },
+          },
+          orderBy: { createdAt: "desc" },
+          skip: this.config.otpMaxRequestsPerHour - 1,
+          select: { createdAt: true },
+        });
+        const latest = await transaction.phoneChallenge.findFirst({
+          where: { phoneLookup, purpose },
+          orderBy: { createdAt: "desc" },
+          select: { resendAvailableAt: true },
+        });
+        if (!boundary)
+          throw new Error("OTP rate-limit boundary is unavailable.");
         throw new HttpException(
           {
             code: ApiErrorCode.rateLimited,
+            limitCategory: "OTP_HOURLY",
+            retryAt: new Date(
+              Math.max(
+                boundary.createdAt.getTime() + 3_600_001,
+                latest?.resendAvailableAt.getTime() ?? 0,
+              ),
+            ).toISOString(),
             message:
               "Too many verification codes were requested. Try again later.",
           },
@@ -85,6 +114,8 @@ export class PhoneChallengeService {
       if (latest && latest.resendAvailableAt > now) {
         throw new BadRequestException({
           code: ApiErrorCode.invalidRequest,
+          limitCategory: "OTP_COOLDOWN",
+          retryAt: latest.resendAvailableAt.toISOString(),
           message: "Wait before requesting another verification code.",
         });
       }
@@ -136,6 +167,40 @@ export class PhoneChallengeService {
     };
   }
 
+  // Read-only recovery evidence: all applicable issuance limits must have elapsed.
+  // Issuance still rechecks under its transaction lock before writing/sending.
+  async nextRequestAvailableAt(
+    phoneLookup: string,
+    purpose: PhoneChallengePurpose,
+  ): Promise<{ retryAt: Date; hourlyLimited: boolean }> {
+    const now = new Date();
+    const boundary = await this.prisma.phoneChallenge.findFirst({
+      where: {
+        phoneLookup,
+        purpose,
+        createdAt: { gte: new Date(now.getTime() - 3_600_000) },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: this.config.otpMaxRequestsPerHour - 1,
+      select: { createdAt: true },
+    });
+    const latest = await this.prisma.phoneChallenge.findFirst({
+      where: { phoneLookup, purpose },
+      orderBy: { createdAt: "desc" },
+      select: { resendAvailableAt: true },
+    });
+    return {
+      hourlyLimited: boundary !== null,
+      retryAt: new Date(
+        Math.max(
+          now.getTime(),
+          boundary ? boundary.createdAt.getTime() + 3_600_001 : 0,
+          latest?.resendAvailableAt.getTime() ?? 0,
+        ),
+      ),
+    };
+  }
+
   async resend(
     challengeId: string,
     expectedPurpose?: PhoneChallengePurpose,
@@ -150,10 +215,32 @@ export class PhoneChallengeService {
       throw this.invalidCode();
     }
     if (challenge.resendAvailableAt > new Date()) {
-      throw new BadRequestException({
-        code: ApiErrorCode.invalidRequest,
-        message: "Wait before requesting another verification code.",
-      });
+      const issuanceAt = await this.nextRequestAvailableAt(
+        challenge.phoneLookup,
+        challenge.purpose,
+      );
+      throw new HttpException(
+        {
+          code: issuanceAt.hourlyLimited
+            ? ApiErrorCode.rateLimited
+            : ApiErrorCode.invalidRequest,
+          limitCategory: issuanceAt.hourlyLimited
+            ? "OTP_HOURLY"
+            : "OTP_COOLDOWN",
+          retryAt: new Date(
+            Math.max(
+              challenge.resendAvailableAt.getTime(),
+              issuanceAt.retryAt.getTime(),
+            ),
+          ).toISOString(),
+          message: issuanceAt.hourlyLimited
+            ? "Too many verification codes were requested. Try again later."
+            : "Wait before requesting another verification code.",
+        },
+        issuanceAt.hourlyLimited
+          ? HttpStatus.TOO_MANY_REQUESTS
+          : HttpStatus.BAD_REQUEST,
+      );
     }
     return this.create(
       this.phones.decrypt(challenge.encryptedPhone),

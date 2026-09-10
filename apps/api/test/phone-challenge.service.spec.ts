@@ -241,8 +241,112 @@ describe("PhoneChallengeService", () => {
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
+  it("returns the release boundary and keeps failed sends in the hourly count", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-09-10T10:00:00Z"));
+    try {
+      const value = harness({ recent: 5, deliveryFails: true });
+      value.phoneChallenge.findFirst
+        .mockResolvedValueOnce({ createdAt: new Date("2026-09-10T09:20:00Z") })
+        .mockResolvedValueOnce({
+          resendAvailableAt: new Date("2026-09-10T09:59:00Z"),
+        });
+      await expect(
+        value.service.create(
+          "+256700000123",
+          PhoneChallengePurpose.REGISTRATION,
+          "user-1",
+        ),
+      ).rejects.toMatchObject({
+        response: {
+          limitCategory: "OTP_HOURLY",
+          retryAt: "2026-09-10T10:20:00.001Z",
+        },
+      });
+      expect(value.phoneChallenge.count).toHaveBeenCalledWith({
+        where: {
+          phoneLookup: "protected-phone-lookup",
+          purpose: PhoneChallengePurpose.REGISTRATION,
+          createdAt: { gte: new Date("2026-09-10T09:00:00Z") },
+        },
+      });
+      expect(value.sms.sendVerificationCode).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("does not advertise a resend before a later hourly boundary", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-09-10T10:00:00Z"));
+    try {
+      const value = harness();
+      const challenge = await value.service.create(
+        "+256700000123",
+        PhoneChallengePurpose.REGISTRATION,
+        "user-1",
+      );
+      value.phoneChallenge.findFirst
+        .mockResolvedValueOnce({ createdAt: new Date("2026-09-10T09:20:00Z") })
+        .mockResolvedValueOnce({
+          resendAvailableAt: new Date(challenge.resendAvailableAt),
+        });
+      await expect(
+        value.service.resend(challenge.challengeId),
+      ).rejects.toMatchObject({
+        response: { retryAt: "2026-09-10T10:20:00.001Z" },
+      });
+      expect(value.sms.sendVerificationCode).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("returns cooldown timing for initial requests and resends", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-09-10T10:00:00Z"));
+    try {
+      const value = harness();
+      const challenge = await value.service.create(
+        "+256700000123",
+        PhoneChallengePurpose.REGISTRATION,
+        "user-1",
+      );
+      await expect(
+        value.service.resend(challenge.challengeId),
+      ).rejects.toMatchObject({
+        response: {
+          limitCategory: "OTP_COOLDOWN",
+          retryAt: challenge.resendAvailableAt,
+        },
+      });
+      value.phoneChallenge.findFirst.mockResolvedValueOnce({
+        resendAvailableAt: new Date(challenge.resendAvailableAt),
+      });
+      await expect(
+        value.service.create(
+          "+256700000123",
+          PhoneChallengePurpose.REGISTRATION,
+          "user-1",
+        ),
+      ).rejects.toMatchObject({
+        response: {
+          limitCategory: "OTP_COOLDOWN",
+          retryAt: challenge.resendAvailableAt,
+        },
+      });
+      jest.advanceTimersByTime(60_000);
+      await expect(
+        value.service.resend(challenge.challengeId),
+      ).resolves.toMatchObject({ deliveryStatus: "SENT" });
+      expect(value.sms.sendVerificationCode).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it("rate-limits excessive hourly code creation before sending", async () => {
     const value = harness({ recent: testAuthConfig().otpMaxRequestsPerHour });
+    value.phoneChallenge.findFirst.mockResolvedValueOnce({
+      createdAt: new Date(),
+    });
     await expect(
       value.service.create(
         "+256700000123",

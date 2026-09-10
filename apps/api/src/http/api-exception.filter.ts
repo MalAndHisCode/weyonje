@@ -11,6 +11,8 @@ import { FastifyReply, FastifyRequest } from "fastify";
 
 interface ErrorBody {
   code?: unknown;
+  retryAt?: unknown;
+  limitCategory?: unknown;
   message?: unknown;
 }
 
@@ -32,6 +34,16 @@ export class ApiExceptionFilter implements ExceptionFilter {
         message: this.safeMessage(body.message, status),
         requestId,
       };
+      if (
+        typeof body.retryAt === "string" &&
+        Number.isFinite(Date.parse(body.retryAt)) &&
+        (body.limitCategory === "OTP_HOURLY" ||
+          body.limitCategory === "OTP_COOLDOWN" ||
+          body.limitCategory === "CLIENT_REQUEST")
+      ) {
+        payload.retryAt = new Date(body.retryAt).toISOString();
+        payload.limitCategory = body.limitCategory;
+      }
       void response.status(status).send(payload);
       return;
     }

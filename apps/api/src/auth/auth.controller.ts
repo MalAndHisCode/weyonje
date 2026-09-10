@@ -8,6 +8,8 @@ import {
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
+  ApiExtraModels,
+  getSchemaPath,
   ApiBody,
   ApiOkResponse,
   ApiOperation,
@@ -20,6 +22,7 @@ import { ApiErrorDto } from "../identity/current-actor.dto";
 import { AuthenticatedRequest } from "./access-token.guard";
 import {
   ClientCodeRequestDto,
+  RegistrationRequiredDto,
   RefreshDto,
   SessionCredentialsDto,
   SignInDto,
@@ -34,6 +37,7 @@ import { AuthService } from "./auth.service";
 import { SessionService } from "./session.service";
 import { SignedAccessTokenGuard } from "./signed-access-token.guard";
 
+@ApiExtraModels(PhoneChallengeDto, RegistrationRequiredDto)
 @ApiTags("authentication")
 @Controller("v1/auth")
 export class AuthController {
@@ -62,14 +66,36 @@ export class AuthController {
 
   @Post("client-code/request")
   @HttpCode(200)
-  @ApiOperation({ summary: "Send a sign-in code to a Client phone number" })
+  @ApiOperation({
+    summary: "Request a Client sign-in code or registration",
+    description:
+      "Returns REGISTRATION_REQUIRED only for genuine phone absence. Existing ineligible accounts receive a generic error. Valid initial requests consume protected phone/IP throttles before lookup.",
+  })
   @ApiBody({ type: ClientCodeRequestDto })
-  @ApiOkResponse({ type: PhoneChallengeDto })
+  @ApiOkResponse({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(PhoneChallengeDto) },
+        { $ref: getSchemaPath(RegistrationRequiredDto) },
+      ],
+    },
+  })
   @ApiResponse({ status: 429, type: ApiErrorDto })
+  @ApiResponse({
+    status: 400,
+    type: ApiErrorDto,
+    description:
+      "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+  })
+  @ApiUnauthorizedResponse({
+    type: ApiErrorDto,
+    description: "Generic unavailable response without account details.",
+  })
   requestClientCode(
     @Body() request: ClientCodeRequestDto,
-  ): Promise<PhoneChallengeDto> {
-    return this.auth.requestClientCode(request.phoneNumber);
+    @Req() httpRequest: AuthenticatedRequest,
+  ): Promise<PhoneChallengeDto | RegistrationRequiredDto> {
+    return this.auth.requestClientCode(request.phoneNumber, httpRequest.ip);
   }
 
   @Post("client-code/verify")
@@ -89,6 +115,16 @@ export class AuthController {
   @ApiOperation({ summary: "Replace and resend a Client sign-in code" })
   @ApiBody({ type: ResendPhoneCodeDto })
   @ApiOkResponse({ type: PhoneChallengeDto })
+  @ApiResponse({
+    status: 400,
+    type: ApiErrorDto,
+    description: "OTP cooldown with retryAt.",
+  })
+  @ApiResponse({
+    status: 429,
+    type: ApiErrorDto,
+    description: "Hourly issuance limit with retryAt.",
+  })
   resendClientCode(
     @Body() request: ResendPhoneCodeDto,
   ): Promise<PhoneChallengeDto> {

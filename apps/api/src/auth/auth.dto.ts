@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   ClientCodeRequestContract,
+  RegistrationRequiredContract,
   RefreshRequestContract,
   SessionCredentialsContract,
   SignInRequestContract,
@@ -13,6 +14,11 @@ import {
   MaxLength,
   MinLength,
 } from "class-validator";
+
+export class RegistrationRequiredDto implements RegistrationRequiredContract {
+  @ApiProperty({ type: String, enum: ["REGISTRATION_REQUIRED"] })
+  outcome!: "REGISTRATION_REQUIRED";
+}
 
 export class ClientCodeRequestDto implements ClientCodeRequestContract {
   @ApiProperty({ type: String, example: "+256 700 000000" })

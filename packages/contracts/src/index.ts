@@ -68,6 +68,15 @@ export interface ServiceProviderRegistrationRequestContract {
   contactPersonPhone: string;
 }
 
+export interface RegistrationRequiredContract {
+  outcome: "REGISTRATION_REQUIRED";
+}
+
+export type ClientCodeResponseContract =
+  PhoneChallengeContract | RegistrationRequiredContract;
+export type RequestLimitCategory =
+  "OTP_HOURLY" | "OTP_COOLDOWN" | "CLIENT_REQUEST";
+
 export interface PhoneChallengeContract {
   challengeId: string;
   maskedPhone: string;
@@ -130,8 +139,7 @@ export interface ProviderStatusHistoryContract {
   createdAt: string;
 }
 
-export interface ProviderAdministrationContract
-  extends PendingProviderRegistrationContract {
+export interface ProviderAdministrationContract extends PendingProviderRegistrationContract {
   status: ProviderStatus;
   active: boolean;
   providerNumber?: string;
@@ -140,7 +148,8 @@ export interface ProviderAdministrationContract
 }
 
 export interface ProviderStatusChangeContract {
-  status: ProviderStatus.inactive | ProviderStatus.approved | ProviderStatus.disabled;
+  status:
+    ProviderStatus.inactive | ProviderStatus.approved | ProviderStatus.disabled;
   reason?: string;
 }
 
@@ -220,6 +229,8 @@ export interface VerifyEmailContract {
 }
 
 export interface ApiErrorContract {
+  retryAt?: string;
+  limitCategory?: RequestLimitCategory;
   code: ApiErrorCode;
   message: string;
   requestId?: string;

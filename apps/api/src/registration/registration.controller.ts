@@ -54,6 +54,12 @@ export class RegistrationController {
   })
   @ApiCreatedResponse({ type: PhoneChallengeDto })
   @ApiConflictResponse({ type: ApiErrorDto })
+  @ApiResponse({
+    status: 400,
+    type: ApiErrorDto,
+    description:
+      "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+  })
   @ApiResponse({ status: 429, type: ApiErrorDto })
   registerClient(
     @Body() request: ClientRegistrationDto,
@@ -67,6 +73,12 @@ export class RegistrationController {
   })
   @ApiCreatedResponse({ type: PhoneChallengeDto })
   @ApiConflictResponse({ type: ApiErrorDto })
+  @ApiResponse({
+    status: 400,
+    type: ApiErrorDto,
+    description:
+      "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+  })
   @ApiResponse({ status: 429, type: ApiErrorDto })
   registerServiceProvider(
     @Body() request: ServiceProviderRegistrationDto,
@@ -89,6 +101,12 @@ export class RegistrationController {
   @HttpCode(200)
   @ApiOperation({ summary: "Replace and resend a registration phone code" })
   @ApiOkResponse({ type: PhoneChallengeDto })
+  @ApiResponse({
+    status: 400,
+    type: ApiErrorDto,
+    description:
+      "Invalid input or OTP cooldown; retryAt is supplied for cooldown.",
+  })
   @ApiResponse({ status: 429, type: ApiErrorDto })
   resendPhoneCode(
     @Body() request: ResendPhoneCodeDto,

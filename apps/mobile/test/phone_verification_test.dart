@@ -576,6 +576,63 @@ void main() {
     },
   );
 
+  testWidgets(
+    'throttled resend keeps server waiting deadline across code edits and verification',
+    (tester) async {
+      var sends = 0;
+      final pending = Completer<ChallengeOutcome>();
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onResendClientCode: (_, _) {
+          sends++;
+          return pending.future;
+        },
+      );
+      final container = await render(
+        tester,
+        repository,
+        retrieval: FakeRetrieval(),
+      );
+      final controller = container.read(
+        phoneVerificationControllerProvider(initialId).notifier,
+      );
+      final arguments = PhoneVerificationArguments(
+        challenge: challenge(),
+        purpose: PhoneVerificationPurpose.clientSignIn,
+      );
+      final first = controller.resend(arguments);
+      await controller.resend(arguments);
+      expect(sends, 1);
+      pending.complete(
+        ChallengeFailure(
+          'The hourly verification-code limit has been reached. Try again at 12:00:00.',
+          rateLimited: true,
+          retryAt: DateTime.utc(2100),
+          limitCategory: RequestLimitCategory.hourly,
+        ),
+      );
+      await first;
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('visual/goldens/verification_throttled.png'),
+      );
+      expect(find.text('Please Wait to Resend'), findsOneWidget);
+      controller.edited();
+      await controller.resend(arguments);
+      expect(sends, 1);
+      await tester.enterText(
+        find.byKey(const Key('verification-code')),
+        '001234',
+      );
+      await tester.pumpAndSettle();
+      await controller.resend(arguments);
+      expect(sends, 1);
+      expect(repository.requestClientCodeCalls, 0);
+      expect(repository.verifyClientCodeCalls, 1);
+    },
+  );
+
   for (final phase in [
     'entry',
     'checking',

@@ -61,6 +61,11 @@ class PhoneVerificationArguments {
   final PhoneVerificationPurpose purpose;
 }
 
+class ClientRegistrationArguments {
+  const ClientRegistrationArguments(this.phoneNumber);
+  final String phoneNumber;
+}
+
 class ClientRegistrationRequest {
   const ClientRegistrationRequest({
     required this.clientType,
@@ -143,8 +148,21 @@ class ChallengeCreated extends ChallengeOutcome {
   final PhoneChallenge challenge;
 }
 
+class RegistrationRequired extends ChallengeOutcome {
+  const RegistrationRequired();
+}
+
+enum RequestLimitCategory { hourly, cooldown, clientRequest }
+
 class ChallengeFailure extends ChallengeOutcome {
-  const ChallengeFailure(this.message, {this.rateLimited = false});
+  const ChallengeFailure(
+    this.message, {
+    this.rateLimited = false,
+    this.retryAt,
+    this.limitCategory,
+  });
+  final DateTime? retryAt;
+  final RequestLimitCategory? limitCategory;
   final String message;
   final bool rateLimited;
 }

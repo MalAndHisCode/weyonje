@@ -1,3 +1,5 @@
+import { HttpException } from "@nestjs/common";
+import { testAuthConfig } from "./support/auth-config";
 import { ApiErrorCode } from "@weyonje/contracts";
 
 import { AuthService } from "../src/auth/auth.service";
@@ -29,13 +31,20 @@ function harness(user: object | null, passwordValid = false) {
   const throttles = {
     assertAllowed: jest.fn().mockResolvedValue(undefined),
     recordFailure: jest.fn().mockResolvedValue(undefined),
+    consumeClientRequest: jest.fn().mockResolvedValue(undefined),
     recordSuccess: jest.fn().mockResolvedValue(undefined),
   } as unknown as LoginThrottleService;
   const sessions = {
     create: jest.fn().mockResolvedValue({ accessToken: "not-logged" }),
   } as unknown as SessionService;
-  const phones = {} as PhoneSecurityService;
-  const challenges = {} as PhoneChallengeService;
+  const phones = new PhoneSecurityService(testAuthConfig());
+  const challenges = {
+    nextRequestAvailableAt: jest.fn().mockResolvedValue({
+      retryAt: new Date("2026-09-10T11:00:00Z"),
+      hourlyLimited: true,
+    }),
+    create: jest.fn().mockResolvedValue({ challengeId: "challenge" }),
+  } as unknown as PhoneChallengeService;
   return {
     service: new AuthService(
       prisma,
@@ -49,10 +58,104 @@ function harness(user: object | null, passwordValid = false) {
     passwords,
     throttles,
     sessions,
+    prisma,
+    challenges,
+    phones,
   };
 }
 
 describe("AuthService", () => {
+  it("combines the request throttle with the later hourly issuance deadline", async () => {
+    const h = harness(null);
+    jest.mocked(h.throttles.consumeClientRequest).mockRejectedValue(
+      new HttpException(
+        {
+          code: ApiErrorCode.rateLimited,
+          limitCategory: "CLIENT_REQUEST",
+          retryAt: "2026-09-10T10:15:00Z",
+        },
+        429,
+      ),
+    );
+    await expect(
+      h.service.requestClientCode("0700000123", "192.0.2.1"),
+    ).rejects.toMatchObject({
+      response: {
+        retryAt: "2026-09-10T11:00:00.000Z",
+        limitCategory: "CLIENT_REQUEST",
+      },
+    });
+    expect(h.challenges.create).not.toHaveBeenCalled();
+  });
+  it.each(["0700 000123", "+256700000123"])(
+    "branches absent normalized phone %s without creating a challenge or account",
+    async (phone) => {
+      const h = harness(null);
+      await expect(
+        h.service.requestClientCode(phone, "192.0.2.1"),
+      ).resolves.toEqual({ outcome: "REGISTRATION_REQUIRED" });
+      expect(h.prisma.user.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { phoneLookup: h.phones.lookup("+256700000123") },
+        }),
+      );
+      expect(h.throttles.consumeClientRequest).toHaveBeenCalledTimes(1);
+      expect(h.challenges.create).not.toHaveBeenCalled();
+      expect(h.prisma.user.update).not.toHaveBeenCalled();
+    },
+  );
+  it("continues eligible Clients through the existing challenge", async () => {
+    const h = harness({
+      id: "client",
+      actorType: "CLIENT",
+      phoneVerifiedAt: new Date(),
+      loginEnabled: true,
+      isActive: true,
+    });
+    await expect(
+      h.service.requestClientCode("0700000123", "192.0.2.1"),
+    ).resolves.toEqual({ challengeId: "challenge" });
+    expect(h.challenges.create).toHaveBeenCalledWith(
+      "+256700000123",
+      "CLIENT_SIGN_IN",
+      "client",
+    );
+  });
+  it.each([
+    { phoneVerifiedAt: null, loginEnabled: false, isActive: false },
+    { isActive: false },
+    { loginEnabled: false },
+    { actorType: "SERVICE_PROVIDER" },
+    { actorType: "KCCA_STAFF" },
+  ])(
+    "does not register or issue a sign-in code for restricted state %j",
+    async (state) => {
+      const h = harness({
+        id: "client",
+        actorType: "CLIENT",
+        phoneVerifiedAt: new Date(),
+        loginEnabled: true,
+        isActive: true,
+        ...state,
+      });
+      await expect(
+        h.service.requestClientCode("0700000123", "192.0.2.1"),
+      ).rejects.toMatchObject({
+        response: { code: ApiErrorCode.accessDenied },
+      });
+      expect(h.challenges.create).not.toHaveBeenCalled();
+    },
+  );
+  it("enforces lookup throttling before reading an account", async () => {
+    const h = harness(null);
+    jest
+      .mocked(h.throttles.consumeClientRequest)
+      .mockRejectedValue(new Error("limited"));
+    await expect(
+      h.service.requestClientCode("0700000123", "192.0.2.1"),
+    ).rejects.toThrow("limited");
+    expect(h.prisma.user.findUnique).not.toHaveBeenCalled();
+  });
   const activeUser = {
     id: "user-1",
     passwordHash: "argon2-hash",

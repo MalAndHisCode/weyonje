@@ -102,7 +102,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.clientRegistration,
-        builder: (context, state) => const ClientRegistrationScreen(),
+        builder: (context, state) => ClientRegistrationScreen(
+          arguments: state.extra is ClientRegistrationArguments
+              ? state.extra as ClientRegistrationArguments
+              : null,
+        ),
       ),
       GoRoute(
         path: AppRoutes.serviceProviderRegistration,

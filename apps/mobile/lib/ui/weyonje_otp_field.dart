@@ -57,7 +57,7 @@ class WeyonjeOtpField extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const ExcludeSemantics(child: Text('Six-digit verification code')),
+          const ExcludeSemantics(child: Text('Verification Code')),
           const SizedBox(height: 8),
           MediaQuery(
             data: media.copyWith(textScaler: TextScaler.noScaling),
@@ -76,13 +76,6 @@ class WeyonjeOtpField extends StatelessWidget {
                 enableIMEPersonalizedLearning: false,
                 autofillHints: const [AutofillHints.oneTimeCode],
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Enter or paste the code. It is checked automatically.',
-            style: theme.typography.body.sm.copyWith(
-              color: theme.colors.mutedForeground,
             ),
           ),
         ],

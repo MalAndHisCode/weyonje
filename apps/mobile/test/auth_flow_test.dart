@@ -29,6 +29,67 @@ void main() {
     );
   }
 
+  testWidgets(
+    'unregistered Client branches only on submit with editable one-time prefill',
+    (tester) async {
+      final pending = Completer<ChallengeOutcome>();
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onRequestClientCode: (phone, _) {
+          expect(phone, '0700 000123');
+          return pending.future;
+        },
+      );
+      await pumpApp(tester, repository);
+      await tester.pumpAndSettle();
+      final router = GoRouter.of(
+        tester.element(find.text('Welcome to Weyonje')),
+      );
+      router.go('/sign-in/client');
+      await tester.pumpAndSettle();
+      expect(find.text('Phone Number'), findsOneWidget);
+      expect(
+        find.textContaining('Enter the verified phone number'),
+        findsNothing,
+      );
+      await tester.enterText(
+        find.byKey(const Key('client-sign-in-phone')),
+        '0700 000123',
+      );
+      expect(repository.requestClientCodeCalls, 0);
+      await tester.ensureVisible(find.byKey(const Key('request-client-code')));
+      await tester.tap(find.byKey(const Key('request-client-code')));
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump();
+      expect(repository.requestClientCodeCalls, 1);
+      pending.complete(const RegistrationRequired());
+      await tester.pumpAndSettle();
+      expect(find.text('Client Registration'), findsOneWidget);
+      expect(router.routeInformationProvider.value.uri.query, isEmpty);
+      expect(find.text('0700 000123'), findsOneWidget);
+      expect(repository.registerClientCalls, 0);
+      await tester.enterText(
+        find.byKey(const Key('client-phone')),
+        '0700 000456',
+      );
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('0700 000456'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('client-type-individual')));
+      await tester.pumpAndSettle();
+      expect(find.text('0700 000456'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Client Sign In'), findsOneWidget);
+      router.go('/register/client');
+      await tester.pumpAndSettle();
+      expect(find.text('0700 000123'), findsNothing);
+      expect(find.text('0700 000456'), findsNothing);
+      expect(repository.registerClientCalls, 0);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   group('AUTH-001 unauthenticated experience', () {
     for (final entry in ['provider', 'kcca']) {
       testWidgets('$entry entry preserves heading and recovery back stack', (

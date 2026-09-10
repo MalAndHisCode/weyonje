@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
+import 'package:weyonje/core/auth/registration_models.dart';
 import 'package:weyonje/app.dart';
 import 'package:weyonje/core/auth/auth_providers.dart';
 import 'package:weyonje/core/auth/auth_repository.dart';
@@ -87,6 +89,49 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('create-account')));
     await tester.pumpAndSettle();
+  }
+
+  for (final screen in ['sign_in', 'registration']) {
+    for (final layout in ['compact', 'large_text', 'keyboard']) {
+      testWidgets('Client $screen $layout', (tester) async {
+        if (layout == 'large_text') {
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        }
+        await render(
+          tester,
+          size: const Size(320, 568),
+          outcome: const NoStoredSession(),
+        );
+        final router = GoRouter.of(
+          tester.element(find.text('Welcome to Weyonje')),
+        );
+        router.go(
+          screen == 'sign_in' ? '/sign-in/client' : '/register/client',
+          extra: screen == 'registration'
+              ? const ClientRegistrationArguments('0700 000123')
+              : null,
+        );
+        await tester.pumpAndSettle();
+        if (layout == 'keyboard') {
+          tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+          addTearDown(tester.view.resetViewInsets);
+          await tester.pumpAndSettle();
+        }
+        await tester.ensureVisible(
+          find.byKey(
+            Key(screen == 'sign_in' ? 'request-client-code' : 'client-phone'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await expectLater(
+          find.byType(WeyonjeApplication),
+          matchesGoldenFile('goldens/client_${screen}_$layout.png'),
+        );
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
   }
 
   testWidgets('welcome remains balanced on a compact phone', (tester) async {

@@ -90,3 +90,11 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 - Business Process DOCX was structurally reviewed; page rendering was unavailable because `soffice` is absent.
 
 This register no longer contains the former approval gate that prohibited authorised KCCA mobile Call Centre, Provider, or disposal administration.
+
+## Client Sign-In to Registration and OTP Recovery — 2026-09-10
+
+**Adopted user change / implemented locally:** Explicit Client-code submission distinguishes genuine normalized-phone absence and opens existing Client Registration with editable in-memory prefill. This supersedes the former unknown-number dummy sign-in challenge behavior and intentionally reveals only the registration distinction. Registration remains an explicit form submission, consistent with Client Self-Registration steps 4–8. Existing ineligible accounts cannot bypass state through registration; pending recovery preserves the stored profile.
+
+The existing request operation gains a typed registration-required alternative; existing eligible challenge fields remain unchanged. Separate protected phone/IP request counters reuse AUTH policies and the existing table with transaction locks. Safe retryAt/limitCategory errors survive API filtering and mobile parsing. OTP failed-delivery accounting, hourly limits, cooldowns, expiry, attempts and atomic one-time completion are retained. No issuance loop was found; missing recovery timing and clearing a resend wait during code editing are addressed. The exact live incident remains unconfirmed.
+
+Requested copy changes retain six-digit input/accessibility and distinct provider-error feedback. The no-response-autofill correction, matching SMS scope, manual/paste input, server-success transition and Provider/KCCA authority are unchanged. No deployment, schema or dependency change was made. Current state records validation and configuration evidence.

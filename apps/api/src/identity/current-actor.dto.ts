@@ -43,6 +43,15 @@ export class CurrentActorDto implements CurrentActorContract {
 }
 
 export class ApiErrorDto {
+  @ApiPropertyOptional({ type: String, format: "date-time" })
+  retryAt?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    enum: ["OTP_HOURLY", "OTP_COOLDOWN", "CLIENT_REQUEST"],
+  })
+  limitCategory?: string;
+
   @ApiProperty({ type: String, example: "AUTH_ACCESS_DENIED" })
   code!: string;
 

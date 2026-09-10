@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -10,7 +11,8 @@ import '../../../ui/weyonje_page.dart';
 import '../application/registration_controller.dart';
 
 class ClientRegistrationScreen extends ConsumerStatefulWidget {
-  const ClientRegistrationScreen({super.key});
+  const ClientRegistrationScreen({this.arguments, super.key});
+  final ClientRegistrationArguments? arguments;
 
   @override
   ConsumerState<ClientRegistrationScreen> createState() =>
@@ -19,6 +21,7 @@ class ClientRegistrationScreen extends ConsumerStatefulWidget {
 
 class _ClientRegistrationScreenState
     extends ConsumerState<ClientRegistrationScreen> {
+  Timer? _timer;
   final _formKey = GlobalKey<FormState>();
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
@@ -34,7 +37,17 @@ class _ClientRegistrationScreenState
   bool get _organization => _clientType == ClientType.organization;
 
   @override
+  void initState() {
+    super.initState();
+    _phone.text = widget.arguments?.phoneNumber ?? '';
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
+    _timer?.cancel();
     for (final controller in [
       _firstName,
       _lastName,
@@ -185,7 +198,9 @@ class _ClientRegistrationScreenState
                 key: const Key('submit-client-registration'),
                 label: 'Submit Registration',
                 loading: state.inProgress,
-                onPressed: () => _submit(state.inProgress),
+                onPressed: state.waiting
+                    ? null
+                    : () => _submit(state.inProgress),
               ),
             ],
           ),

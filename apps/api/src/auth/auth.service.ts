@@ -1,5 +1,13 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { ApiErrorCode, SessionCredentialsContract } from "@weyonje/contracts";
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import {
+  ApiErrorCode,
+  ClientCodeResponseContract,
+  SessionCredentialsContract,
+} from "@weyonje/contracts";
 
 import { PrismaService } from "../database/prisma.service";
 import { ActorType, PhoneChallengePurpose } from "../generated/prisma/enums";
@@ -79,23 +87,69 @@ export class AuthService {
     return this.sessions.refresh(refreshToken);
   }
 
-  async requestClientCode(phoneNumber: string) {
+  async requestClientCode(
+    phoneNumber: string,
+    sourceIp: string,
+  ): Promise<ClientCodeResponseContract> {
     const phone = this.phones.normalize(phoneNumber);
     const phoneLookup = this.phones.lookup(phone);
-    const user = await this.prisma.user.findFirst({
-      where: {
-        phoneLookup,
-        actorType: ActorType.CLIENT,
-        phoneVerifiedAt: { not: null },
+    try {
+      await this.throttles.consumeClientRequest(phoneLookup, sourceIp);
+    } catch (error) {
+      if (error instanceof HttpException && error.getStatus() === 429) {
+        const body = error.getResponse();
+        if (
+          typeof body === "object" &&
+          "retryAt" in body &&
+          typeof body.retryAt === "string"
+        ) {
+          const issuanceAt = await this.challenges.nextRequestAvailableAt(
+            phoneLookup,
+            PhoneChallengePurpose.CLIENT_SIGN_IN,
+          );
+          throw new HttpException(
+            {
+              ...body,
+              retryAt: new Date(
+                Math.max(
+                  Date.parse(body.retryAt),
+                  issuanceAt.retryAt.getTime(),
+                ),
+              ).toISOString(),
+            },
+            429,
+          );
+        }
+      }
+      throw error;
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { phoneLookup },
+      select: {
+        id: true,
+        actorType: true,
+        phoneVerifiedAt: true,
         loginEnabled: true,
         isActive: true,
       },
-      select: { id: true },
     });
+    if (!user) return { outcome: "REGISTRATION_REQUIRED" };
+    if (
+      user.actorType !== ActorType.CLIENT ||
+      !user.phoneVerifiedAt ||
+      !user.loginEnabled ||
+      !user.isActive
+    ) {
+      throw new UnauthorizedException({
+        code: ApiErrorCode.accessDenied,
+        message:
+          "Client sign-in is unavailable. If registration is unfinished, return to Client Registration to complete it.",
+      });
+    }
     return this.challenges.create(
       phone,
       PhoneChallengePurpose.CLIENT_SIGN_IN,
-      user?.id ?? null,
+      user.id,
     );
   }
 

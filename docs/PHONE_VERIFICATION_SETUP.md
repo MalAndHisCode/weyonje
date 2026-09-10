@@ -97,3 +97,27 @@ The final correction passes 120 Flutter tests, Flutter analysis/formatting, 131 
 | Guidance | .env.example comments, API/mobile READMEs, this guide, current state and traceability notes; no master-template change |
 
 Paths in the runtime/test rows are relative to their application. No schema, new dependency, native Android receiver, worker or operational outbox change was needed.
+
+
+### Railway SMS variable audit — 2026-09-10
+
+**Confirmed configuration gap:** Signed-in Railway inspection shows the phone-input fix deployed (deployment c98b3d21), with Client code request/resend HTTP 200 and verify HTTP 401 in network logs. The service has 21 variables and uses only three project shared variables; SMS_PROVIDER, AFRICASTALKING_API_BASE_URL, AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY, AFRICASTALKING_SENDER_ID and SMS_ANDROID_APP_HASH are available as shared variables but not attached to weyonje-api. Its WEYONJE_ENVIRONMENT is development, so the missing provider selects FAKE by the current code. HTTP 200 alone is not evidence of SMS delivery.
+
+The shared non-secret settings are AFRICAS_TALKING, the live endpoint, username weyonje, blank sender and public debug hash iRKzuOXzxKg. The key remains masked and its validity was not tested. The signed-in Africa’s Talking application is Weyonje / weyonje. Required correction: link these six existing shared settings to the API service and redeploy, subject to the user's explicit deployment approval. No remote variables changed or SMS sent during this audit. A bounded authorized live test must distinguish API acceptance, outbox entry, handset receipt and completed authentication.
+
+
+### Approved Railway SMS attachment — 2026-09-10
+
+**Implemented externally:** Following explicit user approval, attached the six existing shared SMS variables to weyonje-api: SMS_PROVIDER, AFRICASTALKING_API_BASE_URL, AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY, AFRICASTALKING_SENDER_ID and SMS_ANDROID_APP_HASH. Railway now reports 27 service variables and nine shared references in use. Reviewed exactly six staged reference additions and deployed them. Deployment 1a28a4f2-6650-410f-9861-a46bd6d2f471 reports ACTIVE / Deployment successful. The existing key was neither revealed nor replaced. No SMS was sent; actual provider acceptance, outbox entry, handset receipt and authentication still require a bounded authorized live test. This supersedes the preceding pending-attachment/deployment status.
+
+## Client sign-in registration branch and rate-limit recovery — 2026-09-10
+
+The existing Client-code request returns the unchanged eligible challenge or a typed `REGISTRATION_REQUIRED` outcome only when no account owns the normalized phone. Mobile passes the entered number through in-memory GoRouter extra into an editable, one-time registration prefill. No SMS, challenge or account is created for that response. This intentionally reveals a limited registration distinction. Existing restricted accounts receive generic feedback; pending registration remains recoverable by explicit submission of the existing form without unauthenticated profile replacement.
+
+Every valid initial Client-code request consumes a protected phone/IP allowance using the existing AUTH_ACCOUNT_MAX_ATTEMPTS, AUTH_IP_MAX_ATTEMPTS, AUTH_THROTTLE_WINDOW_SECONDS and AUTH_LOCK_SECONDS settings in separate database key namespaces. This includes unknown and restricted phones; it cannot become an unlimited lookup endpoint. Resends continue through the existing phone/purpose OTP limits. No environment values, providers, credentials, schema or dependencies changed.
+
+The API error contract now preserves `retryAt` and `limitCategory`: hourly issuance, resend cooldown and initial Client-request throttling remain distinct from exhausted verification attempts. The UI displays the server-derived retry time and gates further issuance, including after code edits. Hourly release is computed from stored creation timestamps and the latest cooldown, including failed deliveries. Initial request throttle errors and resend cooldowns include any later hourly boundary; resend reports the hourly category when that limit also applies. No automatic network retry or counter reset is introduced. The sent-message copy applies only to successful submission; failed/unconfirmed delivery stays separate.
+
+Read-only Railway evidence: the current service exposes 27 variables and nine shared references, including the previously attached SMS settings. OTP_TTL_SECONDS, OTP_RESEND_SECONDS, OTP_MAX_ATTEMPTS and OTP_MAX_REQUESTS_PER_HOUR are absent as service overrides; the deployed code defaults imply 600 seconds, 60 seconds, 5 attempts and 5/hour respectively. AUTH settings are 5/account, 20/IP, 900-second window/lock. The latest deployment was sleeping; no server request, SMS or remote change was made. Local .env agrees on OTP limits but is not the evidence for Railway. The exact live rate-limit incident remains unconfirmed without affected challenge/provider history.
+
+Old mobile clients safely fail parsing the new absent-phone outcome; roll out both API and mobile to enable branching. See CURRENT_SYSTEM_STATE.md for local test/build evidence and physical-device limitations.
