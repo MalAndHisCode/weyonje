@@ -62,11 +62,6 @@ class _ClientRegistrationScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Create a Client account to request waste-collection services. Required fields are marked in their labels.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 24),
               Semantics(
                 container: true,
                 label: 'Client type, required',
@@ -79,7 +74,7 @@ class _ClientRegistrationScreenState
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Client type (required)',
+                      'Client Type (Required)',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -118,13 +113,13 @@ class _ClientRegistrationScreenState
                 _textField(
                   key: const Key('client-first-name'),
                   controller: _firstName,
-                  label: 'First name (required)',
+                  label: 'First Name (Required)',
                 ),
                 const SizedBox(height: 20),
                 _textField(
                   key: const Key('client-last-name'),
                   controller: _lastName,
-                  label: 'Last name (required)',
+                  label: 'Last Name (Required)',
                 ),
               ],
               if (_organization) ...[
@@ -132,19 +127,19 @@ class _ClientRegistrationScreenState
                 _textField(
                   key: const Key('client-organization-name'),
                   controller: _organizationName,
-                  label: 'Company / Organization name (required)',
+                  label: 'Company / Organization Name (Required)',
                 ),
                 const SizedBox(height: 20),
                 _textField(
                   key: const Key('client-contact-name'),
                   controller: _contactName,
-                  label: 'Contact person name (required)',
+                  label: 'Contact Person Name (Required)',
                 ),
                 const SizedBox(height: 20),
                 _textField(
                   key: const Key('client-contact-phone'),
                   controller: _contactPhone,
-                  label: 'Contact person phone number (required)',
+                  label: 'Contact Person Phone Number (Required)',
                   keyboardType: TextInputType.phone,
                 ),
               ],
@@ -152,7 +147,7 @@ class _ClientRegistrationScreenState
               _textField(
                 key: const Key('client-phone'),
                 controller: _phone,
-                label: 'Phone number (required)',
+                label: 'Phone Number (Required)',
                 hint: 'e.g. 0700 000000',
                 keyboardType: TextInputType.phone,
                 autofillHints: const [AutofillHints.telephoneNumber],
@@ -164,7 +159,7 @@ class _ClientRegistrationScreenState
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 autocorrect: false,
-                label: Text('Email address (optional)'),
+                label: Text('Email Address (Optional)'),
                 validator: (value) {
                   final email = value?.trim() ?? '';
                   return email.isNotEmpty && !email.contains('@')

@@ -215,7 +215,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Client Registration'), findsOneWidget);
       expect(find.byKey(const Key('client-type-individual')), findsOneWidget);
-      expect(find.text('Email address (optional)'), findsOneWidget);
+      expect(find.text('Email Address (Optional)'), findsOneWidget);
     });
 
     testWidgets(
@@ -230,12 +230,12 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.bySemanticsLabel('Client. Request waste-collection services.'),
+          find.bySemanticsLabel('Client. Request Waste-Collection Services.'),
           findsOneWidget,
         );
         expect(
           find.bySemanticsLabel(
-            'Service Provider. Receive and handle service requests after satisfying KCCA approval requirements.',
+            'Service Provider. Receive and Handle Service Requests After Satisfying KCCA Approval Requirements.',
           ),
           findsOneWidget,
         );
@@ -269,7 +269,7 @@ void main() {
           isTrue,
         );
         final selectedClientSemantics = tester.getSemantics(
-          find.bySemanticsLabel('Client. Request waste-collection services.'),
+          find.bySemanticsLabel('Client. Request Waste-Collection Services.'),
         );
         expect(
           selectedClientSemantics.flagsCollection.isChecked,

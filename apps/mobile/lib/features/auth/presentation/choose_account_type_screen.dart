@@ -28,11 +28,6 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Your choice determines which registration form and approval process applies.',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 24),
         Semantics(
           container: true,
           explicitChildNodes: true,
@@ -49,9 +44,9 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
               FRadio(
                 key: const Key('account-client'),
                 value: _selection == RegistrationAccountType.client,
-                semanticsLabel: 'Client. Request waste-collection services.',
+                semanticsLabel: 'Client. Request Waste-Collection Services.',
                 label: const Text('Client'),
-                description: const Text('Request waste-collection services.'),
+                description: const Text('Request Waste-Collection Services.'),
                 onChange: (_) => _select(RegistrationAccountType.client),
               ),
               const SizedBox(height: 16),
@@ -59,10 +54,10 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
                 key: const Key('account-provider'),
                 value: _selection == RegistrationAccountType.serviceProvider,
                 semanticsLabel:
-                    'Service Provider. Receive and handle service requests after satisfying KCCA approval requirements.',
+                    'Service Provider. Receive and Handle Service Requests After Satisfying KCCA Approval Requirements.',
                 label: const Text('Service Provider'),
                 description: const Text(
-                  'Receive and handle service requests after satisfying KCCA approval requirements.',
+                  'Receive and Handle Service Requests After Satisfying KCCA Approval Requirements.',
                 ),
                 onChange: (_) =>
                     _select(RegistrationAccountType.serviceProvider),
