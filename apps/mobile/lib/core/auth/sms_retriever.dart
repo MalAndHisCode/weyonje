@@ -16,6 +16,7 @@ class SmsRetrieval extends ChangeNotifier {
   static const _channel = MethodChannel('weyonje/sms_retriever');
   SmsCandidate? candidate;
   final _candidates = <String, SmsCandidate>{};
+  final _consumed = <String>{};
   bool _closed = false;
   int _generation = 0;
   int get generation => _generation;
@@ -31,7 +32,10 @@ class SmsRetrieval extends ChangeNotifier {
       if (data is! Map || data['generation'] != _generation) return;
       final id = data['challengeId'];
       final code = data['code'];
-      if (id is String && code is String && RegExp(r'^\d{6}$').hasMatch(code)) {
+      if (id is String &&
+          code is String &&
+          !_consumed.contains(id) &&
+          RegExp(r'^\d{6}$').hasMatch(code)) {
         candidate = SmsCandidate(id, code);
         _candidates[id] = candidate!;
         if (_candidates.length > 4) _candidates.remove(_candidates.keys.first);
@@ -43,6 +47,7 @@ class SmsRetrieval extends ChangeNotifier {
   Future<void> start() async {
     candidate = null;
     _candidates.clear();
+    _consumed.clear();
     final generation = ++_generation;
     try {
       await _channel
@@ -56,6 +61,7 @@ class SmsRetrieval extends ChangeNotifier {
   Future<void> stop() async {
     candidate = null;
     _candidates.clear();
+    _consumed.clear();
     ++_generation;
     try {
       await _channel.invokeMethod<void>('stop');
@@ -69,6 +75,8 @@ class SmsRetrieval extends ChangeNotifier {
         _candidates.remove(challengeId) ??
         (candidate?.challengeId == challengeId ? candidate : null);
     if (candidate?.challengeId == challengeId) candidate = null;
+    // A duplicate delivery must not overwrite a later deliberate edit.
+    if (value != null) _consumed.add(challengeId);
     return value;
   }
 

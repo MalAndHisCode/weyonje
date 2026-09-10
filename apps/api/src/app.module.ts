@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { resolve } from "node:path";
 
 import { AuthModule } from "./auth/auth.module";
 import { authConfig } from "./config/auth.config";
@@ -25,6 +26,9 @@ import { NotificationsModule } from "./notifications/notifications.module";
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
+      // Resolve the documented root .env from source and compiled API layouts.
+      // Deployment environment variables retain Nest's normal precedence.
+      envFilePath: resolve(__dirname, "../../..", ".env"),
       validate: validateEnvironment,
       load: [
         authConfig,

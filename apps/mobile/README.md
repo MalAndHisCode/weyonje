@@ -38,7 +38,7 @@ flutter run --dart-define-from-file=config/auth.local.json
 
 ## Operational flows
 
-- When the API uses its guarded development fake SMS provider, the phone-verification screen displays and prefills the generated one-time code. No Africa's Talking account is required. The API prohibits this response field in the Weyonje production environment.
+- Phone verification starts empty in every build mode, including fake-provider environments. Only deliberate typing/paste, platform OTP autofill or a matching current SMS Retriever event supplies digits. Legacy development-code response fields are ignored. Fake acceptance alone never verifies a phone or creates a session.
 - Clients can create ASAP or scheduled requests, view history/details, track journeys, and submit 1–5 collection feedback.
 - Approved active Providers can see eligible marketplace requests with minimal pre-acceptance information, atomically accept work, manage jobs, report collection, and complete KCCA-assigned disposal.
 - KCCA routes expose monitoring, Provider review/status administration, manual Call Centre request entry, and disposal-site administration only when the matching server permission is present.
@@ -55,4 +55,4 @@ For Maps, enable Maps SDK for Android, Places API (New), Geocoding API and Route
 
 ## Client phone verification
 
-The existing registration and Client code-sign-in screens share automatic six-box Forui verification and Android SMS Retriever. Server-confirmed success remains visible before actor routing; manual entry and paste remain available. See [phone verification setup](../../docs/PHONE_VERIFICATION_SETUP.md) for lifecycle/recovery, trusted app hashes, the first-party Android dependency, exact signing limitations, and the bounded live-SMS test procedure. Live delivery/autofill remains unverified.
+The existing registration and Client code-sign-in screens share automatic six-box Forui verification and Android SMS Retriever. Server-confirmed success remains visible before actor routing; manual entry and paste remain available. Sandbox simulator receipt requires deliberate entry/paste and does not generate an Android SMS event. See [phone verification setup](../../docs/PHONE_VERIFICATION_SETUP.md) for lifecycle/recovery, trusted app hashes, the first-party Android dependency, exact signing limitations, and the bounded live-SMS test procedure. Live delivery/autofill remains unverified.

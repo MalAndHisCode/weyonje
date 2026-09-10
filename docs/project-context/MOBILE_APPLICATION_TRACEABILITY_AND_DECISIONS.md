@@ -27,13 +27,17 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 | Scheduled reminders | **Implemented for creation/delivery** | Transactional scheduled outbox events, offset config, restart-safe claims, eligibility recheck, in-app/push | No current public timing-edit/cancel command exists; corresponding reschedule/cancel hooks and tests remain. |
 | Reliable delivery | **Implemented locally** | PostgreSQL leases, skip-locked claims, attempt history, backoff, dead-letter, crash lease recovery, cleanup, health, worker | Two-processor real PostgreSQL test is opt-in and skipped without isolated URLs. Railway worker service is not created. |
 
+## Phone Verification Input Correction — 2026-09-10
+
+**Implemented:** The user’s no-bypass requirement and Business Process Client registration steps 5–8 require SMS/input before verification and number assignment. Confirmed cause: initial/resend screen fill from developmentVerificationCode, exposed by the fake-provider API, triggered automatic submission without SMS. Removed the fill/hint and phone-contract field; legacy extras are ignored even in debug. Deliberate manual/paste, supported platform autofill and current matching SMS still submit six digits automatically. Existing server verification, red/checking/green states, expiry, cooldown, cancellation, session recovery and Provider restrictions are preserved. Duplicate consumed SMS candidates cannot overwrite manual edits. API root .env loading is explicit and SMS keys survive the general whitelist before SMS-specific validation, so the documented local command uses existing authorized settings; Railway settings remain separate. See current state for regression/build evidence.
+
 ## Phone Verification Completion — 2026-09-10
 
 - **Implemented locally:** Native registration/Client sign-in endpoints and session authority are retained. Shared Forui six-box verification submits complete changed input, preserves leading zeroes/manual/paste, announces checking/error/success and shows green success for 650 ms before actor routing. Resend, expiry, exhaustion, transient failures, abandonment and saved-session recovery have distinct guarded behavior.
 - **Implemented locally:** Service Provider description is exactly **Receive and Handle Service Requests**. Client conditional fields and post-verification account numbering remain unchanged.
 - **Implemented; device evidence pending:** First-party SMS Retriever starts before request/resend, buffers UUID-scoped transient candidates and needs no broad SMS permission. Optional trusted server hash comes from actual package/certificate identity. Existing package/signing configuration is preserved.
 - **Implemented locally:** Provider-neutral TTL/hash composition, strict Africa's Talking recipient acceptance, guarded fake, no blind retries, resumable pending registration, issuance locks and atomic OTP/account/session completion. No outbox, identity-store or schema redesign.
-- **Partially Implemented externally:** Local provider entries fail username validation; dashboard needs secure sign-in. No connected device, authorized recipient/allowance or isolated PostgreSQL URLs. Provider acceptance, handset receipt, physical autofill and real verification are not claimed. See `../PHONE_VERIFICATION_SETUP.md` and current state for evidence and remaining steps.
+- **Configured but device/deployment unverified (rechecked 2026-09-10):** The earlier invalid-username finding is superseded: ignored local settings pass SMS validation and select Africa’s Talking live, with existing credentials and no custom sender. Historical connection-test acceptance is recorded in the setup guide. Mobile local defines target Railway, whose resolved SMS provider is not verified by local settings. No device or isolated PostgreSQL URLs are available; handset receipt, physical autofill and complete external authentication remain unverified.
 
 ## Adopted decisions
 
@@ -52,7 +56,7 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 | D-02 | Persistence | Prisma/PostgreSQL only; no TypeORM or second authoritative database. |
 | D-03 | Hosting | Railway API plus a smallest-safe separate Railway worker in production. Repository code/commands only; no service was created. |
 | D-04 | Reliable work | PostgreSQL outbox and worker; no Valkey/BullMQ. |
-| D-05 | Fake delivery | SMS/email/push fakes only outside Weyonje production; plaintext codes are neither logged nor stored. Fake code response exists only for explicitly non-production fake delivery. |
+| D-05 | Fake delivery | SMS/email/push fakes only outside Weyonje production; plaintext codes are neither logged nor stored. Phone challenge responses never expose codes, including fake delivery; unrelated account-security fake contracts are unchanged. |
 | D-06 | Maps | Google Maps SDK key is Android-restricted. Places/Geocoding/Routes use a separate server credential through authenticated Weyonje endpoints. PostgreSQL samples, not Google routes, are journey history. |
 | D-07 | FCM | FCM is a hint/delivery channel only. Device tokens are protected and revoked/invalidated. REST notifications remain authoritative. |
 | D-08 | Location | Start follows explicit authorised journey action; provisional 15-second/25-metre policy comes from API. Foreground service does not claim force-stop survival. Offline queue is encrypted, chronological, 200 samples/24 hours. |

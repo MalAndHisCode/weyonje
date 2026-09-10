@@ -2,9 +2,15 @@
 
 Client registration and Client code sign-in use the existing native endpoints and shared verification screen. Forui 0.25.0 renders one editable six-digit value as six boxes. Manual entry, paste and Android candidates use the same guarded server request. A complete unchanged value submits once; errors reset when edited, and a network retry requires an explicit action. Server-confirmed success is green for 650 ms before existing actor routing. The transition and pending requests are cancelled when leaving.
 
+## OTP input correction — 2026-09-10
+
+**Implemented:** The shared verification screen previously copied the fake-provider response's development code into its Forui controller on entry and resend, then automatically verified it. Both fill paths and the hint are removed. The mobile phone model ignores legacy extra data, including malformed development-code fields. PhoneChallengeService, its DTO, shared contract and generated OpenAPI no longer expose the OTP for any provider. Provider registration shares this protection; unrelated account-recovery/email-verification contracts remain unchanged. Tests capture codes only in injected gateways.
+
+A new challenge remains empty unless a matching SMS was buffered during its request. Allowed input is deliberate typing/paste, supported platform OTP autofill or a generation/challenge-matched SMS Retriever event. Consumed SMS candidates are remembered only within the current retrieval generation so duplicate delivery cannot overwrite later manual edits; start/stop clears them. Automatic six-digit submission and the guarded 650 ms server-success transition remain. Fake delivery and provider SENT status cannot populate input or imply handset receipt.
+
 ## Server configuration
 
-Store credentials only in the ignored root `.env` or an approved server secret store. Do not put provider keys in Flutter defines, an APK, examples, screenshots, logs or chat. The application uses an API key, never the dashboard password.
+Store credentials only in the ignored root `.env` or an approved server secret store. The API now explicitly resolves this root file from source and compiled layouts; process variables retain precedence. Previously Nest used the process working directory, so the documented pnpm command from `apps/api` missed the root file. The general environment whitelist now retains the SMS keys for validation by the existing smsConfig factory; previously file-loaded keys were discarded and provider selection reverted to FAKE. Process/Railway variables were not subject to that file-loading loss. No new environment framework is introduced. Do not put provider keys in Flutter defines, an APK, examples, screenshots, logs or chat. The application uses an API key, never the dashboard password.
 
 | Variable | Behavior |
 | --- | --- |
@@ -22,6 +28,14 @@ Store credentials only in the ignored root `.env` or an approved server secret s
 The adapter sends one form-encoded request to `/version1/messaging`, with the API key in a header. It accepts only a single matching recipient, nonempty message ID and status 100/101/102. HTTP 2xx alone is insufficient. `SENT` in the existing contract means provider acceptance, not confirmed handset delivery. `FAILED` means acceptance was not confirmed (including rejection, malformed response or ambiguous timeout); it is not proof that the handset will never receive a delayed SMS. There is no automatic retry after timeout. The retained challenge offers an explicit cooldown-controlled resend that supersedes the previous code.
 
 OTP message composition is provider-neutral in `otp-message.ts`. It contains the digits, configured expiry, a challenge UUID reference and optional trusted app hash; UTF-8 size is checked against 140 bytes. Each additional provider requires its own `SmsGateway` adapter plus an explicit factory/config registration. Switching between the implemented fake and Africa's Talking adapters requires configuration only. Operational outbox messaging is unchanged.
+
+### Effective environment audit — 2026-09-10
+
+The ignored root configuration passes the existing smsConfig validator and selects AFRICAS_TALKING, the live origin, present username/key, blank optional sender and a configured debug app hash. No credential or environment-variable value was changed for the OTP correction. The old traceability claim about invalid local username settings is historical and superseded by this audit. No provider request was made.
+
+The ignored mobile auth.local.json selects development and https://weyonje-api-production.up.railway.app; the repository always wires NativeAuthRepository. The new debug APK explicitly uses that file. A filename or environment label does not establish Railway's server classification or resolved SMS provider. Railway variables/process state and any previously installed APK are **Unknown** here; local .env edits cannot change them. No device is attached, and no authorized Railway management connection is available in this task. An operator must verify the target service's SMS_PROVIDER and matching endpoint/credentials privately before device testing, and deploy the reviewed server change separately.
+
+The existing local live configuration is preserved, not switched to sandbox or newly enabled for paid testing. Sandbox testing requires its existing sandbox credentials, username sandbox and sandbox origin on the API actually targeted by the APK. A simulator message is not handset receipt: copy/paste its code deliberately, or the page stays waiting. No simulator polling, synthetic runtime event or chargeable send is needed to validate this correction.
 
 ## Android signing and retrieval
 
@@ -70,14 +84,16 @@ Only the single live connection-test acceptance and dashboard Sent record above 
 - [Google Android SMS Retriever integration](https://developer.android.com/identity/sms-retriever) and [current Play services dependency](https://developers.google.com/android/guides/setup).
 - [Africa's Talking official SMS SDK](https://github.com/AfricasTalkingLtd/africastalking-node.js/blob/master/lib/sms.js), [recipient acceptance versus delivery reports](https://help.africastalking.com/en/articles/16150386-messaging-error-codes), [sandbox versus live delivery](https://help.africastalking.com/en/articles/2189460-what-are-the-sandbox-and-the-live-environments), and [Uganda sender setup](https://help.africastalking.com/en/articles/407085-how-do-i-set-up-my-sender-id-in-kenya-or-uganda).
 
-## Changed file groups
+## Correction validation and changed files
 
-| Area | Files |
+The final correction passes 120 Flutter tests, Flutter analysis/formatting, 131 API tests (four isolated PostgreSQL tests skipped), API typecheck/build and OpenAPI generation/drift. Five unchanged verification goldens were visually inspected. Debug APK 0.1.0+20260910 uses the existing Railway development defines; SHA-256 `066E875740BFF9D0F67F977C81E075AA229ADD9CB37D621B73A7B2E0977A35D5`. Full commands and limitations are recorded in CURRENT_SYSTEM_STATE.md under Phone Input Correction Validation.
+
+| Area | Changed files |
 | --- | --- |
-| API phone challenges and completion | `apps/api/src/registration/phone-challenge.service.ts`, `registration.service.ts`, `phone.module.ts`; `apps/api/src/auth/auth.service.ts`, `session.service.ts` |
-| API provider boundary | `apps/api/src/registration/sms-gateway.ts`, new `otp-message.ts`; `apps/api/src/config/sms.config.ts`; root `.env.example` |
-| API tests | `apps/api/test/phone-challenge.service.spec.ts`, `registration.service.spec.ts`, `sms.config.spec.ts`, new `sms-gateway.spec.ts`, `postgres.integration.spec.ts` |
-| Mobile auth and input | `apps/mobile/lib/core/auth/auth_repository.dart`, new `sms_retriever.dart`; `apps/mobile/lib/features/auth/application/registration_controller.dart`, `launch_controller.dart`; `apps/mobile/lib/features/auth/presentation/phone_verification_screen.dart`, `choose_account_type_screen.dart`; new `apps/mobile/lib/ui/weyonje_otp_field.dart` |
-| Android | `apps/mobile/android/app/build.gradle.kts`; `MainActivity.kt` and new `WeyonjeSmsRetriever.kt` under the existing package; new `apps/mobile/tool/sms_app_hash.cjs` |
-| Mobile tests and visual evidence | `apps/mobile/test/auth_flow_test.dart`, new `phone_auth_repository_test.dart`, `phone_verification_test.dart`; five updated `account_type_*.png` and six new `verification_*.png` goldens |
-| Documentation | This setup guide, API/mobile READMEs, `CURRENT_SYSTEM_STATE.md` and `MOBILE_APPLICATION_TRACEABILITY_AND_DECISIONS.md`. The state template is unchanged. |
+| Mobile runtime | lib/core/auth/registration_models.dart, sms_retriever.dart; lib/features/auth/presentation/phone_verification_screen.dart |
+| API runtime | src/app.module.ts, src/config/environment.ts, src/registration/phone-challenge.service.ts, registration.dto.ts |
+| Contracts | packages/contracts/src/index.ts; apps/api/openapi/openapi.json (regenerated) |
+| Regression tests | Mobile auth_flow_test.dart, phone_auth_repository_test.dart, phone_verification_test.dart; API environment.spec.ts, phone-challenge.service.spec.ts, postgres.integration.spec.ts |
+| Guidance | .env.example comments, API/mobile READMEs, this guide, current state and traceability notes; no master-template change |
+
+Paths in the runtime/test rows are relative to their application. No schema, new dependency, native Android receiver, worker or operational outbox change was needed.

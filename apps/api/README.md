@@ -28,11 +28,11 @@ Access tokens are short-lived HS256 JWTs containing only internal user and sessi
 3. Generate each base64 secret independently. On a trusted workstation, run `openssl rand -base64 32` or the PowerShell command `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))` separately for every key. Store output only in the ignored local file or Railway Variables. `EMAIL_ENCRYPTION_KEY` must decode to exactly 32 bytes; the other keys must decode to at least 32 bytes.
 4. Install with `pnpm install --frozen-lockfile` from the repository root.
 5. Apply migrations with `pnpm --filter @weyonje/api migration:deploy` (Prisma uses `DIRECT_URL`).
-6. Start locally with `pnpm --filter @weyonje/api start:dev`.
+6. Start locally with `pnpm --filter @weyonje/api start:dev`. The API explicitly resolves the ignored repository-root `.env` from either its source or compiled location; process/Railway variables take precedence. The environment whitelist preserves SMS keys for the existing smsConfig factory to validate.
 
 Startup rejects missing/malformed/placeholder connection values, insecure issuer configuration, undersized keys, secret reuse, unsafe TTL/limit values, and inconsistent production environment selection. Secrets are never generated at startup.
 
-`SMS_PROVIDER=FAKE` is the default outside `WEYONJE_ENVIRONMENT=production`. It returns the generated one-time code in the development-only challenge field so the mobile verification screen can display and prefill it without an external SMS account. The fake is prohibited in the Weyonje production environment. Use `SMS_PROVIDER=AFRICAS_TALKING` only after the corresponding credentials and non-production resources have been authorised and configured; that adapter never returns the code in an API response.
+`SMS_PROVIDER=FAKE` is the default outside `WEYONJE_ENVIRONMENT=production`. It simulates gateway acceptance only: phone challenge responses never expose the generated code, and mobile remains waiting without input or SMS. Automated tests capture sent codes through an injected gateway. The fake is prohibited in the Weyonje production environment. Use `SMS_PROVIDER=AFRICAS_TALKING` only after the corresponding credentials and non-production resources have been authorised and configured; no phone SMS adapter returns the code in an API response.
 
 ## Prisma and migration checks
 

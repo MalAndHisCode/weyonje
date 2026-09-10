@@ -1,5 +1,18 @@
 import { HttpException, UnauthorizedException } from "@nestjs/common";
 
+import { Test } from "@nestjs/testing";
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { AuthController } from "../src/auth/auth.controller";
+import { AuthService } from "../src/auth/auth.service";
+import { SessionService } from "../src/auth/session.service";
+import { SignedAccessTokenGuard } from "../src/auth/signed-access-token.guard";
+import { RegistrationController } from "../src/registration/registration.controller";
+import { RegistrationService } from "../src/registration/registration.service";
+import { DevelopmentFakeSmsGateway } from "../src/registration/sms-gateway";
+
 import { PrismaService } from "../src/database/prisma.service";
 import {
   PhoneChallengeDeliveryStatus,
@@ -11,11 +24,7 @@ import { SmsGateway } from "../src/registration/sms-gateway";
 import { testAuthConfig } from "./support/auth-config";
 
 describe("PhoneChallengeService", () => {
-  function harness({
-    recent = 0,
-    deliveryFails = false,
-    fakeSms = false,
-  } = {}) {
+  function harness({ recent = 0, deliveryFails = false } = {}) {
     let stored: Record<string, unknown> | null = null;
     let deliveredCode: string | null = null;
     const phoneChallenge = {
@@ -84,22 +93,8 @@ describe("PhoneChallengeService", () => {
       }),
     } as unknown as SmsGateway;
     const config = testAuthConfig();
-    const smsConfiguration = {
-      provider: fakeSms ? "FAKE" : "AFRICAS_TALKING",
-      username: "",
-      apiKey: "",
-      senderId: "",
-      baseUrl: "",
-      timeoutMilliseconds: 8_000,
-    } as const;
     return {
-      service: new PhoneChallengeService(
-        prisma,
-        phones,
-        sms,
-        config,
-        smsConfiguration,
-      ),
+      service: new PhoneChallengeService(prisma, phones, sms, config),
       phoneChallenge,
       sms,
       config,
@@ -111,6 +106,79 @@ describe("PhoneChallengeService", () => {
       },
     };
   }
+
+  it.each([
+    ["/v1/registrations/clients", PhoneChallengePurpose.REGISTRATION],
+    ["/v1/registrations/service-providers", PhoneChallengePurpose.REGISTRATION],
+    ["/v1/registrations/resend-phone-code", PhoneChallengePurpose.REGISTRATION],
+    ["/v1/auth/client-code/request", PhoneChallengePurpose.CLIENT_SIGN_IN],
+    ["/v1/auth/client-code/resend", PhoneChallengePurpose.CLIENT_SIGN_IN],
+  ])(
+    "%s never exposes an OTP even with fake acceptance",
+    async (url, purpose) => {
+      const value = harness();
+      const fake = new DevelopmentFakeSmsGateway();
+      jest
+        .spyOn(value.sms, "sendVerificationCode")
+        .mockImplementation((phone, code) =>
+          fake.sendVerificationCode(phone, code),
+        );
+      const create = () =>
+        value.service.create("+256700000123", purpose, "user-1");
+      const resend = async () => {
+        const initial = await create();
+        await value.phoneChallenge.update({
+          data: { resendAvailableAt: new Date(0) },
+        });
+        return value.service.resend(initial.challengeId, purpose);
+      };
+      const module = await Test.createTestingModule({
+        controllers: [AuthController, RegistrationController],
+        providers: [
+          {
+            provide: AuthService,
+            useValue: { requestClientCode: create, resendClientCode: resend },
+          },
+          {
+            provide: RegistrationService,
+            useValue: {
+              registerClient: create,
+              registerServiceProvider: create,
+              resendPhoneCode: resend,
+            },
+          },
+          { provide: SessionService, useValue: {} },
+        ],
+      })
+        .overrideGuard(SignedAccessTokenGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+      const app = module.createNestApplication<NestFastifyApplication>(
+        new FastifyAdapter(),
+      );
+      try {
+        await app.init();
+        const response = await app.inject({ method: "POST", url, payload: {} });
+        expect(response.statusCode).toBe(
+          url === "/v1/registrations/clients" ||
+            url === "/v1/registrations/service-providers"
+            ? 201
+            : 200,
+        );
+        expect(Object.keys(response.json()).sort()).toEqual([
+          "challengeId",
+          "deliveryStatus",
+          "expiresAt",
+          "maskedPhone",
+          "resendAvailableAt",
+        ]);
+        expect(response.json().deliveryStatus).toBe("SENT");
+        expect(value.stored?.consumedAt).toBeNull();
+      } finally {
+        await app.close();
+      }
+    },
+  );
 
   it("stores only a keyed code hash, sends six digits, and consumes once", async () => {
     const value = harness();
@@ -138,15 +206,22 @@ describe("PhoneChallengeService", () => {
     );
   });
 
-  it("returns the code only when the guarded development fake is selected", async () => {
-    const value = harness({ fakeSms: true });
+  it("never exposes the sent code in a phone challenge response", async () => {
+    const value = harness();
     const challenge = await value.service.create(
       "+256700000123",
       PhoneChallengePurpose.REGISTRATION,
       "user-1",
     );
 
-    expect(challenge.developmentVerificationCode).toBe(value.deliveredCode);
+    expect(Object.keys(challenge).sort()).toEqual([
+      "challengeId",
+      "deliveryStatus",
+      "expiresAt",
+      "maskedPhone",
+      "resendAvailableAt",
+    ]);
+    expect(JSON.stringify(challenge)).not.toContain(value.deliveredCode);
   });
 
   it("returns a truthful failed-delivery state and rejects verification", async () => {

@@ -377,47 +377,43 @@ void main() {
       expect(find.text('Client Dashboard'), findsWidgets);
     });
 
-    testWidgets('development SMS code is displayed and prefilled', (
-      tester,
-    ) async {
-      final challenge = PhoneChallenge(
-        id: '3284667f-f025-4db1-9849-f92823b6748c',
-        maskedPhone: '+256 •••••• 123',
-        expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
-        resendAvailableAt: DateTime.now().toUtc(),
-        deliveryStatus: PhoneCodeDeliveryStatus.sent,
-        developmentVerificationCode: '654321',
-      );
-      final repository = FakeAuthRepository(
-        onResolve: (_) async => const NoStoredSession(),
-        onRequestClientCode: (_, _) async => ChallengeCreated(challenge),
-      );
-      await pumpApp(tester, repository);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('sign-in')));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('client-sign-in-phone')),
-        '0700000123',
-      );
-      await tester.tap(find.byKey(const Key('request-client-code')));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'fake delivery leaves verification empty until deliberate input',
+      (tester) async {
+        final challenge = PhoneChallenge(
+          id: '3284667f-f025-4db1-9849-f92823b6748c',
+          maskedPhone: '+256 •••••• 123',
+          expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+          resendAvailableAt: DateTime.now().toUtc(),
+          deliveryStatus: PhoneCodeDeliveryStatus.sent,
+        );
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+          onRequestClientCode: (_, _) async => ChallengeCreated(challenge),
+        );
+        await pumpApp(tester, repository);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('sign-in')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('client-sign-in-phone')),
+          '0700000123',
+        );
+        await tester.tap(find.byKey(const Key('request-client-code')));
+        await tester.pumpAndSettle();
 
-      expect(find.textContaining('Development SMS mode'), findsOneWidget);
-      expect(
-        find.text(
-          'Development SMS mode: no SMS was sent. A test code is filled in automatically.',
-        ),
-        findsOneWidget,
-      );
-      final codeField = tester.widget<EditableText>(
-        find.descendant(
-          of: find.byKey(const Key('verification-code')),
-          matching: find.byType(EditableText),
-        ),
-      );
-      expect(codeField.controller.text, '654321');
-    });
+        expect(find.textContaining('Development SMS mode'), findsNothing);
+        expect(repository.verifyClientCodeCalls, 0);
+        expect(find.text('Client Dashboard'), findsNothing);
+        final codeField = tester.widget<EditableText>(
+          find.descendant(
+            of: find.byKey(const Key('verification-code')),
+            matching: find.byType(EditableText),
+          ),
+        );
+        expect(codeField.controller.text, isEmpty);
+      },
+    );
 
     testWidgets(
       'Client registration preserves optional email and reaches verification',
@@ -461,6 +457,15 @@ void main() {
         await tester.tap(find.byKey(const Key('submit-client-registration')));
         await tester.pumpAndSettle();
         expect(repository.registerClientCalls, 1);
+        expect(repository.verifyRegistrationCalls, 0);
+        expect(find.text('Client Dashboard'), findsNothing);
+        expect(
+          tester
+              .widget<EditableText>(find.byType(EditableText).last)
+              .controller
+              .text,
+          isEmpty,
+        );
         expect(submitted?.email, isNull);
         expect(submitted?.clientType, ClientType.individual);
         expect(find.text('Verify Phone Number'), findsOneWidget);

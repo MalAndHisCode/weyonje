@@ -69,7 +69,7 @@ void main() {
   Future<ProviderContainer> render(
     WidgetTester tester,
     FakeAuthRepository repository, {
-    FakeRetrieval? retrieval,
+    SmsRetrieval? retrieval,
     PhoneChallenge? initialChallenge,
     PhoneVerificationPurpose purpose = PhoneVerificationPurpose.clientSignIn,
     double scale = 1,
@@ -120,6 +120,190 @@ void main() {
   }
 
   for (final purpose in PhoneVerificationPurpose.values) {
+    testWidgets('$purpose ignores legacy response code on entry and resend', (
+      tester,
+    ) async {
+      PhoneChallenge legacy(String id) => PhoneChallenge.fromJson({
+        'challengeId': id,
+        'maskedPhone': '+256 •••••• 123',
+        'expiresAt': DateTime.now()
+            .toUtc()
+            .add(const Duration(minutes: 10))
+            .toIso8601String(),
+        'resendAvailableAt': DateTime.now().toUtc().toIso8601String(),
+        'deliveryStatus': 'SENT',
+        'developmentVerificationCode': '001234',
+      });
+      final repository = FakeAuthRepository(
+        onResolve: (_) async => const NoStoredSession(),
+        onResendClientCode: (_, _) async => ChallengeCreated(legacy(nextId)),
+        onResendRegistrationCode: (_, _) async =>
+            ChallengeCreated(legacy(nextId)),
+      );
+      final container = await render(
+        tester,
+        repository,
+        purpose: purpose,
+        initialChallenge: legacy(initialId),
+      );
+      for (var i = 0; i < 2; i++) {
+        await tester.pump(const Duration(seconds: 2));
+        expect(
+          tester
+              .widget<WeyonjeOtpField>(find.byType(WeyonjeOtpField))
+              .controller
+              .text,
+          isEmpty,
+        );
+        expect(
+          repository.verifyClientCodeCalls + repository.verifyRegistrationCalls,
+          0,
+        );
+        expect(
+          container.read(launchControllerProvider),
+          isNot(isA<LaunchAuthenticated>()),
+        );
+        expect(find.textContaining('Development SMS mode'), findsNothing);
+        if (i == 0) {
+          await tester.tap(find.byKey(const Key('resend-phone-code')));
+          await tester.pumpAndSettle();
+        }
+      }
+    });
+
+    for (final early in [false, true]) {
+      testWidgets(
+        '$purpose accepts matching platform SMS exactly once, early=$early',
+        (tester) async {
+          const channel = MethodChannel('weyonje/sms_retriever');
+          final messenger =
+              TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+          messenger.setMockMethodCallHandler(channel, (_) async => null);
+          final retrieval = SmsRetrieval();
+          addTearDown(() {
+            retrieval.dispose();
+            messenger.setMockMethodCallHandler(channel, null);
+          });
+          await retrieval.start();
+          Future<void> sms(String id, String code, int generation) async {
+            await messenger.handlePlatformMessage(
+              channel.name,
+              const StandardMethodCodec().encodeMethodCall(
+                MethodCall('candidate', {
+                  'challengeId': id,
+                  'code': code,
+                  'generation': generation,
+                }),
+              ),
+              (_) {},
+            );
+          }
+
+          final calls = <String>[];
+          Future<AuthOutcome> verify(String id, String code, Object _) async {
+            calls.add('$id:$code');
+            return const CancelledSignIn();
+          }
+
+          final repository = FakeAuthRepository(
+            onResolve: (_) async => const NoStoredSession(),
+            onVerifyClientCode: verify,
+            onVerifyRegistration: verify,
+          );
+          if (early) {
+            // The listener is active before the HTTP challenge response / screen.
+            await sms(initialId, '001234', retrieval.generation);
+            await sms(nextId, '111111', retrieval.generation);
+          }
+          await render(
+            tester,
+            repository,
+            purpose: purpose,
+            retrieval: retrieval,
+          );
+          if (!early) {
+            await sms(initialId, '999999', retrieval.generation - 1);
+            await sms(nextId, '111111', retrieval.generation);
+            await tester.pump();
+            expect(calls, isEmpty);
+            expect(
+              tester
+                  .widget<WeyonjeOtpField>(find.byType(WeyonjeOtpField))
+                  .controller
+                  .text,
+              isEmpty,
+            );
+            await sms(initialId, '001234', retrieval.generation);
+          }
+          await tester.pump();
+          await sms(initialId, '001234', retrieval.generation);
+          await sms(nextId, '222222', retrieval.generation);
+          await tester.pump();
+          expect(calls, ['$initialId:001234']);
+          expect(
+            tester
+                .widget<WeyonjeOtpField>(find.byType(WeyonjeOtpField))
+                .controller
+                .text,
+            '001234',
+          );
+          await tester.enterText(
+            find.byKey(const Key('verification-code')),
+            '00123',
+          );
+          await sms(initialId, '001234', retrieval.generation);
+          await tester.pump();
+          expect(
+            tester
+                .widget<WeyonjeOtpField>(find.byType(WeyonjeOtpField))
+                .controller
+                .text,
+            '00123',
+          );
+          expect(calls, ['$initialId:001234']);
+        },
+      );
+    }
+
+    testWidgets(
+      '$purpose deliberate clipboard paste preserves leading zeroes',
+      (tester) async {
+        String? sent;
+        Future<AuthOutcome> verify(String _, String code, Object token) async {
+          sent = code;
+          return const CancelledSignIn();
+        }
+
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+          onVerifyClientCode: verify,
+          onVerifyRegistration: verify,
+        );
+        await render(tester, repository, purpose: purpose);
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        messenger.setMockMethodCallHandler(SystemChannels.platform, (
+          call,
+        ) async {
+          if (call.method == 'Clipboard.getData') return {'text': '001234'};
+          return null;
+        });
+        addTearDown(
+          () =>
+              messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+        );
+        final editable = tester.state<EditableTextState>(
+          find.byType(EditableText),
+        );
+        await editable.pasteText(SelectionChangedCause.toolbar);
+        await tester.pump();
+        expect(sent, '001234');
+        expect(
+          repository.verifyClientCodeCalls + repository.verifyRegistrationCalls,
+          1,
+        );
+      },
+    );
     testWidgets(
       '$purpose submits leading-zero input once and shows success before routing',
       (tester) async {

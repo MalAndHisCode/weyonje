@@ -2,11 +2,71 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weyonje/core/auth/auth_repository.dart';
 import 'package:weyonje/core/config/app_config.dart';
+import 'package:weyonje/core/auth/registration_models.dart';
 import 'auth_repository_test.dart' show MemorySessionStore, credentialsJson;
 
 void main() {
   const config = AppConfig(apiBaseUrl: 'https://api.example.test');
   for (final registration in [true, false]) {
+    for (final legacy in [
+      '001234',
+      123456,
+      {'unexpected': true},
+    ]) {
+      test(
+        'challenge ignores legacy extra data with no session write: $registration $legacy',
+        () async {
+          final store = MemorySessionStore();
+          final dio = Dio();
+          final paths = <String>[];
+          dio.interceptors.add(
+            InterceptorsWrapper(
+              onRequest: (request, handler) {
+                paths.add(request.path);
+                handler.resolve(
+                  Response(
+                    requestOptions: request,
+                    data: {
+                      'challengeId': 'challenge',
+                      'maskedPhone': '+256 •••••• 123',
+                      'expiresAt': DateTime.now()
+                          .toUtc()
+                          .add(const Duration(minutes: 10))
+                          .toIso8601String(),
+                      'resendAvailableAt': DateTime.now()
+                          .toUtc()
+                          .toIso8601String(),
+                      'deliveryStatus': 'SENT',
+                      'developmentVerificationCode': legacy,
+                    },
+                  ),
+                );
+              },
+            ),
+          );
+          final repository = NativeAuthRepository(config, store, dio);
+          final outcome = registration
+              ? await repository.registerClient(
+                  const ClientRegistrationRequest(
+                    clientType: ClientType.individual,
+                    phoneNumber: '0700000123',
+                    firstName: 'Test',
+                    lastName: 'Client',
+                  ),
+                  CancelToken(),
+                )
+              : await repository.requestClientCode('0700000123', CancelToken());
+          expect(outcome, isA<ChallengeCreated>());
+          expect(paths, [
+            registration
+                ? '/v1/registrations/clients'
+                : '/v1/auth/client-code/request',
+          ]);
+          expect(store.writes, 0);
+          expect(store.value, isNull);
+        },
+      );
+    }
     test(
       'phone session storage and actor resolution use purpose $registration endpoint',
       () async {

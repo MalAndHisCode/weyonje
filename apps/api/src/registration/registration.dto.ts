@@ -177,14 +177,6 @@ export class PhoneChallengeDto implements PhoneChallengeContract {
 
   @ApiProperty({ type: String, enum: PhoneCodeDeliveryStatus })
   deliveryStatus!: PhoneCodeDeliveryStatus;
-
-  @ApiPropertyOptional({
-    type: String,
-    pattern: "^[0-9]{6}$",
-    description:
-      "Returned only by the guarded development fake SMS adapter; never present in production.",
-  })
-  developmentVerificationCode?: string;
 }
 
 export class VerifyPhoneCodeDto implements VerifyPhoneCodeRequestContract {

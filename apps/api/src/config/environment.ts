@@ -1,5 +1,6 @@
 import { plainToInstance, Transform } from "class-transformer";
 import {
+  Allow,
   IsIn,
   IsBoolean,
   IsInt,
@@ -22,6 +23,26 @@ const SECRET_FIELDS = [
 ] as const;
 
 export class Environment {
+  // Keep file-loaded SMS settings for smsConfig, which owns their validation.
+  // Without these, whitelist validation silently discards the selected provider.
+  @Allow()
+  SMS_PROVIDER?: string;
+
+  @Allow()
+  AFRICASTALKING_USERNAME?: string;
+
+  @Allow()
+  AFRICASTALKING_API_KEY?: string;
+
+  @Allow()
+  AFRICASTALKING_SENDER_ID?: string;
+
+  @Allow()
+  AFRICASTALKING_API_BASE_URL?: string;
+
+  @Allow()
+  SMS_ANDROID_APP_HASH?: string;
+
   @IsIn(["development", "test", "production"])
   NODE_ENV = "development";
 

@@ -59,7 +59,6 @@ class _PhoneVerificationScreenState
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _fill(_challenge.developmentVerificationCode ?? '');
       _received();
       _changed();
     });
@@ -132,8 +131,6 @@ class _PhoneVerificationScreenState
               Text(
                 failed
                     ? 'SMS acceptance could not be confirmed. Your information was kept. Wait before requesting another code to continue; a delayed SMS may still arrive.'
-                    : _challenge.developmentVerificationCode != null
-                    ? 'Development SMS mode: no SMS was sent. A test code is filled in automatically.'
                     : 'A code was submitted for SMS delivery. Enter it below when it arrives.',
               ),
               const SizedBox(height: 24),
@@ -219,7 +216,6 @@ class _PhoneVerificationScreenState
     _replacing = false;
     if (challenge == null) return;
     setState(() => _challenge = challenge);
-    _fill(challenge.developmentVerificationCode ?? '');
     _received();
     _changed();
   }

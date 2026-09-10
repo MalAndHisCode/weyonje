@@ -13,7 +13,7 @@ import {
 import { DeliveryProcessor } from "../src/delivery/delivery.processor";
 import { PhoneChallengeService } from "../src/registration/phone-challenge.service";
 import { PhoneSecurityService } from "../src/registration/phone-security.service";
-import { DevelopmentFakeSmsGateway } from "../src/registration/sms-gateway";
+import { SmsGateway } from "../src/registration/sms-gateway";
 import { PhoneChallengePurpose } from "../src/generated/prisma/enums";
 import { SessionService } from "../src/auth/session.service";
 import { TokenService } from "../src/auth/token.service";
@@ -58,20 +58,14 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
     const config = testAuthConfig();
     const phones = new PhoneSecurityService(config);
     const database = prisma as unknown as PrismaService;
-    const service = new PhoneChallengeService(
-      database,
-      phones,
-      new DevelopmentFakeSmsGateway(),
-      config,
-      {
-        provider: "FAKE",
-        username: "",
-        apiKey: "",
-        senderId: "",
-        baseUrl: "",
-        timeoutMilliseconds: 8000,
+    let deliveredCode = "";
+    const sms: SmsGateway = {
+      async sendVerificationCode(_phone, code) {
+        deliveredCode = code;
+        return "test-message-id";
       },
-    );
+    };
+    const service = new PhoneChallengeService(database, phones, sms, config);
     const sessions = new SessionService(
       database,
       new TokenService(config),
@@ -96,7 +90,7 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
       await expect(
         service.verifyAndComplete(
           challenge.challengeId,
-          challenge.developmentVerificationCode!,
+          deliveredCode,
           PhoneChallengePurpose.REGISTRATION,
           async (_, tx) => {
             await tx.user.update({
@@ -129,7 +123,7 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
         [1, 2].map(() =>
           service.verifyAndComplete(
             challenge.challengeId,
-            challenge.developmentVerificationCode!,
+            deliveredCode,
             PhoneChallengePurpose.REGISTRATION,
             async (_, tx) => sessions.create(user, tx),
           ),

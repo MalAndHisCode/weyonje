@@ -74,7 +74,6 @@ export interface PhoneChallengeContract {
   expiresAt: string;
   resendAvailableAt: string;
   deliveryStatus: PhoneCodeDeliveryStatus;
-  developmentVerificationCode?: string;
 }
 
 export enum PhoneCodeDeliveryStatus {

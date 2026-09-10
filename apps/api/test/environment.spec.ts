@@ -1,3 +1,9 @@
+import { ConfigModule } from "@nestjs/config";
+import { Test } from "@nestjs/testing";
+import { mkdtempSync, writeFileSync, unlinkSync, rmdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { smsConfig } from "../src/config/sms.config";
 import { validateEnvironment } from "../src/config/environment";
 
 function validEnvironment() {
@@ -32,6 +38,62 @@ function validEnvironment() {
 }
 
 describe("environment validation", () => {
+  it.each([false, true])(
+    "loads SMS file settings through Nest and honors process overrides=%s",
+    async (override) => {
+      const original = process.env;
+      const directory = mkdtempSync(join(tmpdir(), "weyonje-sms-config-"));
+      const file = join(directory, ".env");
+      const values = {
+        ...validEnvironment(),
+        SMS_PROVIDER: "AFRICAS_TALKING",
+        AFRICASTALKING_USERNAME: "sandbox",
+        AFRICASTALKING_API_KEY: "synthetic-test-key",
+        AFRICASTALKING_API_BASE_URL: "https://api.sandbox.africastalking.com",
+        AFRICASTALKING_SENDER_ID: "",
+        SMS_ANDROID_APP_HASH: "AbCdef123+/",
+      };
+      writeFileSync(
+        file,
+        Object.entries(values)
+          .map(([key, value]) => key + "=" + value)
+          .join("\n"),
+      );
+      process.env = override ? { SMS_PROVIDER: "FAKE" } : {};
+      try {
+        const module = await Test.createTestingModule({
+          imports: [
+            ConfigModule.forRoot({
+              envFilePath: file,
+              validate: validateEnvironment,
+              load: [smsConfig],
+            }),
+          ],
+        }).compile();
+        try {
+          expect(module.get(smsConfig.KEY)).toMatchObject(
+            override
+              ? { provider: "FAKE" }
+              : {
+                  provider: "AFRICAS_TALKING",
+                  username: "sandbox",
+                  apiKey: "synthetic-test-key",
+                  baseUrl: "https://api.sandbox.africastalking.com",
+                  senderId: "",
+                  androidAppHash: "AbCdef123+/",
+                },
+          );
+        } finally {
+          await module.close();
+        }
+      } finally {
+        process.env = original;
+        unlinkSync(file);
+        rmdirSync(directory);
+      }
+    },
+  );
+
   it("accepts separated, correctly sized keys", () => {
     expect(validateEnvironment(validEnvironment()).PORT).toBe(3000);
   });
