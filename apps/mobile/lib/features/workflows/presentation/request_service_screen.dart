@@ -39,8 +39,9 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   bool _checking = false;
   bool _locating = false;
   bool _submitting = false;
+  bool _navigating = false;
   bool _submissionUncertain = false;
-  bool get _draftLocked => _submitting || _submissionUncertain;
+  bool get _draftLocked => _submitting || _submissionUncertain || _navigating;
   String? _locationError;
   String? _error;
   String? _phoneError;
@@ -197,7 +198,12 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     if (_draftLocked || _current != false) return;
     final generation = ++_selection;
     if (!await _checkAccess(request: true)) return;
-    if (!mounted || generation != _selection || _current != false) return;
+    if (!mounted ||
+        generation != _selection ||
+        _current != false ||
+        _draftLocked) {
+      return;
+    }
     FocusScope.of(context).unfocus();
     final point = await context.push<Map<String, double>>(
       '/client/location-picker',
@@ -214,7 +220,7 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   }
 
   Future<void> _submit() async {
-    if (_submitting || !_form.currentState!.validate()) return;
+    if (_submitting || _navigating || !_form.currentState!.validate()) return;
     if (_profile == null || _current == null || _point == null) {
       setState(
         () => _error =
@@ -224,7 +230,8 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     }
     setState(() {
       _submitting = true;
-      _error = null;
+      // A local permission failure on retry cannot resolve an earlier attempt.
+      if (!_submissionUncertain) _error = null;
     });
     try {
       if (!await _checkAccess(request: true)) return;
@@ -256,13 +263,16 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
       if (mounted) {
         setState(() {
           _submissionUncertain =
+              _submissionUncertain ||
               error.code == null ||
               const {
                 'REQUEST_TIMEOUT',
                 'DEPENDENCY_UNAVAILABLE',
                 'UNEXPECTED_ERROR',
               }.contains(error.code);
-          _error = error.message;
+          _error = _submissionUncertain
+              ? 'Retry unchanged details to recover your request, or check My Requests.'
+              : error.message;
           if (error.message == 'Enter a valid Ugandan phone number.') {
             _phoneError = error.message;
           }
@@ -274,7 +284,7 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
         setState(() {
           _submissionUncertain = true;
           _error =
-              'The response was interrupted. Retry unchanged details to recover the same request.';
+              'Retry unchanged details to recover your request, or check My Requests.';
         });
       }
     } finally {
@@ -297,15 +307,26 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
 
   Widget _detail(String label, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 4),
-        SelectableText(value),
-      ],
+    child: FTextField(
+      control: FTextFieldControl.managed(
+        initial: TextEditingValue(text: value),
+      ),
+      readOnly: true,
+      maxLines: null,
+      label: Text(label),
     ),
   );
+
+  Future<void> _checkRequests() async {
+    if (_submitting || _navigating) return;
+    setState(() => _navigating = true);
+    FocusScope.of(context).unfocus();
+    try {
+      await context.push('/client/requests', extra: true);
+    } finally {
+      if (mounted) setState(() => _navigating = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -351,6 +372,12 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
               onChange: _draftLocked ? null : (_) => _mode(false),
               label: const Text('No'),
             ),
+            if (_current == false)
+              WeyonjeButton(
+                label: 'Select Location on Map',
+                kind: WeyonjeButtonKind.outline,
+                onPressed: _draftLocked || _checking ? null : _chooseLocation,
+              ),
             if (configured)
               ref.watch(requestMapBuilderProvider)(
                 WeyonjeMap(
@@ -375,12 +402,6 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
               label: const Text('Service Location'),
               hint: 'No service location selected',
             ),
-            if (_current == false)
-              WeyonjeButton(
-                label: 'Select Location on Map',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: _draftLocked || _checking ? null : _chooseLocation,
-              ),
             if (_current == true)
               WeyonjeButton(
                 label: 'Refresh Current Location',
@@ -467,28 +488,23 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
                     : 'Request Not Submitted',
                 message: _error!,
               ),
-            if (_submissionUncertain) ...[
-              const Text(
-                'Submission may have succeeded. Details are held unchanged so Retry cannot create a second request. Check My Requests before starting a different request.',
-              ),
-              WeyonjeButton(
-                label: 'Check My Requests',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: _submitting
-                    ? null
-                    : () => context.go('/client/requests'),
-              ),
-            ],
             WeyonjeButton(
               label: 'Submit Request',
               loading: _submitting,
               onPressed:
-                  _checking ||
+                  _navigating ||
+                      _checking ||
                       _access != ClientLocationAccess.ready ||
                       _locating ||
                       _profile == null
                   ? null
                   : _submit,
+            ),
+            const SizedBox(height: 12),
+            WeyonjeButton(
+              label: 'Check My Requests',
+              kind: WeyonjeButtonKind.outline,
+              onPressed: _submitting || _navigating ? null : _checkRequests,
             ),
           ],
         ),

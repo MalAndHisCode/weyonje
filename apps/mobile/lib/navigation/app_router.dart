@@ -168,7 +168,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.clientRequests,
-        builder: (context, state) => const ClientRequestsScreen(),
+        builder: (context, state) =>
+            ClientRequestsScreen(returnToDraft: state.extra == true),
       ),
       GoRoute(
         path: '/client/requests/:requestId',

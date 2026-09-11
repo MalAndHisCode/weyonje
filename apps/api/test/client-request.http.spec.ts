@@ -1,4 +1,4 @@
-import { ExecutionContext, ValidationPipe } from "@nestjs/common";
+import { ExecutionContext, ValidationPipe, Logger } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import {
   FastifyAdapter,
@@ -70,7 +70,16 @@ describe("Client creation HTTP boundary with real service and isolated persisten
     },
     serviceRequest: { findFirst: jest.fn(async () => stored) },
     $transaction: jest.fn(
-      async (work: (value: typeof tx) => Promise<unknown>) => work(tx),
+      async (work: (value: typeof tx) => Promise<unknown>) => {
+        const before = { stored, replay };
+        try {
+          return await work(tx);
+        } catch (error) {
+          stored = before.stored;
+          replay = before.replay;
+          throw error;
+        }
+      },
     ),
   };
   beforeAll(async () => {
@@ -158,6 +167,90 @@ describe("Client creation HTTP boundary with real service and isolated persisten
       expect(detail.json()).toEqual(response.json());
     },
   );
+  it("recovers a post-commit detail failure with the same key and no repeated side effects", async () => {
+    prisma.serviceRequest.findFirst.mockRejectedValueOnce(
+      new TypeError("private detail failure"),
+    );
+    const log = jest
+      .spyOn(Logger.prototype, "error")
+      .mockImplementation(() => undefined);
+    try {
+      const failed = await post(mobilePayload);
+      expect(failed.statusCode).toBe(500);
+      expect(log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          stage: "detail_read",
+          category: "type_error",
+          requestId: expect.any(String),
+        }),
+      );
+      expect(stored).toBeDefined();
+      expect(replay).toBeDefined();
+      const recovered = await post(mobilePayload);
+      expect(recovered.statusCode).toBe(201);
+      expect(recovered.json().id).toBe(stored?.id);
+      for (const write of [
+        create,
+        history,
+        audit,
+        outbox,
+        tx.operationalNotification.create,
+        tx.idempotencyRecord.create,
+      ])
+        expect(write).toHaveBeenCalledTimes(1);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("identifies mapping failure after commit and retries without duplicate creation", async () => {
+    const decrypt = jest.spyOn(phones, "decrypt").mockImplementationOnce(() => {
+      throw new Error("secret contact");
+    });
+    const log = jest
+      .spyOn(Logger.prototype, "error")
+      .mockImplementation(() => undefined);
+    try {
+      expect((await post(mobilePayload)).statusCode).toBe(500);
+      expect(log).toHaveBeenCalledWith(
+        expect.objectContaining({ stage: "detail_mapping" }),
+      );
+      expect((await post(mobilePayload)).statusCode).toBe(201);
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(outbox).toHaveBeenCalledTimes(1);
+    } finally {
+      decrypt.mockRestore();
+      log.mockRestore();
+    }
+  });
+
+  it.each([
+    ["history_write", history],
+    ["audit_write", audit],
+    ["outbox_write", outbox],
+    ["notification_write", tx.operationalNotification.create],
+    ["idempotency_write", tx.idempotencyRecord.create],
+  ])(
+    "identifies %s and does not return a successful response on transactional failure (fake)",
+    async (stage, write) => {
+      (write as jest.Mock).mockRejectedValueOnce(
+        new Error("private constraint detail"),
+      );
+      const log = jest
+        .spyOn(Logger.prototype, "error")
+        .mockImplementation(() => undefined);
+      try {
+        expect((await post(mobilePayload)).statusCode).toBe(500);
+        expect(log).toHaveBeenCalledWith(expect.objectContaining({ stage }));
+        expect(stored).toBeUndefined();
+        expect(replay).toBeUndefined();
+        expect((await post(mobilePayload)).statusCode).toBe(201);
+      } finally {
+        log.mockRestore();
+      }
+    },
+  );
+
   it("normalizes valid additional contacts and encrypts persistence", async () => {
     const response = await post({
       ...mobilePayload,

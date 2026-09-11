@@ -20,6 +20,15 @@ import { TokenService } from "../src/auth/token.service";
 import { PrismaService } from "../src/database/prisma.service";
 import { testAuthConfig } from "./support/auth-config";
 
+import { WorkflowService } from "../src/workflows/workflow.service";
+import { EmailSecurityService } from "../src/auth/email-security.service";
+import { AuthenticatedActor } from "../src/auth/authenticated-actor";
+import {
+  RequestLocationKind,
+  ScheduleMode,
+  ToiletType,
+} from "@weyonje/contracts";
+
 const runtimeUrl = process.env.TEST_DATABASE_URL;
 const directUrl = process.env.TEST_DIRECT_URL;
 const describePostgres = runtimeUrl && directUrl ? describe : describe.skip;
@@ -38,8 +47,8 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
       );
     }
     execFileSync(
-      process.platform === "win32" ? "pnpm.cmd" : "pnpm",
-      ["prisma", "migrate", "deploy"],
+      process.execPath,
+      [require.resolve("prisma/build/index.js"), "migrate", "deploy"],
       {
         cwd: resolve(__dirname, ".."),
         env: { ...process.env, DIRECT_URL: directUrl! },
@@ -53,6 +62,117 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
   });
 
   afterAll(async () => prisma?.$disconnect());
+
+  it("creates/replays Client requests with real constraints, rollback and post-commit recovery", async () => {
+    const config = testAuthConfig();
+    const phones = new PhoneSecurityService(config);
+    const emails = new EmailSecurityService(config);
+    const phone = `+2567${Date.now().toString().slice(-8)}`;
+    const user = await prisma.user.create({
+      data: {
+        actorType: "CLIENT",
+        isActive: true,
+        loginEnabled: true,
+        encryptedPhone: phones.encrypt(phone),
+        phoneLookup: phones.lookup(phone),
+        clientProfile: {
+          create: {
+            clientType: "INDIVIDUAL",
+            firstName: "Test",
+            lastName: "Client",
+          },
+        },
+      },
+    });
+    const actor = { user } as unknown as AuthenticatedActor;
+    let failInside = false;
+    let failDetail = false;
+    const database = prisma.$extends({
+      query: {
+        idempotencyRecord: {
+          async create({ args, query }) {
+            if (failInside) args.data.expiresAt = new Date(0); // Real CHECK failure after side effects.
+            return query(args);
+          },
+        },
+        serviceRequest: {
+          async findFirst({ args, query }) {
+            if (failDetail) {
+              failDetail = false;
+              throw new TypeError("synthetic post-commit read failure");
+            }
+            return query(args);
+          },
+        },
+      },
+    });
+    const service = new WorkflowService(
+      database as unknown as PrismaService,
+      phones,
+      emails,
+      {} as never,
+      {} as never,
+      { offsetsMinutes: [120] } as never,
+    );
+    const payload = {
+      idempotencyKey: randomUUID(),
+      locationKind: RequestLocationKind.current,
+      location: { latitude: 0.312345, longitude: 32.512345 },
+      toiletType: ToiletType.pitLatrine,
+      scheduleMode: ScheduleMode.asSoonAsPossible,
+    };
+    const counts = async () =>
+      Promise.all([
+        prisma.serviceRequest.count({ where: { clientUserId: user.id } }),
+        prisma.requestStatusHistory.count({ where: { actorUserId: user.id } }),
+        prisma.auditEvent.count({ where: { actorUserId: user.id } }),
+        prisma.operationalNotification.count({
+          where: { recipientUserId: user.id },
+        }),
+        prisma.outboxEvent.count({ where: { recipientUserId: user.id } }),
+        prisma.idempotencyRecord.count({ where: { actorUserId: user.id } }),
+      ]);
+    try {
+      failInside = true;
+      await expect(
+        service.createClientRequest(actor, payload),
+      ).rejects.toThrow();
+      expect(await counts()).toEqual([0, 0, 0, 0, 0, 0]);
+      failInside = false;
+      failDetail = true;
+      await expect(service.createClientRequest(actor, payload)).rejects.toThrow(
+        "synthetic post-commit",
+      );
+      expect(await counts()).toEqual([1, 1, 1, 1, 1, 1]);
+      const recovered = await service.createClientRequest(actor, payload);
+      expect(recovered).toMatchObject({
+        status: "PENDING",
+        location: payload.location,
+        scheduleMode: payload.scheduleMode,
+      });
+      expect(await service.clientRequest(actor, recovered.id)).toEqual(
+        recovered,
+      );
+      expect(await service.createClientRequest(actor, payload)).toEqual(
+        recovered,
+      );
+      expect(await counts()).toEqual([1, 1, 1, 1, 1, 1]);
+      expect(
+        await prisma.idempotencyRecord.findFirst({
+          where: { actorUserId: user.id },
+        }),
+      ).toMatchObject({ response: { id: recovered.id } });
+    } finally {
+      await prisma.idempotencyRecord.deleteMany({
+        where: { actorUserId: user.id },
+      });
+      await prisma.auditEvent.deleteMany({ where: { actorUserId: user.id } });
+      await prisma.serviceRequest.deleteMany({
+        where: { clientUserId: user.id },
+      });
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  });
 
   it("rolls back OTP/account/session completion and consumes once under concurrent retry", async () => {
     const config = testAuthConfig();

@@ -61,6 +61,12 @@ import {
 } from "../generated/prisma/enums";
 import { PhoneSecurityService } from "../registration/phone-security.service";
 
+import {
+  atClientRequestStage,
+  withoutDiagnostics,
+  RequestStageRunner,
+} from "../http/failure-diagnostics";
+
 type TransactionClient = Prisma.TransactionClient;
 
 const REQUEST_INCLUDE = {
@@ -193,75 +199,91 @@ export class WorkflowService {
       !Object.values(ToiletType).includes(input.toiletType)
     )
       throw this.invalid("Select the type of toilet to empty.");
-    const normalized = this.validateRequestInput(input);
-    const profile = await this.prisma.user.findUnique({
-      where: { id: actor.user.id },
-      select: {
-        encryptedPhone: true,
-        encryptedEmail: true,
-        clientProfile: true,
-      },
-    });
+    const normalized = await atClientRequestStage("normalization", async () =>
+      this.validateRequestInput(input),
+    );
+    const profile = await atClientRequestStage("profile_lookup", () =>
+      this.prisma.user.findUnique({
+        where: { id: actor.user.id },
+        select: {
+          encryptedPhone: true,
+          encryptedEmail: true,
+          clientProfile: true,
+        },
+      }),
+    );
     if (!profile?.encryptedPhone || !profile.clientProfile)
       throw this.notFound();
     const clientName =
       profile.clientProfile.clientType === "INDIVIDUAL"
         ? `${profile.clientProfile.firstName ?? ""} ${profile.clientProfile.lastName ?? ""}`.trim()
         : (profile.clientProfile.organizationName ?? "Weyonje Client");
-    const response = await this.idempotent(
-      actor.user.id,
-      "client.create-request",
-      input.idempotencyKey,
-      input,
-      async (tx) => {
-        const request = await tx.serviceRequest.create({
-          data: {
-            reference: requestReference(),
-            origin: PrismaRequestOrigin.MOBILE_APP,
-            clientUserId: actor.user.id,
-            createdByUserId: actor.user.id,
-            clientName,
-            encryptedClientPhone: profile.encryptedPhone!,
-            encryptedClientEmail: profile.encryptedEmail,
-            ...normalized,
-          },
-          select: { id: true },
-        });
-        await Promise.all([
-          tx.requestStatusHistory.create({
-            data: {
-              requestId: request.id,
-              toStatus: PrismaRequestStatus.PENDING,
-              actorUserId: actor.user.id,
-            },
-          }),
-          this.audit(
-            tx,
-            actor.user.id,
-            "request.created",
-            "ServiceRequest",
-            request.id,
-            request.id,
-          ),
-          this.notify(
-            tx,
-            actor.user.id,
-            request.id,
-            PrismaNotificationType.REQUEST_CREATED,
-            "Request submitted",
-            "Your service request is pending Provider acceptance.",
-          ),
-        ]);
-        await this.createReminders(
-          tx,
-          request.id,
-          actor.user.id,
-          normalized.requestedServiceAt,
-        );
-        return { id: request.id };
-      },
+    const response = await atClientRequestStage("transaction", () =>
+      this.idempotent(
+        actor.user.id,
+        "client.create-request",
+        input.idempotencyKey,
+        input,
+        async (tx) => {
+          const request = await atClientRequestStage("request_create", () =>
+            tx.serviceRequest.create({
+              data: {
+                reference: requestReference(),
+                origin: PrismaRequestOrigin.MOBILE_APP,
+                clientUserId: actor.user.id,
+                createdByUserId: actor.user.id,
+                clientName,
+                encryptedClientPhone: profile.encryptedPhone!,
+                encryptedClientEmail: profile.encryptedEmail,
+                ...normalized,
+              },
+              select: { id: true },
+            }),
+          );
+          await Promise.all([
+            atClientRequestStage("history_write", () =>
+              tx.requestStatusHistory.create({
+                data: {
+                  requestId: request.id,
+                  toStatus: PrismaRequestStatus.PENDING,
+                  actorUserId: actor.user.id,
+                },
+              }),
+            ),
+            atClientRequestStage("audit_write", () =>
+              this.audit(
+                tx,
+                actor.user.id,
+                "request.created",
+                "ServiceRequest",
+                request.id,
+                request.id,
+              ),
+            ),
+            this.notify(
+              tx,
+              actor.user.id,
+              request.id,
+              PrismaNotificationType.REQUEST_CREATED,
+              "Request submitted",
+              "Your service request is pending Provider acceptance.",
+              atClientRequestStage,
+            ),
+          ]);
+          await atClientRequestStage("reminder_write", () =>
+            this.createReminders(
+              tx,
+              request.id,
+              actor.user.id,
+              normalized.requestedServiceAt,
+            ),
+          );
+          return { id: request.id };
+        },
+        atClientRequestStage,
+      ),
     );
-    return this.clientRequest(actor, response.id);
+    return this.clientRequest(actor, response.id, atClientRequestStage);
   }
 
   async createCallCentreRequest(
@@ -427,14 +449,17 @@ export class WorkflowService {
   async clientRequest(
     actor: AuthenticatedActor,
     requestId: string,
+    diagnose: RequestStageRunner = withoutDiagnostics,
   ): Promise<ServiceRequestDetailContract> {
     this.assertClient(actor);
-    const request = await this.prisma.serviceRequest.findFirst({
-      where: { id: requestId, clientUserId: actor.user.id },
-      include: REQUEST_INCLUDE,
-    });
+    const request = await diagnose("detail_read", () =>
+      this.prisma.serviceRequest.findFirst({
+        where: { id: requestId, clientUserId: actor.user.id },
+        include: REQUEST_INCLUDE,
+      }),
+    );
     if (!request) throw this.notFound();
-    return this.detail(request, true);
+    return diagnose("detail_mapping", async () => this.detail(request, true));
   }
 
   async pendingProviderRequests(
@@ -2005,41 +2030,48 @@ export class WorkflowService {
     key: string,
     payload: unknown,
     work: (tx: TransactionClient) => Promise<T>,
+    diagnose: RequestStageRunner = withoutDiagnostics,
   ): Promise<T> {
     const fingerprint = createHash("sha256")
       .update(stableJson(payload))
       .digest("base64url");
     const execute = async () =>
-      this.prisma.$transaction(
-        async (tx) => {
-          const existing = await tx.idempotencyRecord.findUnique({
-            where: {
-              actorUserId_operation_key: { actorUserId, operation, key },
-            },
-          });
-          if (existing) {
-            if (existing.fingerprint !== fingerprint)
-              throw new ConflictException({
-                code: ApiErrorCode.idempotencyConflict,
-                message:
-                  "This idempotency key was already used for different data.",
-              });
-            return existing.response as T;
-          }
-          const response = await work(tx);
-          await tx.idempotencyRecord.create({
-            data: {
-              actorUserId,
-              operation,
-              key,
-              fingerprint,
-              response: response as Prisma.InputJsonValue,
-              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            },
-          });
-          return response;
-        },
-        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      diagnose("transaction_completion", () =>
+        this.prisma.$transaction(
+          async (tx) => {
+            const existing = await diagnose("idempotency_lookup", () =>
+              tx.idempotencyRecord.findUnique({
+                where: {
+                  actorUserId_operation_key: { actorUserId, operation, key },
+                },
+              }),
+            );
+            if (existing) {
+              if (existing.fingerprint !== fingerprint)
+                throw new ConflictException({
+                  code: ApiErrorCode.idempotencyConflict,
+                  message:
+                    "This idempotency key was already used for different data.",
+                });
+              return existing.response as T;
+            }
+            const response = await work(tx);
+            await diagnose("idempotency_write", () =>
+              tx.idempotencyRecord.create({
+                data: {
+                  actorUserId,
+                  operation,
+                  key,
+                  fingerprint,
+                  response: response as Prisma.InputJsonValue,
+                  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                },
+              }),
+            );
+            return response;
+          },
+          { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+        ),
       );
     try {
       return await execute();
@@ -2052,9 +2084,11 @@ export class WorkflowService {
         }
       }
       if (!isUniqueConflict(error)) throw error;
-      const existing = await this.prisma.idempotencyRecord.findUnique({
-        where: { actorUserId_operation_key: { actorUserId, operation, key } },
-      });
+      const existing = await diagnose("idempotency_recovery", () =>
+        this.prisma.idempotencyRecord.findUnique({
+          where: { actorUserId_operation_key: { actorUserId, operation, key } },
+        }),
+      );
       if (!existing || existing.fingerprint !== fingerprint)
         throw new ConflictException({
           code: ApiErrorCode.idempotencyConflict,
@@ -2131,18 +2165,23 @@ export class WorkflowService {
     type: PrismaNotificationType,
     title: string,
     message: string,
+    diagnose: RequestStageRunner = withoutDiagnostics,
   ): Promise<void> {
-    const notification = await tx.operationalNotification.create({
-      data: { recipientUserId, requestId, type, title, message },
-      select: { id: true },
-    });
-    await this.outbox(
-      tx,
-      requestId,
-      recipientUserId,
-      NotificationDeliveryChannel.IN_APP,
-      type,
-      `notification:${notification.id}:in-app`,
+    const notification = await diagnose("notification_write", () =>
+      tx.operationalNotification.create({
+        data: { recipientUserId, requestId, type, title, message },
+        select: { id: true },
+      }),
+    );
+    await diagnose("outbox_write", () =>
+      this.outbox(
+        tx,
+        requestId,
+        recipientUserId,
+        NotificationDeliveryChannel.IN_APP,
+        type,
+        `notification:${notification.id}:in-app`,
+      ),
     );
   }
 

@@ -9,6 +9,8 @@ import {
 import { ApiErrorCode, ApiErrorContract } from "@weyonje/contracts";
 import { FastifyReply, FastifyRequest } from "fastify";
 
+import { safeFailureDiagnostics } from "./failure-diagnostics";
+
 interface ErrorBody {
   code?: unknown;
   retryAt?: unknown;
@@ -52,7 +54,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
       event: "request_failed",
       requestId,
       method: request.method,
-      route: request.url,
+      route: request.routeOptions?.url ?? "unmatched",
+      ...safeFailureDiagnostics(exception),
     });
     void response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
       code: ApiErrorCode.unexpected,

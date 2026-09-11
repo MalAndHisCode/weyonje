@@ -7,6 +7,7 @@ import 'auth_repository_test.dart' show MemorySessionStore, credentialsJson;
 import 'support/client_request_http_adapter.dart';
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -39,6 +40,15 @@ class RequestWorkflows extends Fake implements WorkflowRepository {
     'phoneNumber': '+256700000123',
   };
   bool profileFails = false;
+  bool listFails = false;
+  int listCalls = 0;
+  @override
+  Future<List<ServiceRequestSummary>> clientRequests() async {
+    listCalls++;
+    if (listFails) throw const WorkflowException("List unavailable");
+    return [];
+  }
+
   WorkflowRepository? wireRepository;
   Completer<ServiceRequestDetail>? pendingSubmission;
   ServiceRequestDetail? created;
@@ -281,6 +291,14 @@ void main() {
     submit();
     await tester.pump();
     expect(workflows.submissions, hasLength(1));
+    expect(
+      tester
+          .widget<WeyonjeButton>(
+            find.widgetWithText(WeyonjeButton, 'Check My Requests'),
+          )
+          .onPressed,
+      isNull,
+    );
     workflows.pendingSubmission!.completeError(
       const WorkflowException('Response timed out.', code: 'REQUEST_TIMEOUT'),
     );
@@ -298,6 +316,112 @@ void main() {
     expect(workflows.submissions[0], workflows.submissions[1]);
     expect(find.text('Request Details'), findsOneWidget);
   });
+
+  testWidgets(
+    'profile text boxes are read-only, wrap long values and never open the keyboard',
+    (tester) async {
+      workflows.profile = {
+        'clientName':
+            'A long organization name that must wrap at compact widths without losing any readable content',
+        'phoneNumber': '+256700000123',
+        'emailAddress': 'long-office-address@example.test',
+      };
+      tester.view.physicalSize = const Size(360, 740);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await open(tester);
+      for (final label in ['Client Name', 'Phone Number', 'Email Address']) {
+        final field = find.ancestor(
+          of: find.text(label),
+          matching: find.byType(FTextField),
+        );
+        expect(tester.widget<FTextField>(field).readOnly, isTrue);
+        final editable = find.descendant(
+          of: field,
+          matching: find.byType(EditableText),
+        );
+        expect(tester.widget<EditableText>(editable).readOnly, isTrue);
+        await tester.ensureVisible(editable);
+        await tester.tap(editable);
+        await tester.pumpAndSettle();
+        expect(tester.testTextInput.isVisible, isFalse);
+      }
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final outcome in [
+    'before',
+    'validation',
+    'INVALID_REQUEST',
+    'UNEXPECTED_ERROR',
+  ]) {
+    for (final listFails in [false, true]) {
+      testWidgets(
+        'Check My Requests retains draft and retry state: $outcome / list failure $listFails',
+        (tester) async {
+          workflows.listFails = listFails;
+          await open(tester);
+          expect(find.text('Check My Requests'), findsOneWidget);
+          await tap(tester, 'Yes');
+          if (outcome != 'before') {
+            if (outcome != 'validation') selectToilet(tester);
+            workflows.failureCode = outcome;
+            await tester.pumpAndSettle();
+            await tap(tester, 'Submit Request');
+          }
+          final count = workflows.submissions.length;
+          final submit = tester
+              .widget<WeyonjeButton>(
+                find.widgetWithText(WeyonjeButton, 'Submit Request'),
+              )
+              .onPressed!;
+          final check = tester
+              .widget<WeyonjeButton>(
+                find.widgetWithText(WeyonjeButton, 'Check My Requests'),
+              )
+              .onPressed!;
+          check();
+          check();
+          submit();
+          await tester.pumpAndSettle();
+          expect(workflows.submissions.length, count);
+          expect(workflows.listCalls, 1);
+          expect(find.text('My Requests'), findsOneWidget);
+          if (listFails) {
+            GoRouter.of(tester.element(find.text('My Requests'))).pop();
+            await tester.pumpAndSettle();
+          } else {
+            await tap(tester, 'Return to Request');
+          }
+          expect(find.byType(RequestServiceScreen), findsOneWidget);
+          expect(find.text('Check My Requests'), findsOneWidget);
+          expect(
+            find.textContaining('Submission may have succeeded.'),
+            findsNothing,
+          );
+          if (outcome == 'UNEXPECTED_ERROR') {
+            expect(find.text('Request Status Unconfirmed'), findsOneWidget);
+            expect(
+              tester
+                  .widget<FTextFormField>(
+                    find.byKey(const Key('request-contact-name')),
+                  )
+                  .enabled,
+              isFalse,
+            );
+            await tap(tester, 'Submit Request');
+            expect(workflows.submissions[0], workflows.submissions[1]);
+          } else {
+            expect(find.text('Request Status Unconfirmed'), findsNothing);
+          }
+        },
+      );
+    }
+  }
 
   testWidgets('profile, exact field order, modes, ASAP and stable retry key', (
     tester,
@@ -318,6 +442,7 @@ void main() {
       'Contact Person (Name)',
       'Contact Person (Telephone Contact)',
       'Submit Request',
+      'Check My Requests',
     ];
     var previous = -double.infinity;
     for (final label in labels) {
@@ -351,6 +476,10 @@ void main() {
     (tester) async {
       await open(tester);
       await tap(tester, 'No');
+      expect(
+        tester.getTopLeft(find.text('Select Location on Map')).dy,
+        lessThan(tester.getTopLeft(find.text('Map test surface').last).dy),
+      );
       expect(map!.interactive, false);
       expect(map!.onSelected, isNull);
       await tap(tester, 'Select Location on Map');
@@ -400,6 +529,36 @@ void main() {
         expect(find.text(label), findsNothing);
       }
       expect(workflows.geocodeCalls, 0);
+    },
+  );
+
+  testWidgets(
+    'permission failure or rejected retry cannot erase an earlier unknown outcome',
+    (tester) async {
+      workflows.failureCode = 'UNEXPECTED_ERROR';
+      await open(tester);
+      await tap(tester, 'Yes');
+      selectToilet(tester);
+      await tester.pumpAndSettle();
+      await tap(tester, 'Submit Request');
+      locations.access = ClientLocationAccess.denied;
+      await tap(tester, 'Submit Request');
+      expect(find.text('Request Status Unconfirmed'), findsOneWidget);
+      expect(workflows.submissions, hasLength(1));
+      locations.access = ClientLocationAccess.ready;
+      await tap(tester, 'Retry Location Access');
+      workflows.failureCode = 'INVALID_REQUEST';
+      await tap(tester, 'Submit Request');
+      expect(find.text('Request Status Unconfirmed'), findsOneWidget);
+      expect(workflows.submissions[0], workflows.submissions[1]);
+      expect(
+        tester
+            .widget<FTextFormField>(
+              find.byKey(const Key('request-contact-name')),
+            )
+            .enabled,
+        isFalse,
+      );
     },
   );
 
@@ -657,6 +816,9 @@ void main() {
     'compact',
     'large_text',
     'keyboard',
+    'map',
+    'actions',
+    'uncertain',
     'permission',
     'landscape',
   ]) {
@@ -682,6 +844,22 @@ void main() {
       if (layout == 'large_text') {
         tester.platformDispatcher.textScaleFactorTestValue = 2;
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpAndSettle();
+      }
+      if (layout == 'map') {
+        await tap(tester, 'No');
+        await tester.ensureVisible(find.text('Select Location on Map'));
+        await tester.pumpAndSettle();
+      }
+      if (layout == 'actions' || layout == 'uncertain') {
+        if (layout == 'uncertain') {
+          workflows.failureCode = 'UNEXPECTED_ERROR';
+          await tap(tester, 'Yes');
+          selectToilet(tester);
+          await tester.pumpAndSettle();
+          await tap(tester, 'Submit Request');
+        }
+        await tester.ensureVisible(find.text('Check My Requests'));
         await tester.pumpAndSettle();
       }
       if (layout == 'keyboard') {

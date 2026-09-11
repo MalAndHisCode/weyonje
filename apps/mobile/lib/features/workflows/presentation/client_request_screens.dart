@@ -15,7 +15,8 @@ import 'workflow_widgets.dart';
 export 'request_location_picker_screen.dart';
 
 class ClientRequestsScreen extends ConsumerStatefulWidget {
-  const ClientRequestsScreen({super.key});
+  const ClientRequestsScreen({this.returnToDraft = false, super.key});
+  final bool returnToDraft;
   @override
   ConsumerState<ClientRequestsScreen> createState() =>
       _ClientRequestsScreenState();
@@ -51,10 +52,14 @@ class _ClientRequestsScreenState extends ConsumerState<ClientRequestsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             WeyonjeButton(
-              label: 'Request a Service',
-              onPressed: () => context
-                  .push(AppRoutes.clientRequestNew)
-                  .then((_) => setState(_reload)),
+              label: widget.returnToDraft
+                  ? 'Return to Request'
+                  : 'Request a Service',
+              onPressed: widget.returnToDraft
+                  ? () => context.pop()
+                  : () => context.push(AppRoutes.clientRequestNew).then((_) {
+                      if (mounted) setState(_reload);
+                    }),
             ),
             const SizedBox(height: 16),
             if (snapshot.requireData.isEmpty)
@@ -62,9 +67,10 @@ class _ClientRequestsScreenState extends ConsumerState<ClientRequestsScreen> {
             ...snapshot.requireData.map(
               (item) => RequestSummaryCard(
                 request: item,
-                onTap: () => context
-                    .push('/client/requests/${item.id}')
-                    .then((_) => setState(_reload)),
+                onTap: () =>
+                    context.push('/client/requests/${item.id}').then((_) {
+                      if (mounted) setState(_reload);
+                    }),
               ),
             ),
           ],
