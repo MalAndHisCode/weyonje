@@ -6,9 +6,9 @@
 
 | Field | Value |
 | --- | --- |
-| Document version | 9.2 |
+| Document version | 9.3 |
 | Last updated | 2026-09-11 |
-| Verified against | Local changes based on c153536; current validation below. Read-only Railway deployment/log inspection on 2026-09-11 confirms that starting revision is deployed. No deployment or production write by this task; isolated PostgreSQL unavailable. |
+| Verified against | User-deployed Railway revision on deployment 74501338-53fe-4958-8043-2890cd840af0; authorized migration deployment and read-only schema/checksum verification on 2026-09-11. See revision 9.3 evidence below. Isolated PostgreSQL tests remain unrun. |
 | System version | Mobile `0.1.0+1`; API/contracts `0.1.0` |
 
 ## Current project summary
@@ -21,7 +21,7 @@ The established Client request, marketplace and Call Centre ingress, atomic Prov
 
 | Capability | Status | Repository reality |
 | --- | --- | --- |
-| Client service requests | **Partially implemented; reported production failure unresolved** | Updated read-only profile text boxes, explicit location modes, stable retry and preserved My Requests navigation exist locally. Railway POST failures are confirmed; cause and commit outcome remain unknown. See current incident evidence below. |
+| Client service requests | **Production schema repaired; successful Client retry unverified** | Updated profile fields and retry/navigation safeguards are deployed by the user. A new failure identified outbox_write/P2022; the three pending database migrations have now been applied and verified. Full submission success still requires a Client retry. Older incident commit outcomes remain unknown. |
 | Authenticated warm resume | **Implemented locally; physical cycle unverified** | Background session validation retains route/draft/scroll; transient failures retain session, invalid/revoked/denied outcomes preserve safe routing. |
 | Native authentication/registration | **Implemented locally; live SMS unverified** | Automatic six-box Client verification, pending registration recovery and atomic OTP/account/session completion extend existing native endpoints. Provider review and role eligibility remain server-authoritative. |
 | Password recovery | **Implemented; live email/SMS unverified** | Provider/KCCA recovery supports registered phone or email, non-enumerating requests, throttling, expiry, attempt limits, supersession, HMAC-only secrets, one-time use, password rules, session revocation, audit events, guarded fake SMS/email, and mobile request/code/password/success states. |
@@ -291,7 +291,7 @@ No code change required; earlier 146 Flutter / 151 API passing results remain ap
 - **Not verified:** adb devices -l listed no connected device. No emulator/device map panning, pinch zoom, native tap/cancel, tiles, actual GPS or physical accessibility test ran. No deployment, installed-app success, production write, commit, push, PR, purchase, migration or secret rotation is claimed. CURRENT_SYSTEM_STATE_TEMPLATE.md was reviewed and remains unchanged.
 
 
-## Client Request Presentation and Unexpected Server Failure — 2026-09-11
+## Historical revision 9.2: Client Request Presentation and Unexpected Server Failure — 2026-09-11
 
 **Implemented locally:** Authenticated Client Name, Phone Number and nonempty optional Email Address now use labeled, enabled/read-only Forui text boxes with wrapping values and no keyboard on tap. Profile loading/failure/retry and server-derived identity remain unchanged. No places/geocoding calls were added. No places, contacts or UI-only fields enter the payload.
 
@@ -312,9 +312,25 @@ No code change required; earlier 146 Flutter / 151 API passing results remain ap
 
 ### Validation evidence for revision 9.2
 
+These results and operational restrictions describe the earlier local implementation turn. The subsequent authorized production migration is recorded in revision 9.3 below.
+
 - Passed: pnpm test (25 suites / 183 tests, five isolated PostgreSQL tests skipped), followed by the final expanded Client HTTP suite (28 tests) including added post-commit mapping failure coverage. Exception-filter tests verify category/stage/code allowlisting and URL/exception redaction. These are service/controller tests with persistence fakes; no real PostgreSQL success is claimed.
 - Passed: pnpm typecheck, pnpm build (including Prisma 7.9.1 regeneration), pnpm openapi:check, final API typecheck and changed-source/test Prettier checks. Prisma schema validation passed. No contract/DTO/schema/migration/generated OpenAPI change.
 - Passed: full flutter test --no-pub --reporter expanded (171 tests), then final Client regression/golden suite (39 tests) after adding retention of earlier uncertainty across permission/retry rejection. Final flutter analyze --no-pub reports no issues; Dart formatting passes (66 files unchanged). One intermediate analysis identified a new missing brace; it was fixed and the final analysis passed.
 - Rendered and inspected: compact 360px profile, 2x text wrapping, landscape, keyboard insets, No map-preview ordering, action area and uncertain outcome; all 13 form/picker golden cases compare successfully. These are deterministic fake-map surfaces, not evidence for native tiles or gestures. Long profile values remain read-only and tests verify taps do not open the keyboard; action reachability, optional email, both modes, permission, picker, authorization and warm resume remain covered.
 - adb devices -l lists no connected devices. No live Google calls, production writes, installation, commit, push, PR or deployment occurred. The immutable state template has no diff against HEAD. The exact unexpected production exception and applied database migration compatibility remain Unknown, as does the incident's transaction outcome.
 - Passed: final flutter build apk --debug --no-pub --dart-define-from-file=config/auth.local.json. APK: apps/mobile/build/app/outputs/flutter-apk/app-debug.apk; 204298027 bytes; SHA-256 B69839D13D99D7FA52CD0F91C2A00297EA4D87014E091FEEB1A8FDCE60051D99. Existing flutter_foreground_task future KGP compatibility warning remains; build succeeded. Private configuration was reused without printing secrets.
+
+## Revision 9.3: Railway database migration repair — 2026-09-11
+
+The user deployed the diagnostics to Railway deployment `74501338-53fe-4958-8043-2890cd840af0` and retried submission. Codex browser logs identified request `e01efd3a-5c2f-42aa-9f28-b57221abc5cb` at 11:14 EAT: `POST /v1/client/requests`, `category=prisma_known_request`, `stage=outbox_write`, `prismaCode=P2022`. The database was missing `claimed_at`, `claim_expires_at`, `claim_token`, and `dead_lettered_at` in `outbox_events`. The log alone did not name the failing column; subsequent schema inspection established all four omissions.
+
+After the user requested help running migrations, the Railway service console in the Codex browser confirmed three pending repository migrations. Local read-only preflight against the same Neon endpoint/database found an empty outbox and no rows conflicting with the new claim/terminal constraints. Reviewed SQL adds columns, enums, tables and indexes, constraints, and history backfills; it does not reset the database or delete existing records.
+
+Executed `pnpm --filter @weyonje/api migration:deploy` in the Railway service console. All three pending migrations succeeded:
+
+- `20260820110000_reliable_delivery_foundation`
+- `20260820130000_account_recovery_verification`
+- `20260820150000_kcca_administration_history`
+
+Railway `pnpm --filter @weyonje/api migration:status` then reported the schema up to date. Independent read-only verification found all six migrations finished, none rolled back, all six SHA-256 checksums matching the repository SQL, and the four outbox columns present. No new migration SQL, app code, environment settings, deployment hook, dependency or secret was changed. No synthetic service request or notification was submitted. These checks establish the schema repair, not end-to-end Client success; retry the existing unchanged draft and correlate its result. Earlier incident transaction outcomes remain unknown. Isolated PostgreSQL regression tests remain unrun.
