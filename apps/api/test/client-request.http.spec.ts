@@ -139,6 +139,7 @@ describe("Client creation HTTP boundary with real service and isolated persisten
       const payload = { ...mobilePayload, locationKind, toiletType };
       const response = await post(payload);
       expect(response.statusCode).toBe(201);
+      expect(response.json().reference).toMatch(/^KCCA-[0-9A-F]{12}$/);
       expect(response.json()).toMatchObject({
         clientName: "Amina Test",
         status: "PENDING",

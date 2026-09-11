@@ -112,6 +112,9 @@ class ServiceRequestDetail extends ServiceRequestSummary {
     super.outstandingAction,
     this.clientPhone,
     this.clientEmail,
+    this.additionalContactName,
+    this.additionalContactPhone,
+    this.providerUserId,
     this.latitude,
     this.longitude,
     this.toiletType,
@@ -145,6 +148,9 @@ class ServiceRequestDetail extends ServiceRequestSummary {
       clientName: map['clientName'] as String,
       clientPhone: map['clientPhone'] as String?,
       clientEmail: map['clientEmail'] as String?,
+      additionalContactName: map['additionalContactName'] as String?,
+      additionalContactPhone: map['additionalContactPhone'] as String?,
+      providerUserId: map['providerUserId'] as String?,
       locationKind: map['locationKind'] as String,
       latitude: (location?['latitude'] as num?)?.toDouble(),
       longitude: (location?['longitude'] as num?)?.toDouble(),
@@ -169,6 +175,11 @@ class ServiceRequestDetail extends ServiceRequestSummary {
   final String clientName;
   final String? clientPhone;
   final String? clientEmail;
+  final String? additionalContactName;
+  final String? additionalContactPhone;
+  final String? providerUserId;
+  bool get canModify =>
+      origin == 'MOBILE_APP' && status == 'PENDING' && providerUserId == null;
   final String locationKind;
   final double? latitude;
   final double? longitude;

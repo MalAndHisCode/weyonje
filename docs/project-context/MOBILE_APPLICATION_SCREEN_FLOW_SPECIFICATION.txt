@@ -1272,6 +1272,12 @@ None.
 
 ### Client Request Details
 
+**Adopted Client management change — 2026-09-11:** The owning Client sees bold Status and Location labels with normal-contrast, wrapping, read-only Forui text boxes; readable status, persisted Service Details/scheduling and conditional Additional Contact Details. Missing historical values are explicitly Not recorded. A compact WeyonjeMap centers on saved coordinates, with no device-location permission or server search/geocoding dependency. Text-only/missing-coordinate requests display available text and an unavailable-map state. Provider pre-acceptance disclosure remains unchanged.
+
+**Edit and withdrawal:** Only the active owning Client's unaccepted PENDING MOBILE_APP request exposes Edit Request and Delete Request. The API independently checks ownership, origin, state, workflow invariants and updatedAt. Linked Call Centre records remain read-only. Edit opens `/client/requests/:requestId/edit` using Request for a Service; authoritative fields initialize once, retain saved CURRENT coordinates, and survive rebuild/resume/picker/My Requests return. Profile stays read-only. Save Changes replaces only location/toilet/paired contacts (explicit null clears contacts); stored scheduling, ID and reference remain unchanged. Back saves nothing. A stale edit retains its draft, refreshes latest status and offers latest details; a new edit must start from those details. Uncertain saves preserve the original command/key for retry.
+
+Delete Request confirms that withdrawal removes Provider availability but retains history as Cancelled. Keep Request/Back/dismiss causes no mutation. Confirmed withdrawal transactionally records PENDING → CANCELLED and audit evidence; no physical deletion or restoration. Uncertain withdrawal retries the same command. Refresh Status reconciles REST authority; Client dashboard/list refresh on route return, and Provider pending lists refresh on entry, detail return, foreground resume or explicit Refresh Requests. No polling or new notification infrastructure was added.
+
 **Screen ID:** `REQ-CL-004`
 
 **Requirement status:** Derived Requirement.
@@ -1322,7 +1328,7 @@ None.
 * Active begins when the Provider selects Initiate Job with location enabled.
 * The Client must not confirm collection before the Provider reports Collection Completed.
 * The Provider must not begin the disposal journey before the Client’s collection confirmation is recorded.
-* No Client cancellation, provider reassignment, or payment workflow is documented.
+* The adopted 2026-09-11 change above permits only pre-acceptance Client withdrawal. Provider reassignment and payment are outside this Client page.
 
 **Permissions and actor-specific behaviour:**
 

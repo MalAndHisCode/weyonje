@@ -16,9 +16,11 @@ import '../application/client_location_gateway.dart';
 import '../application/workflow_providers.dart';
 import '../domain/workflow_models.dart';
 import 'weyonje_map.dart';
+import 'workflow_widgets.dart';
 
 class RequestServiceScreen extends ConsumerStatefulWidget {
-  const RequestServiceScreen({super.key});
+  const RequestServiceScreen({this.requestId, super.key});
+  final String? requestId;
   @override
   ConsumerState<RequestServiceScreen> createState() =>
       _RequestServiceScreenState();
@@ -41,7 +43,8 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   bool _submitting = false;
   bool _navigating = false;
   bool _submissionUncertain = false;
-  bool get _draftLocked => _submitting || _submissionUncertain || _navigating;
+  bool get _draftLocked =>
+      _submitting || _submissionUncertain || _navigating || _stale;
   String? _locationError;
   String? _error;
   String? _phoneError;
@@ -50,6 +53,11 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   int _profileCheck = 0;
   String? _payloadSignature;
   String? _idempotencyKey;
+  bool get _editing => widget.requestId != null;
+  ServiceRequestDetail? _saved;
+  String? _loadError;
+  bool _stale = false;
+  ServiceRequestDetail? _latest;
 
   @override
   void initState() {
@@ -57,7 +65,55 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     _contactPhone.addListener(() => _phoneError = null);
     WidgetsBinding.instance.addObserver(this);
     _loadProfile();
+    if (_editing) _loadRequest();
     _checkAccess(request: true);
+  }
+
+  Future<void> _loadRequest() async {
+    setState(() => _loadError = null);
+    try {
+      final item = await ref
+          .read(workflowRepositoryProvider)
+          .clientRequest(widget.requestId!);
+      if (!mounted || _saved != null) return;
+      setState(() {
+        _saved = item;
+        _stale = !item.canModify;
+        _current = switch (item.locationKind) {
+          'CURRENT' => true,
+          'MAP_PIN' => false,
+          _ => null,
+        };
+        if (item.latitude != null && item.longitude != null) {
+          _point = LatLng(item.latitude!, item.longitude!);
+          _serviceLocation.text =
+              '${item.latitude!.toStringAsFixed(6)}, ${item.longitude!.toStringAsFixed(6)}';
+        } else {
+          _serviceLocation.text = item.locationLabel;
+        }
+        _toilet = item.toiletType;
+        _contactName.text = item.additionalContactName ?? '';
+        _contactPhone.text = item.additionalContactPhone ?? '';
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _loadError =
+              'Request details could not be loaded. Retry to continue.',
+        );
+      }
+    }
+  }
+
+  Future<void> _viewLatest() async {
+    if (_submitting || _navigating) return;
+    // Keep this draft and any uncertain key mounted while inspecting authority.
+    setState(() => _navigating = true);
+    try {
+      await context.push('/client/requests/${widget.requestId}');
+    } finally {
+      if (mounted) setState(() => _navigating = false);
+    }
   }
 
   @override
@@ -220,7 +276,12 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   }
 
   Future<void> _submit() async {
-    if (_submitting || _navigating || !_form.currentState!.validate()) return;
+    if (_submitting ||
+        _navigating ||
+        _stale ||
+        !_form.currentState!.validate()) {
+      return;
+    }
     if (_profile == null || _current == null || _point == null) {
       setState(
         () => _error =
@@ -243,7 +304,16 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
           'longitude': _point!.longitude,
         },
         'toiletType': _toilet,
-        'scheduleMode': 'AS_SOON_AS_POSSIBLE',
+        if (!_editing) 'scheduleMode': 'AS_SOON_AS_POSSIBLE',
+        if (_editing) ...{
+          'expectedUpdatedAt': _saved!.updatedAt.toUtc().toIso8601String(),
+          'additionalContactName': _contactName.text.trim().isEmpty
+              ? null
+              : _contactName.text.trim(),
+          'additionalContactPhone': _contactPhone.text.trim().isEmpty
+              ? null
+              : _contactPhone.text.trim(),
+        },
         if (_contactName.text.trim().isNotEmpty)
           'additionalContactName': _contactName.text.trim(),
         if (_contactPhone.text.trim().isNotEmpty)
@@ -255,13 +325,18 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
         _payloadSignature = signature;
         _idempotencyKey = const Uuid().v4();
       }
-      final result = await ref
-          .read(workflowRepositoryProvider)
-          .createClientRequest({...payload, 'idempotencyKey': _idempotencyKey});
+      final repository = ref.read(workflowRepositoryProvider);
+      final command = {...payload, 'idempotencyKey': _idempotencyKey};
+      final result = _editing
+          ? await repository.updateClientRequest(widget.requestId!, command)
+          : await repository.createClientRequest(command);
       if (mounted) context.go('/client/requests/${result.id}');
     } on WorkflowException catch (error) {
       if (mounted) {
         setState(() {
+          if (_editing && error.code == 'CONFLICT' && !_submissionUncertain) {
+            _stale = true;
+          }
           _submissionUncertain =
               _submissionUncertain ||
               error.code == null ||
@@ -278,6 +353,16 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
           }
         });
         _form.currentState?.validate();
+        if (_stale) {
+          try {
+            final latest = await ref
+                .read(workflowRepositoryProvider)
+                .clientRequest(widget.requestId!);
+            if (mounted) setState(() => _latest = latest);
+          } catch (_) {
+            // Keep the original draft/version; the explicit details action retries.
+          }
+        }
       }
     } catch (_) {
       if (mounted) {
@@ -335,180 +420,236 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     return WeyonjePage(
       title: 'Request for a Service',
       showBack: true,
-      child: Form(
-        key: _form,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _heading('Client Details'),
-            if (_profileError != null) ...[
-              WeyonjeAlert(
-                title: 'Client Details Unavailable',
-                message: _profileError!,
-              ),
-              WeyonjeButton(
-                label: 'Retry Client Details',
-                onPressed: _loadProfile,
-              ),
-            ] else if (_profile == null)
-              const Text('Loading Client details…')
-            else ...[
-              _detail('Client Name', _profile!['clientName'] as String),
-              _detail('Phone Number', _profile!['phoneNumber'] as String),
-              if (email?.trim().isNotEmpty == true)
-                _detail('Email Address', email!),
-            ],
-            _heading('Location Details'),
-            const Text(
-              'Is the Weyonje Service Needed at Your Current Location?',
-            ),
-            FRadio(
-              value: _current == true,
-              onChange: _draftLocked ? null : (_) => _mode(true),
-              label: const Text('Yes'),
-            ),
-            FRadio(
-              value: _current == false,
-              onChange: _draftLocked ? null : (_) => _mode(false),
-              label: const Text('No'),
-            ),
-            if (_current == false)
-              WeyonjeButton(
-                label: 'Select Location on Map',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: _draftLocked || _checking ? null : _chooseLocation,
-              ),
-            if (configured)
-              ref.watch(requestMapBuilderProvider)(
-                WeyonjeMap(
-                  interactive: false,
-                  height: 180,
-                  destinationLatitude: _point?.latitude ?? 0.3476,
-                  destinationLongitude: _point?.longitude ?? 32.5825,
-                  hasDestination: _point != null,
-                  showDeviceLocation: _access == ClientLocationAccess.ready,
-                ),
-              )
-            else
-              const WeyonjeAlert(
-                title: 'Google Map Unavailable',
-                message:
-                    'Map display is not configured in this build. Current location can still provide coordinates; choosing another location requires a configured map.',
-              ),
-            FTextField(
-              control: FTextFieldControl.managed(controller: _serviceLocation),
-              readOnly: true,
-              maxLines: 3,
-              label: const Text('Service Location'),
-              hint: 'No service location selected',
-            ),
-            if (_current == true)
-              WeyonjeButton(
-                label: 'Refresh Current Location',
-                kind: WeyonjeButtonKind.outline,
-                loading: _locating,
-                onPressed: _draftLocked || _locating ? null : _locate,
-              ),
-            if (_checking) const Text('Checking location access…'),
-            if (_access != ClientLocationAccess.ready && !_checking) ...[
-              WeyonjeAlert(
-                title: 'Location Access Required',
-                message: switch (_access) {
-                  ClientLocationAccess.servicesDisabled =>
-                    'Device location services are off. Turn them on for either location option.',
-                  ClientLocationAccess.deniedForever =>
-                    'Location permission is permanently denied. Allow foreground location in app settings.',
-                  ClientLocationAccess.denied =>
-                    'Location permission was denied. Allow foreground location to submit a request.',
-                  _ =>
-                    'Location availability has not been confirmed. Retry to continue.',
-                },
-              ),
-              WeyonjeButton(
-                label: 'Retry Location Access',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: () => _checkAccess(request: true),
-              ),
-              WeyonjeButton(
-                label: 'Open Location Settings',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: () =>
-                    ref.read(clientLocationGatewayProvider).settings(_access),
-              ),
-            ],
-            if (_locationError != null)
-              WeyonjeAlert(
-                title: 'Location Unavailable',
-                message: _locationError!,
-              ),
-            _heading('Service Details'),
-            WeyonjeSelect<String>(
-              initialValue: _toilet,
-              label: const Text('Type of Toilet to Empty'),
-              items: const [
-                (value: 'PIT_LATRINE', label: 'Pit Latrine'),
-                (value: 'SEPTIC_TANK', label: 'Septic Tank'),
+      child: _editing && _saved == null
+          ? Column(
+              children: [
+                if (_loadError == null)
+                  const Text('Loading request details…')
+                else ...[
+                  WeyonjeAlert(
+                    title: 'Request Unavailable',
+                    message: _loadError!,
+                  ),
+                  WeyonjeButton(
+                    label: 'Retry Request Details',
+                    onPressed: _loadRequest,
+                  ),
+                ],
               ],
-              validator: (value) =>
-                  value == null ? 'Select the type of toilet to empty.' : null,
-              onChanged: _draftLocked
-                  ? null
-                  : (value) => setState(() => _toilet = value),
-            ),
-            _heading('Additional Contact Details'),
-            FTextFormField(
-              key: const Key('request-contact-name'),
-              control: FTextFieldControl.managed(controller: _contactName),
-              enabled: !_draftLocked,
-              label: const Text('Contact Person (Name)'),
-              validator: (value) =>
-                  (value?.trim().isEmpty ?? true) &&
-                      _contactPhone.text.trim().isNotEmpty
-                  ? 'Supply the contact name or clear the telephone contact.'
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            FTextFormField(
-              key: const Key('request-contact-phone'),
-              control: FTextFieldControl.managed(controller: _contactPhone),
-              enabled: !_draftLocked,
-              keyboardType: TextInputType.phone,
-              label: const Text('Contact Person (Telephone Contact)'),
-              validator: (value) =>
-                  _contactName.text.trim().isNotEmpty &&
-                      (value?.trim().isEmpty ?? true)
-                  ? 'Enter the contact person’s telephone contact.'
-                  : _phoneError,
-            ),
-            const SizedBox(height: 24),
-            if (_error != null)
-              WeyonjeAlert(
-                title: _submissionUncertain
-                    ? 'Request Status Unconfirmed'
-                    : 'Request Not Submitted',
-                message: _error!,
+            )
+          : Form(
+              key: _form,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _heading('Client Details'),
+                  if (_profileError != null) ...[
+                    WeyonjeAlert(
+                      title: 'Client Details Unavailable',
+                      message: _profileError!,
+                    ),
+                    WeyonjeButton(
+                      label: 'Retry Client Details',
+                      onPressed: _loadProfile,
+                    ),
+                  ] else if (_profile == null)
+                    const Text('Loading Client details…')
+                  else ...[
+                    _detail('Client Name', _profile!['clientName'] as String),
+                    _detail('Phone Number', _profile!['phoneNumber'] as String),
+                    if (email?.trim().isNotEmpty == true)
+                      _detail('Email Address', email!),
+                  ],
+                  _heading('Location Details'),
+                  const Text(
+                    'Is the Weyonje Service Needed at Your Current Location?',
+                  ),
+                  FRadio(
+                    value: _current == true,
+                    onChange: _draftLocked ? null : (_) => _mode(true),
+                    label: const Text('Yes'),
+                  ),
+                  FRadio(
+                    value: _current == false,
+                    onChange: _draftLocked ? null : (_) => _mode(false),
+                    label: const Text('No'),
+                  ),
+                  if (_current == false)
+                    WeyonjeButton(
+                      label: 'Select Location on Map',
+                      kind: WeyonjeButtonKind.outline,
+                      onPressed: _draftLocked || _checking
+                          ? null
+                          : _chooseLocation,
+                    ),
+                  if (configured)
+                    ref.watch(requestMapBuilderProvider)(
+                      WeyonjeMap(
+                        interactive: false,
+                        height: 180,
+                        destinationLatitude: _point?.latitude ?? 0.3476,
+                        destinationLongitude: _point?.longitude ?? 32.5825,
+                        hasDestination: _point != null,
+                        showDeviceLocation:
+                            _access == ClientLocationAccess.ready,
+                      ),
+                    )
+                  else
+                    const WeyonjeAlert(
+                      title: 'Google Map Unavailable',
+                      message:
+                          'Map display is not configured in this build. Current location can still provide coordinates; choosing another location requires a configured map.',
+                    ),
+                  FTextField(
+                    control: FTextFieldControl.managed(
+                      controller: _serviceLocation,
+                    ),
+                    readOnly: true,
+                    maxLines: 3,
+                    label: const Text('Service Location'),
+                    hint: 'No service location selected',
+                  ),
+                  if (_current == true)
+                    WeyonjeButton(
+                      label: 'Refresh Current Location',
+                      kind: WeyonjeButtonKind.outline,
+                      loading: _locating,
+                      onPressed: _draftLocked || _locating ? null : _locate,
+                    ),
+                  if (_checking) const Text('Checking location access…'),
+                  if (_access != ClientLocationAccess.ready && !_checking) ...[
+                    WeyonjeAlert(
+                      title: 'Location Access Required',
+                      message: switch (_access) {
+                        ClientLocationAccess.servicesDisabled =>
+                          'Device location services are off. Turn them on for either location option.',
+                        ClientLocationAccess.deniedForever =>
+                          'Location permission is permanently denied. Allow foreground location in app settings.',
+                        ClientLocationAccess.denied =>
+                          'Location permission was denied. Allow foreground location to submit a request.',
+                        _ =>
+                          'Location availability has not been confirmed. Retry to continue.',
+                      },
+                    ),
+                    WeyonjeButton(
+                      label: 'Retry Location Access',
+                      kind: WeyonjeButtonKind.outline,
+                      onPressed: () => _checkAccess(request: true),
+                    ),
+                    WeyonjeButton(
+                      label: 'Open Location Settings',
+                      kind: WeyonjeButtonKind.outline,
+                      onPressed: () => ref
+                          .read(clientLocationGatewayProvider)
+                          .settings(_access),
+                    ),
+                  ],
+                  if (_locationError != null)
+                    WeyonjeAlert(
+                      title: 'Location Unavailable',
+                      message: _locationError!,
+                    ),
+                  _heading('Service Details'),
+                  if (_editing && _saved != null)
+                    _detail(
+                      'Requested Service Time',
+                      scheduleLabel(
+                        _saved!.scheduleMode,
+                        _saved!.requestedServiceAt,
+                      ),
+                    ),
+                  WeyonjeSelect<String>(
+                    initialValue: _toilet,
+                    label: const Text('Type of Toilet to Empty'),
+                    items: const [
+                      (value: 'PIT_LATRINE', label: 'Pit Latrine'),
+                      (value: 'SEPTIC_TANK', label: 'Septic Tank'),
+                    ],
+                    validator: (value) => value == null
+                        ? 'Select the type of toilet to empty.'
+                        : null,
+                    onChanged: _draftLocked
+                        ? null
+                        : (value) => setState(() => _toilet = value),
+                  ),
+                  _heading('Additional Contact Details'),
+                  FTextFormField(
+                    key: const Key('request-contact-name'),
+                    control: FTextFieldControl.managed(
+                      controller: _contactName,
+                    ),
+                    enabled: !_draftLocked,
+                    label: const Text('Contact Person (Name)'),
+                    validator: (value) =>
+                        (value?.trim().isEmpty ?? true) &&
+                            _contactPhone.text.trim().isNotEmpty
+                        ? 'Supply the contact name or clear the telephone contact.'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  FTextFormField(
+                    key: const Key('request-contact-phone'),
+                    control: FTextFieldControl.managed(
+                      controller: _contactPhone,
+                    ),
+                    enabled: !_draftLocked,
+                    keyboardType: TextInputType.phone,
+                    label: const Text('Contact Person (Telephone Contact)'),
+                    validator: (value) =>
+                        _contactName.text.trim().isNotEmpty &&
+                            (value?.trim().isEmpty ?? true)
+                        ? 'Enter the contact person’s telephone contact.'
+                        : _phoneError,
+                  ),
+                  const SizedBox(height: 24),
+                  if (_error != null)
+                    WeyonjeAlert(
+                      title: _submissionUncertain
+                          ? 'Request Status Unconfirmed'
+                          : 'Request Not Submitted',
+                      message: _error!,
+                    ),
+                  WeyonjeButton(
+                    label: _editing ? 'Save Changes' : 'Submit Request',
+                    loading: _submitting,
+                    onPressed:
+                        _navigating ||
+                            _checking ||
+                            _access != ClientLocationAccess.ready ||
+                            _locating ||
+                            _profile == null ||
+                            _stale
+                        ? null
+                        : _submit,
+                  ),
+                  const SizedBox(height: 12),
+                  WeyonjeButton(
+                    label: 'Check My Requests',
+                    kind: WeyonjeButtonKind.outline,
+                    onPressed: _submitting || _navigating
+                        ? null
+                        : _checkRequests,
+                  ),
+                  if (_editing && (_stale || _submissionUncertain)) ...[
+                    if (_latest != null)
+                      _detail('Latest Status', humanStatus(_latest!.status)),
+                    if (_stale)
+                      const WeyonjeAlert(
+                        title: 'Request Changed',
+                        message:
+                            'Your draft has been retained. View the latest details and start a new edit from there if it is still available.',
+                      ),
+                    WeyonjeButton(
+                      label: 'View Latest Request Details',
+                      kind: WeyonjeButtonKind.outline,
+                      onPressed: _submitting || _navigating
+                          ? null
+                          : _viewLatest,
+                    ),
+                  ],
+                ],
               ),
-            WeyonjeButton(
-              label: 'Submit Request',
-              loading: _submitting,
-              onPressed:
-                  _navigating ||
-                      _checking ||
-                      _access != ClientLocationAccess.ready ||
-                      _locating ||
-                      _profile == null
-                  ? null
-                  : _submit,
             ),
-            const SizedBox(height: 12),
-            WeyonjeButton(
-              label: 'Check My Requests',
-              kind: WeyonjeButtonKind.outline,
-              onPressed: _submitting || _navigating ? null : _checkRequests,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

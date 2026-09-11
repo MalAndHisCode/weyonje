@@ -4,14 +4,17 @@ import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../navigation/app_router.dart';
 import '../../../ui/weyonje_alert.dart';
 import '../../../ui/weyonje_button.dart';
 import '../../../ui/weyonje_page.dart';
+import '../../../ui/weyonje_dialog.dart';
 import '../application/workflow_providers.dart';
 import '../domain/workflow_models.dart';
 import 'workflow_widgets.dart';
+import 'weyonje_map.dart';
 export 'request_location_picker_screen.dart';
 
 class ClientRequestsScreen extends ConsumerStatefulWidget {
@@ -91,6 +94,11 @@ class ClientRequestDetailsScreen extends ConsumerStatefulWidget {
 class _ClientRequestDetailsScreenState
     extends ConsumerState<ClientRequestDetailsScreen> {
   late Future<ServiceRequestDetail> _load;
+  bool _withdrawing = false;
+  bool _confirmingWithdrawal = false;
+  bool _withdrawUncertain = false;
+  Map<String, Object?>? _withdrawAttempt;
+  String? _withdrawError;
   @override
   void initState() {
     super.initState();
@@ -100,6 +108,109 @@ class _ClientRequestDetailsScreenState
   void _reload() => _load = ref
       .read(workflowRepositoryProvider)
       .clientRequest(widget.requestId);
+
+  Future<void> _withdraw(ServiceRequestDetail item) async {
+    if (_withdrawing || _confirmingWithdrawal) return;
+    if (_withdrawAttempt == null) {
+      _confirmingWithdrawal = true;
+      final confirmed = await showFDialog<bool>(
+        context: context,
+        builder: (dialogContext, _, _) => WeyonjeDialog(
+          title: const Text('Delete Request?'),
+          content: const Text(
+            'This will withdraw your request from Provider availability. It will remain in your history as Cancelled.',
+          ),
+          actions: [
+            WeyonjeButton(
+              label: 'Keep Request',
+              kind: WeyonjeButtonKind.outline,
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+            ),
+            WeyonjeButton(
+              label: 'Delete Request',
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      _confirmingWithdrawal = false;
+      if (confirmed != true) return;
+      _withdrawAttempt = {
+        'idempotencyKey': const Uuid().v4(),
+        'expectedUpdatedAt': item.updatedAt.toUtc().toIso8601String(),
+      };
+    }
+    setState(() {
+      _withdrawing = true;
+      _withdrawError = null;
+    });
+    try {
+      final result = await ref
+          .read(workflowRepositoryProvider)
+          .withdrawClientRequest(item.id, _withdrawAttempt!);
+      if (mounted) {
+        setState(() {
+          _withdrawAttempt = null;
+          _withdrawUncertain = false;
+          _load = Future.value(result);
+        });
+      }
+    } on WorkflowException catch (error) {
+      if (mounted) {
+        setState(() {
+          if (!_withdrawUncertain &&
+              (error.code == 'CONFLICT' || error.code == 'REQUEST_NOT_FOUND')) {
+            // The server rejected this conditional mutation. Reconcile; never
+            // infer rollback or allocate a fresh key from an empty list.
+            _withdrawAttempt = null;
+            _reload();
+            _withdrawError = error.message;
+          } else {
+            _withdrawUncertain = true;
+            _withdrawError =
+                'Withdrawal is unconfirmed. Retry Delete Request to recover the same attempt.';
+          }
+        });
+      }
+    } catch (_) {
+      _withdrawUncertain = true;
+      if (mounted) {
+        setState(
+          () => _withdrawError =
+              'Withdrawal is unconfirmed. Retry Delete Request to recover the same attempt.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _withdrawing = false);
+    }
+  }
+
+  Widget _field(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: FTextField(
+      key: ValueKey('$label:$value'),
+      control: FTextFieldControl.managed(
+        initial: TextEditingValue(text: value),
+      ),
+      readOnly: true,
+      maxLines: null,
+      label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+    ),
+  );
+
+  Widget _section(String label) => Padding(
+    padding: const EdgeInsets.only(top: 24, bottom: 12),
+    child: Semantics(
+      header: true,
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      ),
+    ),
+  );
   @override
   Widget build(BuildContext context) => WeyonjePage(
     title: 'Request Details',
@@ -125,11 +236,54 @@ class _ClientRequestDetailsScreenState
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
-            Text('Status: ${humanStatus(item.status)}'),
-            Text('Location: ${item.locationLabel}'),
-            Text(
-              'Requested: ${scheduleLabel(item.scheduleMode, item.requestedServiceAt)}',
+            _field('Status', humanStatus(item.status)),
+            _field('Location', item.locationLabel),
+            if (item.latitude != null &&
+                item.longitude != null &&
+                ref.watch(mapSelectionProvider).configured)
+              ref.watch(requestMapBuilderProvider)(
+                WeyonjeMap(
+                  destinationLatitude: item.latitude!,
+                  destinationLongitude: item.longitude!,
+                  showDeviceLocation: false,
+                  interactive: false,
+                  height: 180,
+                ),
+              )
+            else
+              WeyonjeAlert(
+                title: 'Saved Map Unavailable',
+                message: item.latitude == null || item.longitude == null
+                    ? 'This request has no saved coordinates. The available location is shown above.'
+                    : 'Map display is not configured in this build. The saved location is shown above.',
+              ),
+            _section('Service Details'),
+            _field(
+              'Type of Toilet to Empty',
+              item.toiletType == null
+                  ? 'Not recorded'
+                  : humanStatus(item.toiletType!),
             ),
+            _field(
+              'Requested Service Time',
+              scheduleLabel(item.scheduleMode, item.requestedServiceAt),
+            ),
+            if (item.additionalContactName?.trim().isNotEmpty == true ||
+                item.additionalContactPhone?.trim().isNotEmpty == true) ...[
+              _section('Additional Contact Details'),
+              _field(
+                'Contact Person (Name)',
+                item.additionalContactName?.trim().isNotEmpty == true
+                    ? item.additionalContactName!
+                    : 'Not recorded',
+              ),
+              _field(
+                'Contact Person (Telephone Contact)',
+                item.additionalContactPhone?.trim().isNotEmpty == true
+                    ? item.additionalContactPhone!
+                    : 'Not recorded',
+              ),
+            ],
             if (item.providerName != null)
               Text('Provider: ${item.providerName}'),
             if (item.agreedPriceUgx != null)
@@ -143,6 +297,37 @@ class _ClientRequestDetailsScreenState
               ),
             ],
             const SizedBox(height: 20),
+            if (_withdrawError != null)
+              WeyonjeAlert(
+                title: 'Request Withdrawal',
+                message: _withdrawError!,
+              ),
+            if (item.canModify && _withdrawAttempt == null)
+              WeyonjeButton(
+                label: 'Edit Request',
+                onPressed: _withdrawing
+                    ? null
+                    : () async {
+                        await context.push('/client/requests/${item.id}/edit');
+                        if (mounted) setState(_reload);
+                      },
+              ),
+            if (item.canModify || _withdrawAttempt != null) ...[
+              const SizedBox(height: 12),
+              WeyonjeButton(
+                label: _withdrawAttempt == null
+                    ? 'Delete Request'
+                    : 'Retry Delete Request',
+                kind: WeyonjeButtonKind.outline,
+                loading: _withdrawing,
+                onPressed: _withdrawing ? null : () => _withdraw(item),
+              ),
+            ],
+            WeyonjeButton(
+              label: 'Refresh Status',
+              kind: WeyonjeButtonKind.outline,
+              onPressed: _withdrawing ? null : () => setState(_reload),
+            ),
             if (item.status == 'COLLECTION_REPORTED')
               WeyonjeButton(
                 label: 'Confirm Collection and Rate',

@@ -40,6 +40,7 @@ import {
   IsBoolean,
   IsEnum,
   IsInt,
+  IsISO8601,
   IsNotEmpty,
   IsNumber,
   IsObject,
@@ -404,4 +405,64 @@ export class CreateClientServiceRequestDto extends OmitType(
   @ApiProperty({ type: String, enum: ToiletType })
   @IsEnum(ToiletType)
   toiletType!: ToiletType;
+}
+
+export class WithdrawClientServiceRequestDto {
+  @ApiProperty({ type: String, format: "uuid" })
+  @IsUUID()
+  idempotencyKey!: string;
+
+  @ApiProperty({
+    type: String,
+    format: "date-time",
+    description:
+      "Exact updatedAt from authoritative details; stale changes return CONFLICT.",
+  })
+  @IsISO8601({ strict: true })
+  expectedUpdatedAt!: string;
+}
+
+export class UpdateClientServiceRequestDto extends WithdrawClientServiceRequestDto {
+  @ApiProperty({
+    enum: [RequestLocationKind.current, RequestLocationKind.mapPin],
+  })
+  @IsEnum({
+    current: RequestLocationKind.current,
+    mapPin: RequestLocationKind.mapPin,
+  })
+  locationKind!: RequestLocationKind.current | RequestLocationKind.mapPin;
+
+  @ApiProperty({ type: GeoPointDto })
+  @IsObject()
+  location!: GeoPointContract;
+
+  @ApiProperty({ enum: ToiletType })
+  @IsEnum(ToiletType)
+  toiletType!: ToiletType;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    maxLength: 200,
+    description:
+      "Required; null clears the contact name and must be paired with a null phone.",
+  })
+  @ValidateIf((_object, value) => value !== null)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  additionalContactName!: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    maxLength: 40,
+    description:
+      "Required; null clears the contact phone and must be paired with a null name.",
+  })
+  @ValidateIf((_object, value) => value !== null)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(40)
+  additionalContactPhone!: string | null;
 }

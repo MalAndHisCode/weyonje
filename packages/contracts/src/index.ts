@@ -342,6 +342,22 @@ export interface CreateClientServiceRequestContract extends CreateServiceRequest
   toiletType: ToiletType;
 }
 
+/** Full replacement of editable fields; null explicitly clears a contact. Scheduling is immutable. */
+export interface UpdateClientServiceRequestContract {
+  idempotencyKey: string;
+  expectedUpdatedAt: string;
+  locationKind: RequestLocationKind.current | RequestLocationKind.mapPin;
+  location: GeoPointContract;
+  toiletType: ToiletType;
+  additionalContactName: string | null;
+  additionalContactPhone: string | null;
+}
+
+export interface WithdrawClientServiceRequestContract {
+  idempotencyKey: string;
+  expectedUpdatedAt: string;
+}
+
 export interface CreateServiceRequestContract {
   idempotencyKey: string;
   locationKind: RequestLocationKind;

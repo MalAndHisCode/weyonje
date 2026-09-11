@@ -34,6 +34,24 @@ const actor = CurrentActor(
   access: ActorAccess.eligible,
 );
 
+const savedRequestJson = <String, Object?>{
+  'id': 'saved',
+  'reference': 'WRQ-LEGACY123456',
+  'origin': 'MOBILE_APP',
+  'status': 'PENDING',
+  'locationLabel': '0.400000, 32.600000',
+  'locationKind': 'CURRENT',
+  'location': {'latitude': 0.4, 'longitude': 32.6},
+  'toiletType': 'SEPTIC_TANK',
+  'additionalContactName': 'Saved Contact',
+  'additionalContactPhone': '+256700000123',
+  'scheduleMode': 'SCHEDULED',
+  'requestedServiceAt': '2026-01-02T12:00:00.000Z',
+  'updatedAt': '2026-01-01T12:00:00.000Z',
+  'createdAt': '2026-01-01T12:00:00.000Z',
+  'clientName': 'Amina Test',
+};
+
 class RequestWorkflows extends Fake implements WorkflowRepository {
   Map<String, dynamic> profile = {
     'clientName': 'Amina Test',
@@ -54,6 +72,33 @@ class RequestWorkflows extends Fake implements WorkflowRepository {
   ServiceRequestDetail? created;
   String? failureCode = 'INVALID_REQUEST';
   final submissions = <Map<String, Object?>>[];
+  final updates = <Map<String, Object?>>[];
+  final withdrawals = <Map<String, Object?>>[];
+  WorkflowException? mutationFailure;
+  @override
+  Future<ServiceRequestDetail> updateClientRequest(
+    String id,
+    Map<String, Object?> data,
+  ) async {
+    updates.add(data);
+    if (mutationFailure != null) throw mutationFailure!;
+    return created!;
+  }
+
+  @override
+  Future<ServiceRequestDetail> withdrawClientRequest(
+    String id,
+    Map<String, Object?> data,
+  ) async {
+    withdrawals.add(data);
+    if (mutationFailure != null) throw mutationFailure!;
+    created = ServiceRequestDetail.fromJson({
+      ...savedRequestJson,
+      'status': 'CANCELLED',
+    });
+    return created!;
+  }
+
   int geocodeCalls = 0;
   @override
   Future<Map<String, dynamic>> clientProfile() async {
@@ -154,7 +199,10 @@ void main() {
     map = null;
   });
 
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(
+    WidgetTester tester, {
+    String route = '/client/requests/new',
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -181,9 +229,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Request for a Service'), findsOneWidget);
-    GoRouter.of(
-      tester.element(find.text('Request for a Service')),
-    ).push('/client/requests/new');
+    GoRouter.of(tester.element(find.text('Request for a Service'))).push(route);
     await tester.pumpAndSettle();
   }
 
@@ -191,6 +237,245 @@ void main() {
     await tester.ensureVisible(find.text(text).last);
     await tester.tap(find.text(text).last);
     await tester.pumpAndSettle();
+  }
+
+  for (final mode in ['CURRENT', 'MAP_PIN']) {
+    testWidgets(
+      'edit prepopulates $mode once and preserves draft on resume and My Requests return',
+      (tester) async {
+        workflows.created = ServiceRequestDetail.fromJson({
+          ...savedRequestJson,
+          'locationKind': mode,
+        });
+        await open(tester, route: '/client/requests/saved/edit');
+        expect(map!.destinationLatitude, 0.4);
+        expect(map!.destinationLongitude, 32.6);
+        expect(locations.captures, 0);
+        expect(
+          tester
+              .widget<WeyonjeSelect<String>>(find.byType(WeyonjeSelect<String>))
+              .initialValue,
+          'SEPTIC_TANK',
+        );
+        final name = find.byKey(const Key('request-contact-name'));
+        await tester.ensureVisible(name);
+        await tester.enterText(name, 'Changed Contact');
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.inactive,
+        );
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+        await tap(tester, 'Check My Requests');
+        await tap(tester, 'Return to Request');
+        expect(find.text('Changed Contact'), findsOneWidget);
+        expect(locations.captures, 0);
+        await tap(tester, 'Save Changes');
+        expect(workflows.updates.single, containsPair('locationKind', mode));
+        expect(
+          workflows.updates.single,
+          containsPair('additionalContactName', 'Changed Contact'),
+        );
+        expect(workflows.updates.single, isNot(contains('scheduleMode')));
+        expect(workflows.updates.single, isNot(contains('requestedServiceAt')));
+        expect(
+          workflows.updates.single,
+          containsPair('expectedUpdatedAt', savedRequestJson['updatedAt']),
+        );
+        expect(workflows.submissions, isEmpty);
+      },
+    );
+  }
+
+  testWidgets(
+    'uncertain edit holds draft and same key across HTTP conflict and empty list',
+    (tester) async {
+      workflows.created = ServiceRequestDetail.fromJson(savedRequestJson);
+      workflows.mutationFailure = const WorkflowException(
+        'Timeout',
+        code: 'REQUEST_TIMEOUT',
+      );
+      await open(tester, route: '/client/requests/saved/edit');
+      await tap(tester, 'Save Changes');
+      await tap(tester, 'Check My Requests');
+      await tap(tester, 'Return to Request');
+      workflows.mutationFailure = const WorkflowException(
+        'Conflict',
+        code: 'CONFLICT',
+      );
+      await tap(tester, 'Save Changes');
+      expect(workflows.updates[1], workflows.updates[0]);
+      workflows.mutationFailure = null;
+      await tap(tester, 'Save Changes');
+      expect(workflows.updates[2], workflows.updates[0]);
+    },
+  );
+
+  testWidgets(
+    'stale edit preserves draft, blocks overwrite and offers latest details',
+    (tester) async {
+      workflows.created = ServiceRequestDetail.fromJson(savedRequestJson);
+      workflows.mutationFailure = const WorkflowException(
+        'Request changed',
+        code: 'CONFLICT',
+      );
+      await open(tester, route: '/client/requests/saved/edit');
+      await tap(tester, 'Save Changes');
+      expect(
+        tester
+            .widget<WeyonjeButton>(
+              find.ancestor(
+                of: find.text('Save Changes'),
+                matching: find.byType(WeyonjeButton),
+              ),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tap(tester, 'View Latest Request Details');
+      expect(find.text('Request Details'), findsOneWidget);
+      expect(workflows.updates, hasLength(1));
+    },
+  );
+
+  testWidgets('edit clears both contacts explicitly; Back saves nothing', (
+    tester,
+  ) async {
+    workflows.created = ServiceRequestDetail.fromJson(savedRequestJson);
+    await open(tester, route: '/client/requests/saved/edit');
+    for (final key in ['request-contact-name', 'request-contact-phone']) {
+      final field = find.byKey(Key(key));
+      await tester.ensureVisible(field);
+      await tester.enterText(field, '');
+    }
+    await tap(tester, 'Save Changes');
+    expect(
+      workflows.updates.single,
+      containsPair('additionalContactName', null),
+    );
+    expect(
+      workflows.updates.single,
+      containsPair('additionalContactPhone', null),
+    );
+    GoRouter.of(
+      tester.element(find.text('Request Details')),
+    ).push('/client/requests/saved/edit');
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.text('Request for a Service'))).pop();
+    await tester.pumpAndSettle();
+    expect(workflows.updates, hasLength(1));
+  });
+
+  testWidgets(
+    'saved details need no location permission and withdrawal confirmation can cancel or retry',
+    (tester) async {
+      workflows.created = ServiceRequestDetail.fromJson(savedRequestJson);
+      locations.access = ClientLocationAccess.deniedForever;
+      await open(tester, route: '/client/requests/saved');
+      expect(map!.showDeviceLocation, isFalse);
+      expect(map!.interactive, isFalse);
+      expect(map!.destinationLatitude, 0.4);
+      expect(locations.checks, 0);
+      await tap(tester, 'Delete Request');
+      await tap(tester, 'Keep Request');
+      expect(workflows.withdrawals, isEmpty);
+      workflows.mutationFailure = const WorkflowException(
+        'Timeout',
+        code: 'REQUEST_TIMEOUT',
+      );
+      await tap(tester, 'Delete Request');
+      await tap(tester, 'Delete Request');
+      workflows.mutationFailure = const WorkflowException(
+        'Conflict',
+        code: 'CONFLICT',
+      );
+      await tap(tester, 'Retry Delete Request');
+      expect(workflows.withdrawals[1], workflows.withdrawals[0]);
+      workflows.mutationFailure = null;
+      await tap(tester, 'Retry Delete Request');
+      expect(workflows.withdrawals[2], workflows.withdrawals[0]);
+      expect(find.text('Cancelled'), findsOneWidget);
+      expect(find.text('Edit Request'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'historical text-only details never invent values and linked Call Centre cannot edit',
+    (tester) async {
+      workflows.created = ServiceRequestDetail.fromJson({
+        ...savedRequestJson,
+        'origin': 'CALL_CENTRE',
+        'locationKind': 'TEXT',
+        'location': null,
+        'toiletType': null,
+        'additionalContactPhone': null,
+      });
+      await open(tester, route: '/client/requests/saved');
+      expect(map, isNull);
+      expect(find.text('Saved Map Unavailable'), findsOneWidget);
+      expect(find.text('Not recorded'), findsNWidgets(2));
+      expect(find.text('Edit Request'), findsNothing);
+      expect(find.text('Delete Request'), findsNothing);
+      expect(locations.checks, 0);
+    },
+  );
+
+  for (final screen in ['dashboard', 'details', 'edit', 'dialog']) {
+    for (final layout in ['compact', 'large_text', 'landscape']) {
+      testWidgets('Client management visual $screen $layout', (tester) async {
+        tester.view.physicalSize = layout == 'landscape'
+            ? const Size(740, 360)
+            : const Size(360, 740);
+        tester.view.devicePixelRatio = 1;
+        if (layout == 'large_text') {
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
+        }
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+          tester.view.resetViewInsets();
+          tester.platformDispatcher.clearTextScaleFactorTestValue();
+        });
+        workflows.created = ServiceRequestDetail.fromJson(savedRequestJson);
+        await open(
+          tester,
+          route: screen == 'edit'
+              ? '/client/requests/saved/edit'
+              : '/client/requests/saved',
+        );
+        if (screen == 'dashboard') {
+          GoRouter.of(tester.element(find.text('Request Details'))).pop();
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(find.text('Recent Requests'));
+          await tester.pumpAndSettle();
+        }
+        if (screen == 'edit') {
+          await tester.ensureVisible(find.text('Save Changes'));
+          await tester.pumpAndSettle();
+        }
+        if (screen == 'dialog') await tap(tester, 'Delete Request');
+        expect(tester.takeException(), isNull);
+        await expectLater(
+          find.byType(WeyonjeApplication),
+          matchesGoldenFile('visual/goldens/client_${screen}_$layout.png'),
+        );
+        if (screen == 'dialog') {
+          // The scrollable dialog must keep both actions reachable at 2x text
+          // and in landscape, even when initially below the viewport.
+          await tester.ensureVisible(find.text('Keep Request'));
+          await tester.pumpAndSettle();
+          await expectLater(
+            find.byType(WeyonjeApplication),
+            matchesGoldenFile(
+              'visual/goldens/client_dialog_actions_$layout.png',
+            ),
+          );
+          await tap(tester, 'Keep Request');
+          expect(workflows.withdrawals, isEmpty);
+        }
+      });
+    }
   }
 
   void selectToilet(WidgetTester tester, [String toilet = 'PIT_LATRINE']) {
@@ -268,8 +553,8 @@ void main() {
         expect((wire['location'] as Map)['latitude'], isA<num>());
         expect((wire['location'] as Map)['longitude'], isA<num>());
         expect(find.text('Request Details'), findsOneWidget);
-        expect(find.text('Status: Pending'), findsOneWidget);
-        expect(find.text('Requested: As soon as possible'), findsOneWidget);
+        expect(find.text('Pending'), findsOneWidget);
+        expect(find.text('As soon as possible'), findsOneWidget);
       });
     }
   }

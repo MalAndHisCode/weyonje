@@ -81,6 +81,7 @@ class _ClientDashboardScreenState extends ConsumerState<ClientDashboardScreen> {
               'Recent Requests',
               style: Theme.of(context).textTheme.titleLarge,
             ),
+            SizedBox(height: context.theme.style.pagePadding.vertical),
             if (data.recentRequests.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),

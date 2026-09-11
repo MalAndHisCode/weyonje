@@ -9,6 +9,8 @@ import {
 import { ConfigType } from "@nestjs/config";
 import {
   AcceptRequestContract,
+  UpdateClientServiceRequestContract,
+  WithdrawClientServiceRequestContract,
   ToiletType,
   ActorType,
   ApiErrorCode,
@@ -460,6 +462,145 @@ export class WorkflowService {
     );
     if (!request) throw this.notFound();
     return diagnose("detail_mapping", async () => this.detail(request, true));
+  }
+
+  async updateClientRequest(
+    actor: AuthenticatedActor,
+    requestId: string,
+    input: UpdateClientServiceRequestContract,
+  ): Promise<ServiceRequestDetailContract> {
+    this.assertClient(actor);
+    if (
+      ![RequestLocationKind.current, RequestLocationKind.mapPin].includes(
+        input.locationKind,
+      ) ||
+      !Object.values(ToiletType).includes(input.toiletType) ||
+      input.additionalContactName === undefined ||
+      input.additionalContactPhone === undefined
+    ) {
+      throw this.invalid(
+        "Select a coordinate location and toilet type, and supply both contact fields or null to clear them.",
+      );
+    }
+    // Reuse ingress validation only for editable fields. A historical schedule
+    // (even one now in the past) must neither be revalidated nor overwritten.
+    const {
+      scheduleMode: _schedule,
+      requestedServiceAt: _time,
+      ...editable
+    } = await atClientRequestStage("normalization", async () =>
+      this.validateRequestInput({
+        idempotencyKey: input.idempotencyKey,
+        locationKind: input.locationKind,
+        location: input.location,
+        toiletType: input.toiletType,
+        ...(input.additionalContactName !== null
+          ? { additionalContactName: input.additionalContactName }
+          : {}),
+        ...(input.additionalContactPhone !== null
+          ? { additionalContactPhone: input.additionalContactPhone }
+          : {}),
+        scheduleMode: ScheduleMode.asSoonAsPossible,
+      }),
+    );
+    return this.mutateClientRequest(actor, requestId, input, editable, false);
+  }
+
+  async withdrawClientRequest(
+    actor: AuthenticatedActor,
+    requestId: string,
+    input: WithdrawClientServiceRequestContract,
+  ): Promise<ServiceRequestDetailContract> {
+    this.assertClient(actor);
+    return this.mutateClientRequest(actor, requestId, input, {}, true);
+  }
+
+  private async mutateClientRequest(
+    actor: AuthenticatedActor,
+    requestId: string,
+    input: WithdrawClientServiceRequestContract,
+    editable: Prisma.ServiceRequestUpdateManyMutationInput,
+    withdraw: boolean,
+  ): Promise<ServiceRequestDetailContract> {
+    const expected = new Date(input.expectedUpdatedAt);
+    if (!Number.isFinite(expected.getTime()))
+      throw this.invalid("Reload request details before making changes.");
+    const result = await this.idempotent(
+      actor.user.id,
+      `client.${withdraw ? "withdraw" : "update"}:${requestId}`,
+      input.idempotencyKey,
+      input,
+      async (tx) => {
+        const owned = await atClientRequestStage("detail_read", () =>
+          tx.serviceRequest.findFirst({
+            where: {
+              id: requestId,
+              clientUserId: actor.user.id,
+              origin: PrismaRequestOrigin.MOBILE_APP,
+            },
+            select: { id: true },
+          }),
+        );
+        if (!owned) throw this.notFound();
+        const changed = await atClientRequestStage("request_update", () =>
+          tx.serviceRequest.updateMany({
+            where: {
+              id: requestId,
+              clientUserId: actor.user.id,
+              origin: PrismaRequestOrigin.MOBILE_APP,
+              status: PrismaRequestStatus.PENDING,
+              acceptedProviderUserId: null,
+              acceptedAt: null,
+              updatedAt: expected,
+              assignments: { none: {} },
+              journeys: { none: {} },
+              collectionReport: null,
+              feedback: null,
+            },
+            data: {
+              ...editable,
+              ...(withdraw ? { status: PrismaRequestStatus.CANCELLED } : {}),
+              // PostgreSQL stores milliseconds. Guarantee a different token even
+              // for two saves in the same millisecond or a backwards clock jump.
+              updatedAt: new Date(Math.max(Date.now(), expected.getTime() + 1)),
+            },
+          }),
+        );
+        if (changed.count !== 1)
+          throw new ConflictException({
+            code: ApiErrorCode.conflict,
+            message:
+              "This request changed or is no longer pending. Refresh its details before continuing.",
+          });
+        if (withdraw)
+          await atClientRequestStage("history_write", () =>
+            this.transitionRecord(
+              tx,
+              requestId,
+              PrismaRequestStatus.PENDING,
+              PrismaRequestStatus.CANCELLED,
+              actor.user.id,
+              "Withdrawn by Client",
+            ),
+          );
+        await atClientRequestStage("audit_write", () =>
+          this.audit(
+            tx,
+            actor.user.id,
+            withdraw ? "request.withdrawn" : "request.updated",
+            "ServiceRequest",
+            requestId,
+            requestId,
+          ),
+        );
+        // Existing reminder delivery rechecks CANCELLED before dispatch; keep
+        // outbox/attempt evidence intact instead of deleting queued records.
+        return { id: requestId };
+      },
+      atClientRequestStage,
+    );
+    // Replays return current authority, never the obsolete saved snapshot.
+    return this.clientRequest(actor, result.id, atClientRequestStage);
   }
 
   async pendingProviderRequests(
@@ -2321,7 +2462,7 @@ function requiredText(value: string, message: string): string {
 }
 
 function requestReference(): string {
-  return `WRQ-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`;
+  return `KCCA-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`;
 }
 
 function finiteInRange(

@@ -178,6 +178,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/client/requests/:requestId/edit',
+        builder: (context, state) =>
+            RequestServiceScreen(requestId: state.pathParameters['requestId']!),
+      ),
+      GoRoute(
         path: '/client/requests/:requestId/feedback',
         builder: (context, state) => CollectionFeedbackScreen(
           requestId: state.pathParameters['requestId']!,

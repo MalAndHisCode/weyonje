@@ -18,12 +18,25 @@ class PendingServiceRequestsScreen extends ConsumerStatefulWidget {
 }
 
 class _PendingServiceRequestsScreenState
-    extends ConsumerState<PendingServiceRequestsScreen> {
+    extends ConsumerState<PendingServiceRequestsScreen>
+    with WidgetsBindingObserver {
   late Future<List<ProviderPendingRequest>> _load;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _reload();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) setState(_reload);
   }
 
   void _reload() =>
@@ -45,28 +58,40 @@ class _PendingServiceRequestsScreenState
           );
         }
         if (snapshot.requireData.isEmpty) {
-          return const Text(
-            'No eligible requests are currently available. Pull back and retry later.',
+          return Column(
+            children: [
+              const Text('No eligible requests are currently available.'),
+              WeyonjeButton(
+                label: 'Refresh Requests',
+                kind: WeyonjeButtonKind.outline,
+                onPressed: () => setState(_reload),
+              ),
+            ],
           );
         }
         return Column(
-          children: snapshot.requireData
-              .map(
-                (item) => FCard(
-                  child: FTile(
-                    title: Text(item.reference),
-                    subtitle: Text(
-                      '${item.origin == 'CALL_CENTRE' ? 'Call Centre assignment' : 'Marketplace request'}\n${item.locationLabel}\n${scheduleLabel(item.scheduleMode, item.requestedServiceAt)}${item.toiletType == null ? '' : '\n${humanStatus(item.toiletType!)}'}',
-                    ),
-
-                    suffix: const Icon(Icons.chevron_right),
-                    onPress: () => context
-                        .push('/provider/requests/${item.id}')
-                        .then((_) => setState(_reload)),
+          children: [
+            WeyonjeButton(
+              label: 'Refresh Requests',
+              kind: WeyonjeButtonKind.outline,
+              onPressed: () => setState(_reload),
+            ),
+            ...snapshot.requireData.map(
+              (item) => FCard(
+                child: FTile(
+                  title: Text(item.reference),
+                  subtitle: Text(
+                    '${item.origin == 'CALL_CENTRE' ? 'Call Centre assignment' : 'Marketplace request'}\n${item.locationLabel}\n${scheduleLabel(item.scheduleMode, item.requestedServiceAt)}${item.toiletType == null ? '' : '\n${humanStatus(item.toiletType!)}'}',
                   ),
+
+                  suffix: const Icon(Icons.chevron_right),
+                  onPress: () => context
+                      .push('/provider/requests/${item.id}')
+                      .then((_) => setState(_reload)),
                 ),
-              )
-              .toList(),
+              ),
+            ),
+          ],
         );
       },
     ),

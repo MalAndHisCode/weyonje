@@ -881,6 +881,54 @@
         "tags": [
           "client workflows"
         ]
+      },
+      "put": {
+        "operationId": "ClientWorkflowController_update",
+        "parameters": [
+          {
+            "name": "requestId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClientServiceRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale updatedAt, ineligible state, or mismatched idempotency payload. Reload authoritative details."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace editable fields of an owned, unaccepted mobile request",
+        "tags": [
+          "client workflows"
+        ]
       }
     },
     "/v1/client/requests/{requestId}/feedback": {
@@ -904,6 +952,56 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "client workflows"
+        ]
+      }
+    },
+    "/v1/client/requests/{requestId}/withdraw": {
+      "post": {
+        "operationId": "ClientWorkflowController_withdraw",
+        "parameters": [
+          {
+            "name": "requestId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawClientServiceRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale updatedAt, ineligible state, or mismatched idempotency payload. Reload authoritative details."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw an owned, unaccepted mobile request as CANCELLED, retaining history",
         "tags": [
           "client workflows"
         ]
@@ -2483,6 +2581,76 @@
           "locationLabel",
           "scheduleMode",
           "updatedAt"
+        ]
+      },
+      "UpdateClientServiceRequestDto": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Exact updatedAt from authoritative details; stale changes return CONFLICT."
+          },
+          "locationKind": {
+            "type": "string",
+            "enum": [
+              "CURRENT",
+              "MAP_PIN"
+            ]
+          },
+          "location": {
+            "$ref": "#/components/schemas/GeoPointDto"
+          },
+          "toiletType": {
+            "type": "string",
+            "enum": [
+              "PIT_LATRINE",
+              "SEPTIC_TANK"
+            ]
+          },
+          "additionalContactName": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 200,
+            "description": "Required; null clears the contact name and must be paired with a null phone."
+          },
+          "additionalContactPhone": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 40,
+            "description": "Required; null clears the contact phone and must be paired with a null name."
+          }
+        },
+        "required": [
+          "idempotencyKey",
+          "expectedUpdatedAt",
+          "locationKind",
+          "location",
+          "toiletType",
+          "additionalContactName",
+          "additionalContactPhone"
+        ]
+      },
+      "WithdrawClientServiceRequestDto": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Exact updatedAt from authoritative details; stale changes return CONFLICT."
+          }
+        },
+        "required": [
+          "idempotencyKey",
+          "expectedUpdatedAt"
         ]
       },
       "ProviderPendingRequestDto": {

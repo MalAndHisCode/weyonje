@@ -14,7 +14,10 @@ import {
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiParam,
   ApiCreatedResponse,
+  ApiConflictResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -43,6 +46,8 @@ import {
   ServiceRequestSummaryDto,
   SubmitFeedbackDto,
   SubmitLocationBatchDto,
+  UpdateClientServiceRequestDto,
+  WithdrawClientServiceRequestDto,
 } from "./workflow.dto";
 import { WorkflowService } from "./workflow.service";
 
@@ -116,6 +121,50 @@ export class ClientWorkflowController {
     @Body() body: SubmitFeedbackDto,
   ) {
     return this.workflows.submitClientFeedback(actor(request), requestId, body);
+  }
+
+  @Put("requests/:requestId")
+  @ApiParam({ name: "requestId", type: String, format: "uuid" })
+  @ApiBody({ type: UpdateClientServiceRequestDto })
+  @ApiConflictResponse({
+    description:
+      "Stale updatedAt, ineligible state, or mismatched idempotency payload. Reload authoritative details.",
+  })
+  @ApiOperation({
+    summary: "Replace editable fields of an owned, unaccepted mobile request",
+  })
+  @ApiOkResponse({ type: ServiceRequestDetailDto })
+  update(
+    @Req() request: AuthenticatedRequest,
+    @Param("requestId", ParseUUIDPipe) requestId: string,
+    @Body() body: UpdateClientServiceRequestDto,
+  ) {
+    return this.workflows.updateClientRequest(actor(request), requestId, body);
+  }
+
+  @Post("requests/:requestId/withdraw")
+  @ApiParam({ name: "requestId", type: String, format: "uuid" })
+  @ApiBody({ type: WithdrawClientServiceRequestDto })
+  @ApiConflictResponse({
+    description:
+      "Stale updatedAt, ineligible state, or mismatched idempotency payload. Reload authoritative details.",
+  })
+  @HttpCode(200)
+  @ApiOperation({
+    summary:
+      "Withdraw an owned, unaccepted mobile request as CANCELLED, retaining history",
+  })
+  @ApiOkResponse({ type: ServiceRequestDetailDto })
+  withdraw(
+    @Req() request: AuthenticatedRequest,
+    @Param("requestId", ParseUUIDPipe) requestId: string,
+    @Body() body: WithdrawClientServiceRequestDto,
+  ) {
+    return this.workflows.withdrawClientRequest(
+      actor(request),
+      requestId,
+      body,
+    );
   }
 }
 

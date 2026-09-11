@@ -6,6 +6,7 @@ export type ClientRequestStage =
   | "transaction"
   | "idempotency_lookup"
   | "request_create"
+  | "request_update"
   | "history_write"
   | "audit_write"
   | "notification_write"

@@ -16,6 +16,14 @@ abstract interface class WorkflowRepository {
   Future<List<ServiceRequestSummary>> clientRequests();
   Future<ServiceRequestDetail> clientRequest(String id);
   Future<ServiceRequestDetail> createClientRequest(Map<String, Object?> data);
+  Future<ServiceRequestDetail> updateClientRequest(
+    String id,
+    Map<String, Object?> data,
+  );
+  Future<ServiceRequestDetail> withdrawClientRequest(
+    String id,
+    Map<String, Object?> data,
+  );
   Future<List<ProviderPendingRequest>> pendingProviderRequests();
   Future<ServiceRequestDetail> providerRequest(String id);
   Future<ServiceRequestDetail> acceptRequest(String id, {int? agreedPriceUgx});
@@ -178,6 +186,20 @@ class NativeWorkflowRepository implements WorkflowRepository {
       jsonList(
         await _get('/v1/provider/requests/pending'),
       ).map(ProviderPendingRequest.fromJson).toList(growable: false);
+  @override
+  Future<ServiceRequestDetail> updateClientRequest(
+    String id,
+    Map<String, Object?> data,
+  ) async => ServiceRequestDetail.fromJson(
+    await _send('PUT', '/v1/client/requests/$id', data),
+  );
+  @override
+  Future<ServiceRequestDetail> withdrawClientRequest(
+    String id,
+    Map<String, Object?> data,
+  ) async => ServiceRequestDetail.fromJson(
+    await _send('POST', '/v1/client/requests/$id/withdraw', data),
+  );
   @override
   Future<ServiceRequestDetail> providerRequest(String id) async =>
       ServiceRequestDetail.fromJson(await _get('/v1/provider/requests/$id'));

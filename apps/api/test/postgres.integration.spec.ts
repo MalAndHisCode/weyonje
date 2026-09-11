@@ -63,6 +63,163 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
 
   afterAll(async () => prisma?.$disconnect());
 
+  it.each(["edit-accept", "withdraw-accept", "competing-edits"] as const)(
+    "serializes Client mutations with real PostgreSQL: %s",
+    async (race) => {
+      const config = testAuthConfig();
+      const phones = new PhoneSecurityService(config);
+      const emails = new EmailSecurityService(config);
+      const client = await prisma.user.create({
+        data: { actorType: "CLIENT", isActive: true, loginEnabled: true },
+      });
+      const provider = await prisma.user.create({
+        data: {
+          actorType: "SERVICE_PROVIDER",
+          providerStatus: "APPROVED",
+          isActive: true,
+          loginEnabled: true,
+        },
+      });
+      const clientActor = { user: client } as unknown as AuthenticatedActor;
+      const providerActor = { user: provider } as unknown as AuthenticatedActor;
+      const request = await prisma.serviceRequest.create({
+        data: {
+          reference: `WRQ-${randomUUID().slice(0, 12)}`,
+          origin: "MOBILE_APP",
+          clientUserId: client.id,
+          clientName: "Isolated Client",
+          encryptedClientPhone: phones.encrypt("+256700000123"),
+          locationKind: "CURRENT",
+          latitude: 0.3,
+          longitude: 32.5,
+          toiletType: "PIT_LATRINE",
+          scheduleMode: "AS_SOON_AS_POSSIBLE",
+        },
+      });
+      // Both serializable snapshots reach their first conditional write before
+      // either proceeds. A retry must use a new snapshot and recheck authority.
+      let arrived = 0;
+      let release!: () => void;
+      const barrier = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const database = prisma.$extends({
+        query: {
+          serviceRequest: {
+            async updateMany({ args, query }) {
+              if (++arrived <= 2) {
+                if (arrived === 2) release();
+                await barrier;
+              }
+              return query(args);
+            },
+          },
+        },
+      });
+      const service = new WorkflowService(
+        database as unknown as PrismaService,
+        phones,
+        emails,
+        {} as never,
+        {} as never,
+        { offsetsMinutes: [120] } as never,
+      );
+      const edit = {
+        idempotencyKey: randomUUID(),
+        expectedUpdatedAt: request.updatedAt.toISOString(),
+        locationKind: RequestLocationKind.mapPin as RequestLocationKind.mapPin,
+        location: { latitude: 0.4, longitude: 32.6 },
+        toiletType: ToiletType.septicTank,
+        additionalContactName: null,
+        additionalContactPhone: null,
+      };
+      const withdrawal = {
+        idempotencyKey: randomUUID(),
+        expectedUpdatedAt: request.updatedAt.toISOString(),
+      };
+      try {
+        const results = await Promise.allSettled([
+          race === "withdraw-accept"
+            ? service.withdrawClientRequest(clientActor, request.id, withdrawal)
+            : service.updateClientRequest(clientActor, request.id, edit),
+          race === "competing-edits"
+            ? service.updateClientRequest(clientActor, request.id, {
+                ...edit,
+                idempotencyKey: randomUUID(),
+                toiletType: ToiletType.pitLatrine,
+              })
+            : service.acceptRequest(providerActor, request.id, {
+                idempotencyKey: randomUUID(),
+                agreedPriceUgx: 10000,
+              }),
+        ]);
+        const saved = await prisma.serviceRequest.findUniqueOrThrow({
+          where: { id: request.id },
+        });
+        expect(saved.reference).toBe(request.reference);
+        expect(
+          await prisma.serviceRequest.count({
+            where: { clientUserId: client.id },
+          }),
+        ).toBe(1);
+        const audits = await prisma.auditEvent.findMany({
+          where: { requestId: request.id },
+        });
+        const histories = await prisma.requestStatusHistory.findMany({
+          where: { requestId: request.id },
+        });
+        if (race === "competing-edits") {
+          expect(
+            results.filter((result) => result.status === "fulfilled"),
+          ).toHaveLength(1);
+          expect(audits).toHaveLength(1);
+          expect(histories).toHaveLength(0);
+          expect(saved.updatedAt.getTime()).toBeGreaterThan(
+            request.updatedAt.getTime(),
+          );
+        } else if (race === "withdraw-accept") {
+          expect(
+            results.filter((result) => result.status === "fulfilled"),
+          ).toHaveLength(1);
+          expect(audits).toHaveLength(1);
+          expect(histories).toHaveLength(1);
+          expect(["ACCEPTED", "CANCELLED"]).toContain(saved.status);
+          expect(saved.acceptedProviderUserId).toBe(
+            saved.status === "ACCEPTED" ? provider.id : null,
+          );
+          if (saved.status === "CANCELLED")
+            expect(
+              await service.pendingProviderRequests(providerActor),
+            ).not.toEqual(
+              expect.arrayContaining([
+                expect.objectContaining({ id: request.id }),
+              ]),
+            );
+        } else {
+          expect(saved.status).toBe("ACCEPTED");
+          expect(saved.toiletType).toBe(
+            results[0]!.status === "fulfilled" ? "SEPTIC_TANK" : "PIT_LATRINE",
+          );
+          expect(audits).toHaveLength(
+            results.filter((result) => result.status === "fulfilled").length,
+          );
+          expect(histories).toHaveLength(1);
+        }
+      } finally {
+        await prisma.idempotencyRecord.deleteMany({
+          where: { actorUserId: { in: [client.id, provider.id] } },
+        });
+        await prisma.auditEvent.deleteMany({
+          where: { requestId: request.id },
+        });
+        await prisma.serviceRequest.delete({ where: { id: request.id } });
+        await prisma.user.deleteMany({
+          where: { id: { in: [client.id, provider.id] } },
+        });
+      }
+    },
+  );
+
   it("creates/replays Client requests with real constraints, rollback and post-commit recovery", async () => {
     const config = testAuthConfig();
     const phones = new PhoneSecurityService(config);
