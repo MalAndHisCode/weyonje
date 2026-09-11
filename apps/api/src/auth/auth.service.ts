@@ -6,6 +6,7 @@ import {
 import {
   ApiErrorCode,
   ClientCodeResponseContract,
+  PhoneChallengeContract,
   SessionCredentialsContract,
 } from "@weyonje/contracts";
 
@@ -64,7 +65,7 @@ export class AuthService {
     const now = new Date();
     const accountAllowed =
       user.loginEnabled &&
-      user.actorType !== ActorType.CLIENT &&
+      user.actorType === ActorType.KCCA_STAFF &&
       (user.emailVerifiedAt !== null || user.phoneVerifiedAt !== null) &&
       (user.authenticationLockedUntil === null ||
         user.authenticationLockedUntil <= now);
@@ -169,7 +170,7 @@ export class AuthService {
       code,
       PhoneChallengePurpose.CLIENT_SIGN_IN,
       async (userId, transaction) => {
-        if (!userId) throw this.invalidClientCode();
+        if (!userId) throw this.invalidPhoneCode();
         const user = await transaction.user.findFirst({
           where: {
             id: userId,
@@ -180,7 +181,107 @@ export class AuthService {
           },
           select: { id: true, passwordVersion: true },
         });
-        if (!user) throw this.invalidClientCode();
+        if (!user) throw this.invalidPhoneCode();
+        return this.sessions.create(user, transaction);
+      },
+    );
+  }
+
+  async requestProviderCode(
+    phoneNumber: string,
+    sourceIp: string,
+  ): Promise<PhoneChallengeContract> {
+    const phone = this.phones.normalize(phoneNumber);
+    const phoneLookup = this.phones.lookup(phone);
+    try {
+      await this.throttles.consumeProviderRequest(phoneLookup, sourceIp);
+    } catch (error) {
+      if (error instanceof HttpException && error.getStatus() === 429) {
+        const body = error.getResponse();
+        if (
+          typeof body === "object" &&
+          "retryAt" in body &&
+          typeof body.retryAt === "string"
+        ) {
+          const issuanceAt = await this.challenges.nextRequestAvailableAt(
+            phoneLookup,
+            PhoneChallengePurpose.PROVIDER_SIGN_IN,
+          );
+          throw new HttpException(
+            {
+              ...body,
+              retryAt: new Date(
+                Math.max(
+                  Date.parse(body.retryAt),
+                  issuanceAt.retryAt.getTime(),
+                ),
+              ).toISOString(),
+            },
+            429,
+          );
+        }
+      }
+      throw error;
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { phoneLookup },
+      select: {
+        id: true,
+        actorType: true,
+        phoneVerifiedAt: true,
+        loginEnabled: true,
+        isActive: true,
+      },
+    });
+
+    if (
+      !user ||
+      user.actorType !== ActorType.SERVICE_PROVIDER ||
+      !user.phoneVerifiedAt ||
+      !user.loginEnabled
+    ) {
+      throw new UnauthorizedException({
+        code: ApiErrorCode.accessDenied,
+        message:
+          "Service Provider sign-in is unavailable. Check your registered phone or use Service Provider Registration to complete an unfinished registration.",
+      });
+    }
+    return this.challenges.create(
+      phone,
+      PhoneChallengePurpose.PROVIDER_SIGN_IN,
+      user.id,
+    );
+  }
+
+  async resendProviderCode(challengeId: string) {
+    return this.challenges.resend(
+      challengeId,
+      PhoneChallengePurpose.PROVIDER_SIGN_IN,
+    );
+  }
+
+  async verifyProviderCode(
+    challengeId: string,
+    code: string,
+  ): Promise<SessionCredentialsContract> {
+    return this.challenges.verifyAndComplete(
+      challengeId,
+      code,
+      PhoneChallengePurpose.PROVIDER_SIGN_IN,
+      async (userId, transaction, phoneLookup) => {
+        if (!userId) throw this.invalidPhoneCode();
+        await transaction.$queryRaw`SELECT id FROM users WHERE id = ${userId}::uuid FOR UPDATE`;
+        const user = await transaction.user.findFirst({
+          where: {
+            id: userId,
+            phoneLookup,
+            actorType: ActorType.SERVICE_PROVIDER,
+            phoneVerifiedAt: { not: null },
+            loginEnabled: true,
+          },
+          select: { id: true, passwordVersion: true },
+        });
+        if (!user) throw this.invalidPhoneCode();
         return this.sessions.create(user, transaction);
       },
     );
@@ -193,7 +294,7 @@ export class AuthService {
     });
   }
 
-  private invalidClientCode(): UnauthorizedException {
+  private invalidPhoneCode(): UnauthorizedException {
     return new UnauthorizedException({
       code: ApiErrorCode.invalidVerificationCode,
       message: "The verification code is incorrect or no longer usable.",

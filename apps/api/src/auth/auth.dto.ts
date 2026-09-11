@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   ClientCodeRequestContract,
+  ProviderCodeRequestContract,
   RegistrationRequiredContract,
   RefreshRequestContract,
   SessionCredentialsContract,
@@ -27,6 +28,10 @@ export class ClientCodeRequestDto implements ClientCodeRequestContract {
   @MaxLength(40)
   phoneNumber!: string;
 }
+
+export class ProviderCodeRequestDto
+  extends ClientCodeRequestDto
+  implements ProviderCodeRequestContract {}
 
 export class SignInDto implements SignInRequestContract {
   @ApiProperty({ type: String, example: "account@example.invalid" })

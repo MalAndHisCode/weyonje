@@ -48,7 +48,7 @@ export class ApiErrorDto {
 
   @ApiPropertyOptional({
     type: String,
-    enum: ["OTP_HOURLY", "OTP_COOLDOWN", "CLIENT_REQUEST"],
+    enum: ["OTP_HOURLY", "OTP_COOLDOWN", "CLIENT_REQUEST", "PROVIDER_REQUEST"],
   })
   limitCategory?: string;
 

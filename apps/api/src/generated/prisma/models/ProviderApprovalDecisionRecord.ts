@@ -28,6 +28,7 @@ export type ProviderApprovalDecisionRecordMinAggregateOutputType = {
   id: string | null
   providerUserId: string | null
   decidedByUserId: string | null
+  provenance: string | null
   decision: $Enums.ProviderApprovalDecision | null
   reason: string | null
   createdAt: Date | null
@@ -37,6 +38,7 @@ export type ProviderApprovalDecisionRecordMaxAggregateOutputType = {
   id: string | null
   providerUserId: string | null
   decidedByUserId: string | null
+  provenance: string | null
   decision: $Enums.ProviderApprovalDecision | null
   reason: string | null
   createdAt: Date | null
@@ -46,6 +48,7 @@ export type ProviderApprovalDecisionRecordCountAggregateOutputType = {
   id: number
   providerUserId: number
   decidedByUserId: number
+  provenance: number
   decision: number
   reason: number
   createdAt: number
@@ -57,6 +60,7 @@ export type ProviderApprovalDecisionRecordMinAggregateInputType = {
   id?: true
   providerUserId?: true
   decidedByUserId?: true
+  provenance?: true
   decision?: true
   reason?: true
   createdAt?: true
@@ -66,6 +70,7 @@ export type ProviderApprovalDecisionRecordMaxAggregateInputType = {
   id?: true
   providerUserId?: true
   decidedByUserId?: true
+  provenance?: true
   decision?: true
   reason?: true
   createdAt?: true
@@ -75,6 +80,7 @@ export type ProviderApprovalDecisionRecordCountAggregateInputType = {
   id?: true
   providerUserId?: true
   decidedByUserId?: true
+  provenance?: true
   decision?: true
   reason?: true
   createdAt?: true
@@ -156,7 +162,8 @@ export type ProviderApprovalDecisionRecordGroupByArgs<ExtArgs extends runtime.Ty
 export type ProviderApprovalDecisionRecordGroupByOutputType = {
   id: string
   providerUserId: string
-  decidedByUserId: string
+  decidedByUserId: string | null
+  provenance: string
   decision: $Enums.ProviderApprovalDecision
   reason: string | null
   createdAt: Date
@@ -186,18 +193,20 @@ export type ProviderApprovalDecisionRecordWhereInput = {
   NOT?: Prisma.ProviderApprovalDecisionRecordWhereInput | Prisma.ProviderApprovalDecisionRecordWhereInput[]
   id?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
   providerUserId?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
-  decidedByUserId?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
+  decidedByUserId?: Prisma.UuidNullableFilter<"ProviderApprovalDecisionRecord"> | string | null
+  provenance?: Prisma.StringFilter<"ProviderApprovalDecisionRecord"> | string
   decision?: Prisma.EnumProviderApprovalDecisionFilter<"ProviderApprovalDecisionRecord"> | $Enums.ProviderApprovalDecision
   reason?: Prisma.StringNullableFilter<"ProviderApprovalDecisionRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderApprovalDecisionRecord"> | Date | string
   provider?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  decidedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  decidedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type ProviderApprovalDecisionRecordOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
-  decidedByUserId?: Prisma.SortOrder
+  decidedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   decision?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -211,18 +220,20 @@ export type ProviderApprovalDecisionRecordWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ProviderApprovalDecisionRecordWhereInput[]
   NOT?: Prisma.ProviderApprovalDecisionRecordWhereInput | Prisma.ProviderApprovalDecisionRecordWhereInput[]
   providerUserId?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
-  decidedByUserId?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
+  decidedByUserId?: Prisma.UuidNullableFilter<"ProviderApprovalDecisionRecord"> | string | null
+  provenance?: Prisma.StringFilter<"ProviderApprovalDecisionRecord"> | string
   decision?: Prisma.EnumProviderApprovalDecisionFilter<"ProviderApprovalDecisionRecord"> | $Enums.ProviderApprovalDecision
   reason?: Prisma.StringNullableFilter<"ProviderApprovalDecisionRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderApprovalDecisionRecord"> | Date | string
   provider?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  decidedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  decidedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type ProviderApprovalDecisionRecordOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
-  decidedByUserId?: Prisma.SortOrder
+  decidedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   decision?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -237,7 +248,8 @@ export type ProviderApprovalDecisionRecordScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ProviderApprovalDecisionRecordScalarWhereWithAggregatesInput | Prisma.ProviderApprovalDecisionRecordScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | string
   providerUserId?: Prisma.UuidWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | string
-  decidedByUserId?: Prisma.UuidWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | string
+  decidedByUserId?: Prisma.UuidNullableWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | string | null
+  provenance?: Prisma.StringWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | string
   decision?: Prisma.EnumProviderApprovalDecisionWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | $Enums.ProviderApprovalDecision
   reason?: Prisma.StringNullableWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProviderApprovalDecisionRecord"> | Date | string
@@ -245,17 +257,19 @@ export type ProviderApprovalDecisionRecordScalarWhereWithAggregatesInput = {
 
 export type ProviderApprovalDecisionRecordCreateInput = {
   id?: string
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
   provider: Prisma.UserCreateNestedOneWithoutProviderApprovalDecisionsInput
-  decidedBy: Prisma.UserCreateNestedOneWithoutApprovalDecisionsMadeInput
+  decidedBy?: Prisma.UserCreateNestedOneWithoutApprovalDecisionsMadeInput
 }
 
 export type ProviderApprovalDecisionRecordUncheckedCreateInput = {
   id?: string
   providerUserId: string
-  decidedByUserId: string
+  decidedByUserId?: string | null
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -263,17 +277,19 @@ export type ProviderApprovalDecisionRecordUncheckedCreateInput = {
 
 export type ProviderApprovalDecisionRecordUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.UserUpdateOneRequiredWithoutProviderApprovalDecisionsNestedInput
-  decidedBy?: Prisma.UserUpdateOneRequiredWithoutApprovalDecisionsMadeNestedInput
+  decidedBy?: Prisma.UserUpdateOneWithoutApprovalDecisionsMadeNestedInput
 }
 
 export type ProviderApprovalDecisionRecordUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  decidedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  decidedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -282,7 +298,8 @@ export type ProviderApprovalDecisionRecordUncheckedUpdateInput = {
 export type ProviderApprovalDecisionRecordCreateManyInput = {
   id?: string
   providerUserId: string
-  decidedByUserId: string
+  decidedByUserId?: string | null
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -290,6 +307,7 @@ export type ProviderApprovalDecisionRecordCreateManyInput = {
 
 export type ProviderApprovalDecisionRecordUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -298,7 +316,8 @@ export type ProviderApprovalDecisionRecordUpdateManyMutationInput = {
 export type ProviderApprovalDecisionRecordUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  decidedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  decidedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -318,6 +337,7 @@ export type ProviderApprovalDecisionRecordCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
   decidedByUserId?: Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   decision?: Prisma.SortOrder
   reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -327,6 +347,7 @@ export type ProviderApprovalDecisionRecordMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
   decidedByUserId?: Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   decision?: Prisma.SortOrder
   reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -336,6 +357,7 @@ export type ProviderApprovalDecisionRecordMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
   decidedByUserId?: Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   decision?: Prisma.SortOrder
   reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -431,6 +453,7 @@ export type EnumProviderApprovalDecisionFieldUpdateOperationsInput = {
 
 export type ProviderApprovalDecisionRecordCreateWithoutDecidedByInput = {
   id?: string
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -440,6 +463,7 @@ export type ProviderApprovalDecisionRecordCreateWithoutDecidedByInput = {
 export type ProviderApprovalDecisionRecordUncheckedCreateWithoutDecidedByInput = {
   id?: string
   providerUserId: string
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -457,15 +481,17 @@ export type ProviderApprovalDecisionRecordCreateManyDecidedByInputEnvelope = {
 
 export type ProviderApprovalDecisionRecordCreateWithoutProviderInput = {
   id?: string
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
-  decidedBy: Prisma.UserCreateNestedOneWithoutApprovalDecisionsMadeInput
+  decidedBy?: Prisma.UserCreateNestedOneWithoutApprovalDecisionsMadeInput
 }
 
 export type ProviderApprovalDecisionRecordUncheckedCreateWithoutProviderInput = {
   id?: string
-  decidedByUserId: string
+  decidedByUserId?: string | null
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -503,7 +529,8 @@ export type ProviderApprovalDecisionRecordScalarWhereInput = {
   NOT?: Prisma.ProviderApprovalDecisionRecordScalarWhereInput | Prisma.ProviderApprovalDecisionRecordScalarWhereInput[]
   id?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
   providerUserId?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
-  decidedByUserId?: Prisma.UuidFilter<"ProviderApprovalDecisionRecord"> | string
+  decidedByUserId?: Prisma.UuidNullableFilter<"ProviderApprovalDecisionRecord"> | string | null
+  provenance?: Prisma.StringFilter<"ProviderApprovalDecisionRecord"> | string
   decision?: Prisma.EnumProviderApprovalDecisionFilter<"ProviderApprovalDecisionRecord"> | $Enums.ProviderApprovalDecision
   reason?: Prisma.StringNullableFilter<"ProviderApprovalDecisionRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderApprovalDecisionRecord"> | Date | string
@@ -528,6 +555,7 @@ export type ProviderApprovalDecisionRecordUpdateManyWithWhereWithoutProviderInpu
 export type ProviderApprovalDecisionRecordCreateManyDecidedByInput = {
   id?: string
   providerUserId: string
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -535,7 +563,8 @@ export type ProviderApprovalDecisionRecordCreateManyDecidedByInput = {
 
 export type ProviderApprovalDecisionRecordCreateManyProviderInput = {
   id?: string
-  decidedByUserId: string
+  decidedByUserId?: string | null
+  provenance?: string
   decision: $Enums.ProviderApprovalDecision
   reason?: string | null
   createdAt?: Date | string
@@ -543,6 +572,7 @@ export type ProviderApprovalDecisionRecordCreateManyProviderInput = {
 
 export type ProviderApprovalDecisionRecordUpdateWithoutDecidedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -552,6 +582,7 @@ export type ProviderApprovalDecisionRecordUpdateWithoutDecidedByInput = {
 export type ProviderApprovalDecisionRecordUncheckedUpdateWithoutDecidedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -560,6 +591,7 @@ export type ProviderApprovalDecisionRecordUncheckedUpdateWithoutDecidedByInput =
 export type ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -567,15 +599,17 @@ export type ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutDecidedByInp
 
 export type ProviderApprovalDecisionRecordUpdateWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  decidedBy?: Prisma.UserUpdateOneRequiredWithoutApprovalDecisionsMadeNestedInput
+  decidedBy?: Prisma.UserUpdateOneWithoutApprovalDecisionsMadeNestedInput
 }
 
 export type ProviderApprovalDecisionRecordUncheckedUpdateWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  decidedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  decidedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -583,7 +617,8 @@ export type ProviderApprovalDecisionRecordUncheckedUpdateWithoutProviderInput = 
 
 export type ProviderApprovalDecisionRecordUncheckedUpdateManyWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  decidedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  decidedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   decision?: Prisma.EnumProviderApprovalDecisionFieldUpdateOperationsInput | $Enums.ProviderApprovalDecision
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -595,68 +630,73 @@ export type ProviderApprovalDecisionRecordSelect<ExtArgs extends runtime.Types.E
   id?: boolean
   providerUserId?: boolean
   decidedByUserId?: boolean
+  provenance?: boolean
   decision?: boolean
   reason?: boolean
   createdAt?: boolean
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  decidedBy?: boolean | Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>
 }, ExtArgs["result"]["providerApprovalDecisionRecord"]>
 
 export type ProviderApprovalDecisionRecordSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   providerUserId?: boolean
   decidedByUserId?: boolean
+  provenance?: boolean
   decision?: boolean
   reason?: boolean
   createdAt?: boolean
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  decidedBy?: boolean | Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>
 }, ExtArgs["result"]["providerApprovalDecisionRecord"]>
 
 export type ProviderApprovalDecisionRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   providerUserId?: boolean
   decidedByUserId?: boolean
+  provenance?: boolean
   decision?: boolean
   reason?: boolean
   createdAt?: boolean
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  decidedBy?: boolean | Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>
 }, ExtArgs["result"]["providerApprovalDecisionRecord"]>
 
 export type ProviderApprovalDecisionRecordSelectScalar = {
   id?: boolean
   providerUserId?: boolean
   decidedByUserId?: boolean
+  provenance?: boolean
   decision?: boolean
   reason?: boolean
   createdAt?: boolean
 }
 
-export type ProviderApprovalDecisionRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "providerUserId" | "decidedByUserId" | "decision" | "reason" | "createdAt", ExtArgs["result"]["providerApprovalDecisionRecord"]>
+export type ProviderApprovalDecisionRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "providerUserId" | "decidedByUserId" | "provenance" | "decision" | "reason" | "createdAt", ExtArgs["result"]["providerApprovalDecisionRecord"]>
 export type ProviderApprovalDecisionRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  decidedBy?: boolean | Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>
 }
 export type ProviderApprovalDecisionRecordIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  decidedBy?: boolean | Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>
 }
 export type ProviderApprovalDecisionRecordIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  decidedBy?: boolean | Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>
 }
 
 export type $ProviderApprovalDecisionRecordPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ProviderApprovalDecisionRecord"
   objects: {
     provider: Prisma.$UserPayload<ExtArgs>
-    decidedBy: Prisma.$UserPayload<ExtArgs>
+    decidedBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     providerUserId: string
-    decidedByUserId: string
+    decidedByUserId: string | null
+    provenance: string
     decision: $Enums.ProviderApprovalDecision
     reason: string | null
     createdAt: Date
@@ -1055,7 +1095,7 @@ readonly fields: ProviderApprovalDecisionRecordFieldRefs;
 export interface Prisma__ProviderApprovalDecisionRecordClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   provider<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  decidedBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  decidedBy<T extends Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1088,6 +1128,7 @@ export interface ProviderApprovalDecisionRecordFieldRefs {
   readonly id: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'String'>
   readonly providerUserId: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'String'>
   readonly decidedByUserId: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'String'>
+  readonly provenance: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'String'>
   readonly decision: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'ProviderApprovalDecision'>
   readonly reason: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'String'>
   readonly createdAt: Prisma.FieldRef<"ProviderApprovalDecisionRecord", 'DateTime'>
@@ -1489,6 +1530,25 @@ export type ProviderApprovalDecisionRecordDeleteManyArgs<ExtArgs extends runtime
    * Limit how many ProviderApprovalDecisionRecords to delete.
    */
   limit?: number
+}
+
+/**
+ * ProviderApprovalDecisionRecord.decidedBy
+ */
+export type ProviderApprovalDecisionRecord$decidedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

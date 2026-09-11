@@ -28,7 +28,6 @@ import {
   Length,
   Matches,
   MaxLength,
-  MinLength,
   ValidateIf,
 } from "class-validator";
 
@@ -123,17 +122,6 @@ export class ServiceProviderRegistrationDto implements ServiceProviderRegistrati
   @IsEmail()
   @MaxLength(254)
   email!: string;
-
-  @ApiProperty({
-    type: String,
-    format: "password",
-    writeOnly: true,
-    minLength: 12,
-  })
-  @IsString()
-  @MinLength(12)
-  @MaxLength(1024)
-  password!: string;
 
   @ApiProperty({ type: String, maxLength: 500 })
   @IsString()
@@ -247,6 +235,11 @@ export class PendingProviderRegistrationDto implements PendingProviderRegistrati
 }
 
 export class ProviderStatusHistoryDto implements ProviderStatusHistoryContract {
+  @ApiProperty({
+    type: String,
+    enum: ["KCCA_MANUAL", "SYSTEM_REGISTRATION_POLICY"],
+  })
+  provenance!: "KCCA_MANUAL" | "SYSTEM_REGISTRATION_POLICY";
   @ApiProperty({ type: String, enum: ProviderStatus })
   fromStatus!: ProviderStatus;
   @ApiProperty({ type: String, enum: ProviderStatus })

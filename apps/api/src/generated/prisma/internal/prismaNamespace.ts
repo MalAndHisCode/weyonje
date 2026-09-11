@@ -2761,6 +2761,7 @@ export const ProviderApprovalDecisionRecordScalarFieldEnum = {
   id: 'id',
   providerUserId: 'providerUserId',
   decidedByUserId: 'decidedByUserId',
+  provenance: 'provenance',
   decision: 'decision',
   reason: 'reason',
   createdAt: 'createdAt'
@@ -2773,6 +2774,7 @@ export const ProviderStatusHistoryScalarFieldEnum = {
   id: 'id',
   providerUserId: 'providerUserId',
   changedByUserId: 'changedByUserId',
+  provenance: 'provenance',
   fromStatus: 'fromStatus',
   toStatus: 'toStatus',
   reason: 'reason',

@@ -832,3 +832,8 @@ The welcome screen has the unchanged logo, “Welcome to Weyonje”, and four ac
  21. Review screens together as complete workflows to detect repetitive compositions, inconsistent behaviour, and accumulated decoration that may not be obvious when screens are reviewed separately.
 
  22. Validate the final interface with realistic data, all component states, supported roles, platform conventions, accessibility settings, and complete end-to-end workflows.
+
+
+### Adopted Provider Registration Exception — 2026-09-11
+
+Use exact Service Provider Sign In welcome/destination labels and the shared phone OTP flow. Service Provider Registration authored field/section/choice/action labels use Title Case, preserving ESS/KCCA and Required/Optional indicators. Keep KCCA Approval Required in the semantic red token with no subtitle; this is informational, not a blocking validation error. Password controls are removed. These scoped changes supersede earlier Provider email/password presentation guidance; KCCA presentation remains password-based.

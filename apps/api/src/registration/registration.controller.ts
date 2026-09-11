@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -49,6 +50,7 @@ export class RegistrationController {
   constructor(private readonly registrations: RegistrationService) {}
 
   @Post("clients")
+  @ApiBody({ type: ClientRegistrationDto })
   @ApiOperation({
     summary: "Submit a Client registration and send a phone code",
   })
@@ -68,8 +70,12 @@ export class RegistrationController {
   }
 
   @Post("service-providers")
+  @ApiBody({ type: ServiceProviderRegistrationDto })
   @ApiOperation({
-    summary: "Submit a Service Provider registration and send a phone code",
+    summary:
+      "Submit a password-free Service Provider registration and send a phone code",
+    description:
+      "Requires the existing business/contact fields including email. Unverified pending retries resume the stored profile without replacing it. Approval is decided only after phone verification by server policy.",
   })
   @ApiCreatedResponse({ type: PhoneChallengeDto })
   @ApiConflictResponse({ type: ApiErrorDto })
@@ -87,6 +93,7 @@ export class RegistrationController {
   }
 
   @Post("verify-phone")
+  @ApiBody({ type: VerifyPhoneCodeDto })
   @HttpCode(200)
   @ApiOperation({ summary: "Verify a registration phone number" })
   @ApiOkResponse({ type: RegistrationVerificationDto })

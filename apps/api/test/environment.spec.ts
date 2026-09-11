@@ -38,6 +38,26 @@ function validEnvironment() {
 }
 
 describe("environment validation", () => {
+  it("defaults Provider approval off and validates explicit boolean settings", () => {
+    expect(
+      validateEnvironment(validEnvironment())
+        .SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED,
+    ).toBe(false);
+    for (const value of ["true", "false"])
+      expect(
+        validateEnvironment({
+          ...validEnvironment(),
+          SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED: value,
+        }).SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED,
+      ).toBe(value === "true");
+    for (const value of ["yes", "1", "", "FALSE"])
+      expect(() =>
+        validateEnvironment({
+          ...validEnvironment(),
+          SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED: value,
+        }),
+      ).toThrow("SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED");
+  });
   it.each([false, true])(
     "loads SMS file settings through Nest and honors process overrides=%s",
     async (override) => {

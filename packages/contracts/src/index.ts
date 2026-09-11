@@ -61,7 +61,6 @@ export interface ServiceProviderRegistrationRequestContract {
   companyName: string;
   phoneNumber: string;
   email: string;
-  password: string;
   workAddress: string;
   providerType: ServiceProviderType;
   contactPersonName: string;
@@ -75,7 +74,7 @@ export interface RegistrationRequiredContract {
 export type ClientCodeResponseContract =
   PhoneChallengeContract | RegistrationRequiredContract;
 export type RequestLimitCategory =
-  "OTP_HOURLY" | "OTP_COOLDOWN" | "CLIENT_REQUEST";
+  "OTP_HOURLY" | "OTP_COOLDOWN" | "CLIENT_REQUEST" | "PROVIDER_REQUEST";
 
 export interface PhoneChallengeContract {
   challengeId: string;
@@ -97,6 +96,10 @@ export interface VerifyPhoneCodeRequestContract {
 
 export interface ResendPhoneCodeRequestContract {
   challengeId: string;
+}
+
+export interface ProviderCodeRequestContract {
+  phoneNumber: string;
 }
 
 export interface ClientCodeRequestContract {
@@ -133,6 +136,7 @@ export interface PendingProviderRegistrationContract {
 }
 
 export interface ProviderStatusHistoryContract {
+  provenance: "KCCA_MANUAL" | "SYSTEM_REGISTRATION_POLICY";
   fromStatus: ProviderStatus;
   toStatus: ProviderStatus;
   reason?: string;

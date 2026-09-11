@@ -32,6 +32,7 @@ class FakeAuthRepository implements AuthRepository {
   Future<ChallengeOutcome> Function(String, CancelToken)?
   onResendRegistrationCode;
 
+  PhoneSignInActor? lastPhoneActor;
   int resolveCalls = 0;
   int signInCalls = 0;
   int requestClientCodeCalls = 0;
@@ -59,10 +60,12 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<ChallengeOutcome> requestClientCode(
+  Future<ChallengeOutcome> requestPhoneSignInCode(
     String phoneNumber,
-    CancelToken cancelToken,
-  ) {
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  }) {
+    lastPhoneActor = actor;
     requestClientCodeCalls++;
     return onRequestClientCode?.call(phoneNumber, cancelToken) ??
         Future.value(
@@ -71,21 +74,24 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthOutcome> verifyClientCode(
+  Future<AuthOutcome> verifyPhoneSignInCode(
     String challengeId,
     String code,
-    CancelToken cancelToken,
-  ) {
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  }) {
+    lastPhoneActor = actor;
     verifyClientCodeCalls++;
     return onVerifyClientCode?.call(challengeId, code, cancelToken) ??
         Future.value(const CancelledSignIn());
   }
 
   @override
-  Future<ChallengeOutcome> resendClientCode(
+  Future<ChallengeOutcome> resendPhoneSignInCode(
     String challengeId,
-    CancelToken cancelToken,
-  ) =>
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  }) =>
       onResendClientCode?.call(challengeId, cancelToken) ??
       Future.value(
         const ChallengeFailure('No fake resend response configured.'),

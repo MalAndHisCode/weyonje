@@ -7,6 +7,56 @@ import 'auth_repository_test.dart' show MemorySessionStore, credentialsJson;
 
 void main() {
   const config = AppConfig(apiBaseUrl: 'https://api.example.test');
+  test(
+    'Provider endpoints remain isolated and never interpret Client registration outcome',
+    () async {
+      final paths = <String>[];
+      final store = MemorySessionStore();
+      final dio = Dio()
+        ..interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (request, handler) {
+              paths.add(request.path);
+              handler.resolve(
+                Response(
+                  requestOptions: request,
+                  data: {'outcome': 'REGISTRATION_REQUIRED'},
+                ),
+              );
+            },
+          ),
+        );
+      final repository = NativeAuthRepository(config, store, dio);
+      expect(
+        await repository.requestPhoneSignInCode(
+          '0700000123',
+          CancelToken(),
+          actor: PhoneSignInActor.serviceProvider,
+        ),
+        isA<ChallengeFailure>(),
+      );
+      expect(
+        await repository.resendPhoneSignInCode(
+          'challenge',
+          CancelToken(),
+          actor: PhoneSignInActor.serviceProvider,
+        ),
+        isA<ChallengeFailure>(),
+      );
+      await repository.verifyPhoneSignInCode(
+        'challenge',
+        '001234',
+        CancelToken(),
+        actor: PhoneSignInActor.serviceProvider,
+      );
+      expect(paths, [
+        '/v1/auth/provider-code/request',
+        '/v1/auth/provider-code/resend',
+        '/v1/auth/provider-code/verify',
+      ]);
+      expect(store.writes, 0);
+    },
+  );
   test('parses registration outcome without writing a session', () async {
     final store = MemorySessionStore();
     final dio = Dio()
@@ -22,12 +72,12 @@ void main() {
       );
     final repository = NativeAuthRepository(config, store, dio);
     expect(
-      await repository.requestClientCode('0700000123', CancelToken()),
+      await repository.requestPhoneSignInCode('0700000123', CancelToken()),
       isA<RegistrationRequired>(),
     );
     expect(store.writes, 0);
     expect(
-      await repository.resendClientCode('challenge', CancelToken()),
+      await repository.resendPhoneSignInCode('challenge', CancelToken()),
       isA<ChallengeFailure>(),
     );
   });
@@ -56,7 +106,7 @@ void main() {
                 config,
                 MemorySessionStore(),
                 dio,
-              ).requestClientCode('0700000123', CancelToken())
+              ).requestPhoneSignInCode('0700000123', CancelToken())
               as ChallengeFailure;
       expect(outcome.retryAt, DateTime.utc(2026, 9, 10, 12));
       expect(outcome.rateLimited, isTrue);
@@ -112,7 +162,10 @@ void main() {
                   ),
                   CancelToken(),
                 )
-              : await repository.requestClientCode('0700000123', CancelToken());
+              : await repository.requestPhoneSignInCode(
+                  '0700000123',
+                  CancelToken(),
+                );
           expect(outcome, isA<ChallengeCreated>());
           expect(paths, [
             registration
@@ -166,7 +219,7 @@ void main() {
                 '001234',
                 CancelToken(),
               )
-            : await repository.verifyClientCode(
+            : await repository.verifyPhoneSignInCode(
                 'challenge',
                 '001234',
                 CancelToken(),
@@ -210,7 +263,7 @@ void main() {
           config,
           store,
           dio,
-        ).verifyClientCode('challenge', '001234', CancelToken());
+        ).verifyPhoneSignInCode('challenge', '001234', CancelToken());
         expect((outcome as CodeVerificationFailure).kind, entry.$3);
         expect(store.writes, 0);
       },
@@ -254,7 +307,11 @@ void main() {
       );
       final repository = NativeAuthRepository(config, store, dio);
       expect(
-        await repository.verifyClientCode('challenge', '001234', CancelToken()),
+        await repository.verifyPhoneSignInCode(
+          'challenge',
+          '001234',
+          CancelToken(),
+        ),
         isA<VerifiedSessionPending>(),
       );
       expect(store.value, isNotNull);

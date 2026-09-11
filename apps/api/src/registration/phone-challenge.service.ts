@@ -269,6 +269,7 @@ export class PhoneChallengeService {
     complete: (
       userId: string | null,
       transaction: TransactionClient,
+      phoneLookup: string,
     ) => Promise<T>,
   ): Promise<T> {
     if (!/^\d{6}$/.test(code)) throw this.invalidCode();
@@ -327,7 +328,7 @@ export class PhoneChallengeService {
         data: { consumedAt: now },
       });
       if (consumed.count !== 1) throw this.invalidCode();
-      return complete(challenge.userId, transaction);
+      return complete(challenge.userId, transaction, challenge.phoneLookup);
     });
   }
 

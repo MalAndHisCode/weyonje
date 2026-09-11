@@ -64,19 +64,22 @@ abstract interface class AuthRepository {
     String password,
     CancelToken cancelToken,
   );
-  Future<ChallengeOutcome> requestClientCode(
+  Future<ChallengeOutcome> requestPhoneSignInCode(
     String phoneNumber,
-    CancelToken cancelToken,
-  );
-  Future<AuthOutcome> verifyClientCode(
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  });
+  Future<AuthOutcome> verifyPhoneSignInCode(
     String challengeId,
     String code,
-    CancelToken cancelToken,
-  );
-  Future<ChallengeOutcome> resendClientCode(
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  });
+  Future<ChallengeOutcome> resendPhoneSignInCode(
     String challengeId,
-    CancelToken cancelToken,
-  );
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  });
   Future<ChallengeOutcome> registerClient(
     ClientRegistrationRequest request,
     CancelToken cancelToken,
@@ -174,32 +177,39 @@ class NativeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<ChallengeOutcome> requestClientCode(
+  Future<ChallengeOutcome> requestPhoneSignInCode(
     String phoneNumber,
-    CancelToken cancelToken,
-  ) => _challengeRequest('/v1/auth/client-code/request', {
-    'phoneNumber': phoneNumber,
-  }, cancelToken);
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  }) => _challengeRequest(
+    '/v1/auth/${actor == PhoneSignInActor.client ? 'client' : 'provider'}-code/request',
+    {'phoneNumber': phoneNumber},
+    cancelToken,
+  );
 
   @override
-  Future<AuthOutcome> verifyClientCode(
+  Future<AuthOutcome> verifyPhoneSignInCode(
     String challengeId,
     String code,
-    CancelToken cancelToken,
-  ) => _verifyCode(
-    '/v1/auth/client-code/verify',
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  }) => _verifyCode(
+    '/v1/auth/${actor == PhoneSignInActor.client ? 'client' : 'provider'}-code/verify',
     challengeId,
     code,
     cancelToken,
   );
 
   @override
-  Future<ChallengeOutcome> resendClientCode(
+  Future<ChallengeOutcome> resendPhoneSignInCode(
     String challengeId,
-    CancelToken cancelToken,
-  ) => _challengeRequest('/v1/auth/client-code/resend', {
-    'challengeId': challengeId,
-  }, cancelToken);
+    CancelToken cancelToken, {
+    PhoneSignInActor actor = PhoneSignInActor.client,
+  }) => _challengeRequest(
+    '/v1/auth/${actor == PhoneSignInActor.client ? 'client' : 'provider'}-code/resend',
+    {'challengeId': challengeId},
+    cancelToken,
+  );
 
   @override
   Future<ChallengeOutcome> registerClient(
@@ -274,6 +284,7 @@ class NativeAuthRepository implements AuthRepository {
           'OTP_HOURLY' => RequestLimitCategory.hourly,
           'OTP_COOLDOWN' => RequestLimitCategory.cooldown,
           'CLIENT_REQUEST' => RequestLimitCategory.clientRequest,
+          'PROVIDER_REQUEST' => RequestLimitCategory.providerRequest,
           _ => null,
         };
         final rawRetry = body['retryAt'];
@@ -292,6 +303,8 @@ class NativeAuthRepository implements AuthRepository {
               'The hourly verification-code limit has been reached.',
             RequestLimitCategory.cooldown =>
               'Please wait before requesting another code.',
+            RequestLimitCategory.providerRequest =>
+              'Too many Service Provider sign-in requests.',
             RequestLimitCategory.clientRequest =>
               'Too many Client sign-in requests.',
           };
@@ -302,6 +315,12 @@ class NativeAuthRepository implements AuthRepository {
             limitCategory: category,
           );
         }
+      }
+      if ((status == 401 || status == 403) &&
+          path.contains('/provider-code/')) {
+        return const ChallengeFailure(
+          'Service Provider sign-in is unavailable. Check your registered phone or use Service Provider Registration to complete an unfinished registration.',
+        );
       }
       if (status == 401 || status == 403) {
         return const ChallengeFailure(

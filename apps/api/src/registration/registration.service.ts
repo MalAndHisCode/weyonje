@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Inject,
   NotFoundException,
 } from "@nestjs/common";
 import {
@@ -26,7 +27,8 @@ import { randomUUID } from "node:crypto";
 
 import { AuthenticatedActor } from "../auth/authenticated-actor";
 import { EmailSecurityService } from "../auth/email-security.service";
-import { PasswordService } from "../auth/password.service";
+import { ConfigType } from "@nestjs/config";
+import { authConfig } from "../config/auth.config";
 import { SessionService } from "../auth/session.service";
 import { PrismaService } from "../database/prisma.service";
 import {
@@ -48,10 +50,11 @@ export class RegistrationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emails: EmailSecurityService,
-    private readonly passwords: PasswordService,
     private readonly phones: PhoneSecurityService,
     private readonly challenges: PhoneChallengeService,
     private readonly sessions: SessionService,
+    @Inject(authConfig.KEY)
+    private readonly config: ConfigType<typeof authConfig>,
   ) {}
 
   async registerClient(
@@ -129,15 +132,32 @@ export class RegistrationService {
     const phone = this.phones.normalize(request.phoneNumber);
     const email = this.emails.normalize(request.email);
     const contactPhone = this.phones.normalize(request.contactPersonPhone);
+    // Resume the stored profile; unauthenticated retries never replace its data.
+    const pending = await this.prisma.user.findFirst({
+      where: {
+        phoneLookup: this.phones.lookup(phone),
+        actorType: PrismaActorType.SERVICE_PROVIDER,
+        phoneVerifiedAt: null,
+        loginEnabled: false,
+        isActive: false,
+        providerStatus: PrismaProviderStatus.PENDING,
+      },
+      select: { id: true },
+    });
+    if (pending)
+      return this.challenges.create(
+        phone,
+        PhoneChallengePurpose.REGISTRATION,
+        pending.id,
+      );
     await this.assertIdentifiersAvailable(phone, email);
-    const passwordHash = await this.passwords.hash(request.password);
     let user: { id: string };
     try {
       user = await this.prisma.user.create({
         data: {
           encryptedEmail: this.emails.encrypt(email),
           emailLookup: this.emails.lookup(email),
-          passwordHash,
+          passwordHash: null,
           encryptedPhone: this.phones.encrypt(phone),
           phoneLookup: this.phones.lookup(phone),
           actorType: PrismaActorType.SERVICE_PROVIDER,
@@ -188,6 +208,7 @@ export class RegistrationService {
       PhoneChallengePurpose.REGISTRATION,
       async (userId, transaction) => {
         if (!userId) throw new NotFoundException();
+        await transaction.$queryRaw`SELECT id FROM users WHERE id = ${userId}::uuid FOR UPDATE`;
         const now = new Date();
         const current = await transaction.user.findUnique({
           where: { id: userId },
@@ -196,23 +217,113 @@ export class RegistrationService {
             actorType: true,
             phoneVerifiedAt: true,
             passwordVersion: true,
+            providerStatus: true,
+            isActive: true,
+            loginEnabled: true,
+            serviceProviderProfile: true,
           },
         });
         if (!current || current.phoneVerifiedAt !== null) {
           throw this.conflict("This registration has already been verified.");
         }
+        if (
+          current.actorType === PrismaActorType.SERVICE_PROVIDER &&
+          (current.providerStatus !== PrismaProviderStatus.PENDING ||
+            current.isActive ||
+            current.loginEnabled ||
+            !current.serviceProviderProfile ||
+            current.serviceProviderProfile.providerNumber)
+        ) {
+          throw this.conflict(
+            "This registration cannot be completed. Contact KCCA for account assistance.",
+          );
+        }
+        const autoApprove =
+          current.actorType === PrismaActorType.SERVICE_PROVIDER &&
+          this.config.serviceProviderAutoApprovalEnabled;
         await transaction.user.update({
           where: { id: current.id },
           data: {
             phoneVerifiedAt: now,
             loginEnabled: true,
-            isActive: current.actorType === PrismaActorType.CLIENT,
+            isActive:
+              current.actorType === PrismaActorType.CLIENT || autoApprove,
+            ...(autoApprove
+              ? { providerStatus: PrismaProviderStatus.APPROVED }
+              : {}),
           },
         });
         if (current.actorType === PrismaActorType.CLIENT) {
           await transaction.clientProfile.update({
             where: { userId: current.id },
             data: { clientNumber: accountNumber("WCL") },
+          });
+        } else if (autoApprove) {
+          const provenance = "SYSTEM_REGISTRATION_POLICY";
+          await transaction.serviceProviderProfile.update({
+            where: { userId: current.id },
+            data: {
+              providerNumber: accountNumber("WSP"),
+              latestRejectionReason: null,
+            },
+          });
+          await transaction.providerApprovalDecisionRecord.create({
+            data: {
+              providerUserId: current.id,
+              decidedByUserId: null,
+              decision: PrismaApprovalDecision.APPROVED,
+              provenance,
+            },
+          });
+          await transaction.providerStatusHistory.create({
+            data: {
+              providerUserId: current.id,
+              changedByUserId: null,
+              provenance,
+              fromStatus: PrismaProviderStatus.PENDING,
+              toStatus: PrismaProviderStatus.APPROVED,
+            },
+          });
+          await transaction.auditEvent.create({
+            data: {
+              actorUserId: null,
+              action: "provider.registration.auto-approved",
+              targetType: "User",
+              targetId: current.id,
+              metadata: {
+                provenance,
+                policy: "SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED",
+              },
+            },
+          });
+          await transaction.registrationNotification.create({
+            data: {
+              recipientUserId: current.id,
+              type: NotificationType.PROVIDER_APPROVED,
+              subjectUserId: current.id,
+            },
+          });
+          await transaction.operationalNotification.create({
+            data: {
+              recipientUserId: current.id,
+              type: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
+              title: "Provider registration approved",
+              message:
+                "Your Weyonje Service Provider registration was automatically approved under the temporary registration policy.",
+            },
+          });
+          await transaction.outboxEvent.create({
+            data: {
+              recipientUserId: current.id,
+              channel: NotificationDeliveryChannel.PUSH,
+              eventType: OperationalNotificationType.PROVIDER_ACCOUNT_UPDATED,
+              deduplicationKey: `provider:${current.id}:review:approved`,
+              payload: {
+                providerUserId: current.id,
+                decision: "APPROVED",
+                provenance,
+              },
+            },
           });
         } else if (current.actorType === PrismaActorType.SERVICE_PROVIDER) {
           await transaction.registrationNotification.create({
@@ -587,6 +698,7 @@ export class RegistrationService {
       latestRejectionReason: string | null;
     } | null;
     providerStatusHistory: Array<{
+      provenance: string;
       fromStatus: PrismaProviderStatus;
       toStatus: PrismaProviderStatus;
       reason: string | null;
@@ -614,6 +726,10 @@ export class RegistrationService {
         ? { rejectionReason: profile.latestRejectionReason }
         : {}),
       statusHistory: provider.providerStatusHistory.map((history) => ({
+        provenance:
+          history.provenance === "SYSTEM_REGISTRATION_POLICY"
+            ? "SYSTEM_REGISTRATION_POLICY"
+            : "KCCA_MANUAL",
         fromStatus: history.fromStatus as ProviderStatus,
         toStatus: history.toStatus as ProviderStatus,
         ...(history.reason ? { reason: history.reason } : {}),

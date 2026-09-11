@@ -16,6 +16,7 @@ import { PhoneSecurityService } from "../src/registration/phone-security.service
 import { SmsGateway } from "../src/registration/sms-gateway";
 import { PhoneChallengePurpose } from "../src/generated/prisma/enums";
 import { SessionService } from "../src/auth/session.service";
+import { RegistrationService } from "../src/registration/registration.service";
 import { TokenService } from "../src/auth/token.service";
 import { PrismaService } from "../src/database/prisma.service";
 import { testAuthConfig } from "./support/auth-config";
@@ -62,6 +63,156 @@ describePostgres("opt-in isolated PostgreSQL migration and constraints", () => {
   });
 
   afterAll(async () => prisma?.$disconnect());
+
+  it.each([false, true])(
+    "atomically completes Provider policy=%s with rollback and duplicate protection",
+    async (enabled) => {
+      const config = testAuthConfig({
+        serviceProviderAutoApprovalEnabled: enabled,
+      });
+      const database = prisma as unknown as PrismaService;
+      const phones = new PhoneSecurityService(config);
+      let code = "";
+      const sms = {
+        sendVerificationCode: async (_phone: string, value: string) => {
+          code = value;
+          return "test-only";
+        },
+      } as SmsGateway;
+      const challenges = new PhoneChallengeService(
+        database,
+        phones,
+        sms,
+        config,
+      );
+      const sessions = new SessionService(
+        database,
+        new TokenService(config),
+        config,
+      );
+      const registration = new RegistrationService(
+        database,
+        new EmailSecurityService(config),
+        phones,
+        challenges,
+        sessions,
+        config,
+      );
+      const phone = `+2567${Date.now().toString().slice(-8)}`;
+      const user = await prisma.user.create({
+        data: {
+          actorType: ActorType.SERVICE_PROVIDER,
+          providerStatus: "PENDING",
+          isActive: false,
+          loginEnabled: false,
+          phoneLookup: phones.lookup(phone),
+          encryptedPhone: phones.encrypt(phone),
+          serviceProviderProfile: {
+            create: {
+              companyName: "Synthetic",
+              essLicenseNumber: randomUUID(),
+              workAddress: "Synthetic",
+              providerType: "GULPER",
+              contactPersonName: "Synthetic",
+              encryptedContactPhone: phones.encrypt(phone),
+            },
+          },
+        },
+      });
+      try {
+        const challenge = await challenges.create(
+          phone,
+          PhoneChallengePurpose.REGISTRATION,
+          user.id,
+        );
+        const original = sessions.create.bind(sessions);
+        jest
+          .spyOn(sessions, "create")
+          .mockImplementationOnce(async (...args) => {
+            await original(...args);
+            throw new Error("synthetic session failure");
+          });
+        await expect(
+          registration.verifyPhone(challenge.challengeId, code),
+        ).rejects.toThrow("synthetic session failure");
+        expect(
+          await prisma.user.findUniqueOrThrow({ where: { id: user.id } }),
+        ).toMatchObject({
+          phoneVerifiedAt: null,
+          loginEnabled: false,
+          providerStatus: "PENDING",
+        });
+        expect(
+          await prisma.phoneChallenge.findUniqueOrThrow({
+            where: { id: challenge.challengeId },
+          }),
+        ).toMatchObject({ consumedAt: null });
+        expect(
+          await prisma.authenticationSession.count({
+            where: { userId: user.id },
+          }),
+        ).toBe(0);
+        expect(
+          await prisma.providerApprovalDecisionRecord.count({
+            where: { providerUserId: user.id },
+          }),
+        ).toBe(0);
+        const results = await Promise.allSettled(
+          [1, 2].map(() =>
+            registration.verifyPhone(challenge.challengeId, code),
+          ),
+        );
+        expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+        expect(
+          await prisma.authenticationSession.count({
+            where: { userId: user.id },
+          }),
+        ).toBe(1);
+        const provider = await prisma.user.findUniqueOrThrow({
+          where: { id: user.id },
+          include: { serviceProviderProfile: true },
+        });
+        expect(provider).toMatchObject({
+          loginEnabled: true,
+          isActive: enabled,
+          providerStatus: enabled ? "APPROVED" : "PENDING",
+        });
+        if (enabled) {
+          expect(provider.serviceProviderProfile?.providerNumber).toMatch(
+            /^WSP-[A-F0-9]{12}$/,
+          );
+          expect(
+            await prisma.providerApprovalDecisionRecord.findFirst({
+              where: { providerUserId: user.id },
+            }),
+          ).toMatchObject({
+            decidedByUserId: null,
+            provenance: "SYSTEM_REGISTRATION_POLICY",
+          });
+          expect(
+            await prisma.providerStatusHistory.findFirst({
+              where: { providerUserId: user.id },
+            }),
+          ).toMatchObject({
+            changedByUserId: null,
+            provenance: "SYSTEM_REGISTRATION_POLICY",
+          });
+        }
+        expect(
+          await prisma.registrationNotification.count({
+            where: { subjectUserId: user.id, type: "PROVIDER_REVIEW_REQUIRED" },
+          }),
+        ).toBe(enabled ? 0 : 1);
+      } finally {
+        await prisma.auditEvent.deleteMany({ where: { targetId: user.id } });
+        await prisma.outboxEvent.deleteMany({
+          where: { recipientUserId: user.id },
+        });
+        await prisma.phoneChallenge.deleteMany({ where: { userId: user.id } });
+        await prisma.user.delete({ where: { id: user.id } });
+      }
+    },
+  );
 
   it.each(["edit-accept", "withdraw-accept", "competing-edits"] as const)(
     "serializes Client mutations with real PostgreSQL: %s",

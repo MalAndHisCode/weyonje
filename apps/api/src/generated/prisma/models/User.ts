@@ -1029,10 +1029,12 @@ export type UserUpdateOneRequiredWithoutProviderApprovalDecisionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProviderApprovalDecisionsInput, Prisma.UserUpdateWithoutProviderApprovalDecisionsInput>, Prisma.UserUncheckedUpdateWithoutProviderApprovalDecisionsInput>
 }
 
-export type UserUpdateOneRequiredWithoutApprovalDecisionsMadeNestedInput = {
+export type UserUpdateOneWithoutApprovalDecisionsMadeNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalDecisionsMadeInput, Prisma.UserUncheckedCreateWithoutApprovalDecisionsMadeInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalDecisionsMadeInput
   upsert?: Prisma.UserUpsertWithoutApprovalDecisionsMadeInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApprovalDecisionsMadeInput, Prisma.UserUpdateWithoutApprovalDecisionsMadeInput>, Prisma.UserUncheckedUpdateWithoutApprovalDecisionsMadeInput>
 }
@@ -1057,10 +1059,12 @@ export type UserUpdateOneRequiredWithoutProviderStatusHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProviderStatusHistoryInput, Prisma.UserUpdateWithoutProviderStatusHistoryInput>, Prisma.UserUncheckedUpdateWithoutProviderStatusHistoryInput>
 }
 
-export type UserUpdateOneRequiredWithoutProviderStatusChangesMadeNestedInput = {
+export type UserUpdateOneWithoutProviderStatusChangesMadeNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProviderStatusChangesMadeInput, Prisma.UserUncheckedCreateWithoutProviderStatusChangesMadeInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProviderStatusChangesMadeInput
   upsert?: Prisma.UserUpsertWithoutProviderStatusChangesMadeInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProviderStatusChangesMadeInput, Prisma.UserUpdateWithoutProviderStatusChangesMadeInput>, Prisma.UserUncheckedUpdateWithoutProviderStatusChangesMadeInput>
 }

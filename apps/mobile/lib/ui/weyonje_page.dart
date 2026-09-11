@@ -6,6 +6,7 @@ class WeyonjePage extends StatelessWidget {
   const WeyonjePage({
     required this.child,
     this.title,
+    this.titleStyle,
     this.showBack = false,
     this.centerVertically = false,
     super.key,
@@ -13,6 +14,7 @@ class WeyonjePage extends StatelessWidget {
 
   final Widget child;
   final String? title;
+  final TextStyle? titleStyle;
   final bool showBack;
   final bool centerVertically;
 
@@ -24,6 +26,7 @@ class WeyonjePage extends StatelessWidget {
         : FHeader.nested(
             title: Text(
               title!,
+              style: titleStyle,
               maxLines: 4,
               softWrap: true,
               overflow: TextOverflow.visible,

@@ -22,6 +22,7 @@ import { ApiErrorDto } from "../identity/current-actor.dto";
 import { AuthenticatedRequest } from "./access-token.guard";
 import {
   ClientCodeRequestDto,
+  ProviderCodeRequestDto,
   RegistrationRequiredDto,
   RefreshDto,
   SessionCredentialsDto,
@@ -48,7 +49,7 @@ export class AuthController {
 
   @Post("sign-in")
   @HttpCode(200)
-  @ApiOperation({ summary: "Sign in with an existing Weyonje account" })
+  @ApiOperation({ summary: "Sign in with an existing KCCA account" })
   @ApiBody({ type: SignInDto })
   @ApiOkResponse({ type: SessionCredentialsDto })
   @ApiUnauthorizedResponse({
@@ -129,6 +130,59 @@ export class AuthController {
     @Body() request: ResendPhoneCodeDto,
   ): Promise<PhoneChallengeDto> {
     return this.auth.resendClientCode(request.challengeId);
+  }
+
+  @Post("provider-code/request")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Request a Service Provider sign-in code",
+    description:
+      "Verified registered phone and login eligibility required. Unknown and ineligible accounts receive the same guidance; no account is created.",
+  })
+  @ApiBody({ type: ProviderCodeRequestDto })
+  @ApiOkResponse({ type: PhoneChallengeDto })
+  @ApiUnauthorizedResponse({ type: ApiErrorDto })
+  @ApiResponse({ status: 429, type: ApiErrorDto })
+  requestProviderCode(
+    @Body() request: ProviderCodeRequestDto,
+    @Req() httpRequest: AuthenticatedRequest,
+  ): Promise<PhoneChallengeDto> {
+    return this.auth.requestProviderCode(request.phoneNumber, httpRequest.ip);
+  }
+
+  @Post("provider-code/verify")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Sign in a Provider with a phone verification code",
+  })
+  @ApiBody({ type: VerifyPhoneCodeDto })
+  @ApiOkResponse({ type: SessionCredentialsDto })
+  @ApiUnauthorizedResponse({ type: ApiErrorDto })
+  verifyProviderCode(
+    @Body() request: VerifyPhoneCodeDto,
+  ): Promise<SessionCredentialsDto> {
+    return this.auth.verifyProviderCode(request.challengeId, request.code);
+  }
+
+  @Post("provider-code/resend")
+  @HttpCode(200)
+  @ApiOperation({ summary: "Replace and resend a Provider sign-in code" })
+  @ApiBody({ type: ResendPhoneCodeDto })
+  @ApiOkResponse({ type: PhoneChallengeDto })
+  @ApiResponse({
+    status: 400,
+    type: ApiErrorDto,
+    description: "OTP cooldown with retryAt.",
+  })
+  @ApiResponse({
+    status: 429,
+    type: ApiErrorDto,
+    description: "Hourly issuance limit with retryAt.",
+  })
+  resendProviderCode(
+    @Body() request: ResendPhoneCodeDto,
+  ): Promise<PhoneChallengeDto> {
+    return this.auth.resendProviderCode(request.challengeId);
   }
 
   @Post("refresh")

@@ -2,6 +2,8 @@ import 'package:forui/forui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/registration_models.dart';
+import 'client_phone_sign_in_screen.dart';
 import '../../../ui/weyonje_alert.dart';
 import '../../../ui/weyonje_button.dart';
 import '../../../ui/weyonje_page.dart';
@@ -37,12 +39,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.entry == SignInEntry.provider) {
+      return const ClientPhoneSignInScreen(
+        actor: PhoneSignInActor.serviceProvider,
+      );
+    }
     final state = ref.watch(signInControllerProvider);
     return WeyonjePage(
       title: switch (widget.entry) {
-        SignInEntry.provider => 'Provider Sign In',
+        SignInEntry.provider => 'Service Provider Sign In',
         SignInEntry.kcca => 'KCCA Sign In',
-        null => 'Provider or KCCA Sign In',
+        null => 'KCCA Sign In',
       },
       showBack: true,
       child: Material(
@@ -58,8 +65,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     'Enter the email and password for your Service Provider account.',
                   SignInEntry.kcca =>
                     'Enter the email and password for your KCCA account.',
-                  null =>
-                    'Enter the email and password for your Service Provider or KCCA account.',
+                  null => 'Enter the email and password for your KCCA account.',
                 }, style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 24),
                 FocusTraversalOrder(

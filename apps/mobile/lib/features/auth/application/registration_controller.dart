@@ -101,7 +101,14 @@ final clientCodeControllerProvider =
       ClientCodeController.new,
     );
 
+final providerCodeControllerProvider =
+    NotifierProvider.autoDispose<ClientCodeController, RegistrationState>(
+      () => ClientCodeController(PhoneSignInActor.serviceProvider),
+    );
+
 class ClientCodeController extends Notifier<RegistrationState> {
+  ClientCodeController([this.actor = PhoneSignInActor.client]);
+  final PhoneSignInActor actor;
   bool _inProgress = false;
   CancelToken? _cancelToken;
 
@@ -125,7 +132,7 @@ class ClientCodeController extends Notifier<RegistrationState> {
     if (token.isCancelled) return null;
     final outcome = await ref
         .read(authRepositoryProvider)
-        .requestClientCode(phoneNumber, token);
+        .requestPhoneSignInCode(phoneNumber, token, actor: actor);
     if (token.isCancelled) return null;
     _inProgress = false;
     _cancelToken = null;
@@ -247,10 +254,14 @@ class PhoneVerificationController extends Notifier<PhoneVerificationState> {
               code,
               token,
             )
-          : await repository.verifyClientCode(
+          : await repository.verifyPhoneSignInCode(
               arguments.challenge.id,
               code,
               token,
+              actor:
+                  arguments.purpose == PhoneVerificationPurpose.providerSignIn
+                  ? PhoneSignInActor.serviceProvider
+                  : PhoneSignInActor.client,
             );
     } catch (_) {
       outcome = const TransientAuthFailure(
@@ -320,7 +331,14 @@ class PhoneVerificationController extends Notifier<PhoneVerificationState> {
               arguments.challenge.id,
               token,
             )
-          : await repository.resendClientCode(arguments.challenge.id, token);
+          : await repository.resendPhoneSignInCode(
+              arguments.challenge.id,
+              token,
+              actor:
+                  arguments.purpose == PhoneVerificationPurpose.providerSignIn
+                  ? PhoneSignInActor.serviceProvider
+                  : PhoneSignInActor.client,
+            );
     } catch (_) {
       outcome = const ChallengeFailure(
         'The resend response was interrupted. Wait before requesting another code.',

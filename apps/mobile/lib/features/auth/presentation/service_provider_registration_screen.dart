@@ -25,8 +25,6 @@ class _ServiceProviderRegistrationScreenState
   final _companyName = TextEditingController();
   final _phone = TextEditingController();
   final _email = TextEditingController();
-  final _password = TextEditingController();
-  final _confirmPassword = TextEditingController();
   final _workAddress = TextEditingController();
   final _contactName = TextEditingController();
   final _contactPhone = TextEditingController();
@@ -39,8 +37,6 @@ class _ServiceProviderRegistrationScreenState
       _companyName,
       _phone,
       _email,
-      _password,
-      _confirmPassword,
       _workAddress,
       _contactName,
       _contactPhone,
@@ -55,6 +51,9 @@ class _ServiceProviderRegistrationScreenState
     final state = ref.watch(registrationControllerProvider);
     return WeyonjePage(
       title: 'Service Provider Registration',
+      titleStyle: context.theme.typography.display.sm.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -63,28 +62,29 @@ class _ServiceProviderRegistrationScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const WeyonjeAlert(
-                title: 'KCCA Approval Required',
-                message:
-                    'Your phone number must be verified and KCCA must approve the account before you can receive service requests. A current ESS licence and other applicable operating requirements are required.',
+              Text(
+                'KCCA Approval Required',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: context.theme.colors.error,
+                ),
               ),
               const SizedBox(height: 24),
               _requiredField(
                 key: const Key('provider-ess-license'),
                 controller: _essLicense,
-                label: 'ESS licence number (required)',
+                label: 'ESS Licence Number (Required)',
               ),
               const SizedBox(height: 20),
               _requiredField(
                 key: const Key('provider-company-name'),
                 controller: _companyName,
-                label: 'Company name (required)',
+                label: 'Company Name (Required)',
               ),
               const SizedBox(height: 20),
               _requiredField(
                 key: const Key('provider-phone'),
                 controller: _phone,
-                label: 'Phone number (required)',
+                label: 'Phone Number (Required)',
                 hint: 'e.g. 0700 000000',
                 keyboardType: TextInputType.phone,
                 autofillHints: const [AutofillHints.telephoneNumber],
@@ -96,7 +96,7 @@ class _ServiceProviderRegistrationScreenState
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 autocorrect: false,
-                label: Text('Email address (required)'),
+                label: Text('Email Address (Required)'),
                 validator: (value) {
                   final email = value?.trim() ?? '';
                   return email.isEmpty || !email.contains('@')
@@ -105,47 +105,17 @@ class _ServiceProviderRegistrationScreenState
                 },
               ),
               const SizedBox(height: 20),
-              FTextFormField(
-                key: const Key('provider-password'),
-                control: FTextFieldControl.managed(controller: _password),
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                autofillHints: const [AutofillHints.newPassword],
-                autocorrect: false,
-                enableSuggestions: false,
-                label: Text('Password (required)'),
-                description: Text('Use at least 12 characters.'),
-                validator: (value) => (value?.length ?? 0) < 12
-                    ? 'Password must be at least 12 characters.'
-                    : null,
-              ),
-              const SizedBox(height: 20),
-              FTextFormField(
-                key: const Key('provider-confirm-password'),
-                control: FTextFieldControl.managed(
-                  controller: _confirmPassword,
-                ),
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                autofillHints: const [AutofillHints.newPassword],
-                autocorrect: false,
-                enableSuggestions: false,
-                label: Text('Confirm password (required)'),
-                validator: (value) =>
-                    value != _password.text ? 'Passwords must match.' : null,
-              ),
-              const SizedBox(height: 20),
               _requiredField(
                 key: const Key('provider-work-address'),
                 controller: _workAddress,
-                label: 'Work address / location (required)',
+                label: 'Work Address / Location (Required)',
                 maxLines: 2,
               ),
               const SizedBox(height: 20),
               WeyonjeSelect<ServiceProviderType>(
                 key: const Key('provider-type'),
                 initialValue: _providerType,
-                label: Text('Service Provider type (required)'),
+                label: Text('Service Provider Type (Required)'),
                 items: const [
                   (value: ServiceProviderType.gulper, label: 'Gulper'),
                   (value: ServiceProviderType.emptier, label: 'Emptier'),
@@ -158,13 +128,13 @@ class _ServiceProviderRegistrationScreenState
               _requiredField(
                 key: const Key('provider-contact-name'),
                 controller: _contactName,
-                label: 'Contact person name (required)',
+                label: 'Contact Person Name (Required)',
               ),
               const SizedBox(height: 20),
               _requiredField(
                 key: const Key('provider-contact-phone'),
                 controller: _contactPhone,
-                label: 'Contact person phone number (required)',
+                label: 'Contact Person Phone Number (Required)',
                 keyboardType: TextInputType.phone,
               ),
               if (state.message case final message?) ...[
@@ -225,7 +195,6 @@ class _ServiceProviderRegistrationScreenState
             companyName: _companyName.text,
             phoneNumber: _phone.text,
             email: _email.text,
-            password: _password.text,
             workAddress: _workAddress.text,
             providerType: _providerType!,
             contactPersonName: _contactName.text,

@@ -4,7 +4,9 @@ enum ServiceProviderType { gulper, emptier }
 
 enum PhoneCodeDeliveryStatus { sent, failed }
 
-enum PhoneVerificationPurpose { registration, clientSignIn }
+enum PhoneSignInActor { client, serviceProvider }
+
+enum PhoneVerificationPurpose { registration, clientSignIn, providerSignIn }
 
 class PhoneChallenge {
   const PhoneChallenge({
@@ -107,7 +109,6 @@ class ServiceProviderRegistrationRequest {
     required this.companyName,
     required this.phoneNumber,
     required this.email,
-    required this.password,
     required this.workAddress,
     required this.providerType,
     required this.contactPersonName,
@@ -118,7 +119,6 @@ class ServiceProviderRegistrationRequest {
   final String companyName;
   final String phoneNumber;
   final String email;
-  final String password;
   final String workAddress;
   final ServiceProviderType providerType;
   final String contactPersonName;
@@ -129,7 +129,6 @@ class ServiceProviderRegistrationRequest {
     'companyName': companyName,
     'phoneNumber': phoneNumber,
     'email': email,
-    'password': password,
     'workAddress': workAddress,
     'providerType': providerType == ServiceProviderType.gulper
         ? 'GULPER'
@@ -152,7 +151,7 @@ class RegistrationRequired extends ChallengeOutcome {
   const RegistrationRequired();
 }
 
-enum RequestLimitCategory { hourly, cooldown, clientRequest }
+enum RequestLimitCategory { hourly, cooldown, clientRequest, providerRequest }
 
 class ChallengeFailure extends ChallengeOutcome {
   const ChallengeFailure(

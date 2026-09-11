@@ -53,7 +53,7 @@ class WelcomeScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           WeyonjeButton(
             key: const Key('staff-sign-in'),
-            label: 'Provider Sign In',
+            label: 'Service Provider Sign In',
             kind: WeyonjeButtonKind.secondary,
             onPressed: () => context.push(AppRoutes.providerSignIn),
           ),

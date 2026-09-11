@@ -91,7 +91,123 @@ void main() {
   );
 
   group('AUTH-001 unauthenticated experience', () {
-    for (final entry in ['provider', 'kcca']) {
+    for (final status in [
+      ProviderStatus.approved,
+      ProviderStatus.pending,
+      ProviderStatus.rejected,
+      ProviderStatus.inactive,
+    ]) {
+      testWidgets(
+        'Provider phone sign-in routes server-confirmed ${status.name}',
+        (tester) async {
+          final repository = FakeAuthRepository(
+            onResolve: (_) async => const NoStoredSession(),
+            onRequestClientCode: (_, _) async => ChallengeCreated(
+              PhoneChallenge(
+                id: 'provider-challenge',
+                maskedPhone: '+256 •••••• 123',
+                expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+                resendAvailableAt: DateTime.now().add(
+                  const Duration(minutes: 1),
+                ),
+                deliveryStatus: PhoneCodeDeliveryStatus.sent,
+              ),
+            ),
+            onVerifyClientCode: (_, _, _) async => ResolvedSession(
+              CurrentActor(
+                actorType: ActorType.serviceProvider,
+                access: status == ProviderStatus.approved
+                    ? ActorAccess.eligible
+                    : ActorAccess.restricted,
+                providerStatus: status,
+              ),
+            ),
+          );
+          await pumpApp(tester, repository);
+          await tester.pumpAndSettle();
+          final router = GoRouter.of(
+            tester.element(find.text('Welcome to Weyonje')),
+          );
+          router.go('/sign-in?entry=provider');
+          await tester.pumpAndSettle();
+          expect(find.text('Service Provider Sign In'), findsOneWidget);
+          expect(find.byKey(const Key('sign-in-password')), findsNothing);
+          expect(find.text('Forgot Password?'), findsNothing);
+          await tester.enterText(
+            find.byKey(const Key('provider-sign-in-phone')),
+            '0700000123',
+          );
+          await tester.tap(find.byKey(const Key('request-provider-code')));
+          await tester.pumpAndSettle();
+          expect(repository.lastPhoneActor, PhoneSignInActor.serviceProvider);
+          expect(repository.verifyClientCodeCalls, 0);
+          await tester.enterText(
+            find.byKey(const Key('verification-code')),
+            '001234',
+          );
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 700));
+          await tester.pumpAndSettle();
+          expect(repository.lastPhoneActor, PhoneSignInActor.serviceProvider);
+          expect(repository.signInCalls, 0);
+          expect(
+            router.routeInformationProvider.value.uri.path,
+            status == ProviderStatus.approved
+                ? '/provider'
+                : '/provider-account-status',
+          );
+          await tester.pumpWidget(const SizedBox());
+        },
+      );
+    }
+    testWidgets(
+      'unknown Provider phone stays on sign-in with explicit registration action',
+      (tester) async {
+        final repository = FakeAuthRepository(
+          onResolve: (_) async => const NoStoredSession(),
+          onRequestClientCode: (_, _) async => const ChallengeFailure(
+            'Check your registered phone or use Service Provider Registration.',
+          ),
+        );
+        await pumpApp(tester, repository);
+        await tester.pumpAndSettle();
+        final router = GoRouter.of(
+          tester.element(find.text('Welcome to Weyonje')),
+        );
+        router.go('/sign-in?entry=provider');
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('provider-sign-in-phone')),
+          '0700000123',
+        );
+        await tester.tap(find.byKey(const Key('request-provider-code')));
+        await tester.pumpAndSettle();
+        expect(router.routeInformationProvider.value.uri.path, '/sign-in');
+        expect(repository.registerServiceProviderCalls, 0);
+        await tester.ensureVisible(find.text('Service Provider Registration'));
+        await tester.tap(find.text('Service Provider Registration'));
+        await tester.pumpAndSettle();
+        final heading = tester.widget<Text>(
+          find.text('KCCA Approval Required'),
+        );
+        expect(
+          heading.style?.color,
+          tester
+              .element(find.text('KCCA Approval Required'))
+              .theme
+              .colors
+              .error,
+        );
+        expect(
+          find.textContaining('Your phone number must be verified'),
+          findsNothing,
+        );
+        expect(find.byKey(const Key('provider-password')), findsNothing);
+        expect(find.text('Email Address (Required)'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+    for (final entry in ['kcca']) {
       testWidgets('$entry entry preserves heading and recovery back stack', (
         tester,
       ) async {
@@ -105,7 +221,7 @@ void main() {
         await tester.tap(find.byKey(key));
         await tester.pumpAndSettle();
         final heading = entry == 'provider'
-            ? 'Provider Sign In'
+            ? 'Service Provider Sign In'
             : 'KCCA Sign In';
         expect(find.text(heading), findsOneWidget);
         await tester.tap(find.text('Forgot Password?'));
@@ -202,7 +318,7 @@ void main() {
         await tester.pumpAndSettle();
         GoRouter.of(tester.element(find.text('Welcome to Weyonje'))).go(route);
         await tester.pumpAndSettle();
-        expect(find.text('Provider or KCCA Sign In'), findsOneWidget);
+        expect(find.text('KCCA Sign In'), findsOneWidget);
         await tester.tap(find.bySemanticsLabel('Back'));
         await tester.pumpAndSettle();
         expect(find.text('Welcome to Weyonje'), findsOneWidget);
@@ -222,7 +338,7 @@ void main() {
         expect(find.text('Welcome to Weyonje'), findsOneWidget);
         expect(find.text('Create Account'), findsOneWidget);
         expect(find.text('Client Sign In'), findsOneWidget);
-        expect(find.text('Provider Sign In'), findsOneWidget);
+        expect(find.text('Service Provider Sign In'), findsOneWidget);
         expect(find.text('KCCA Sign In'), findsOneWidget);
         expect(
           find.text(
@@ -352,8 +468,8 @@ void main() {
         await tester.tap(find.byKey(const Key('account-continue')));
         await tester.pumpAndSettle();
         expect(find.text('Service Provider Registration'), findsOneWidget);
-        expect(find.text('Email address (required)'), findsOneWidget);
-        expect(find.text('Password (required)'), findsOneWidget);
+        expect(find.text('Email Address (Required)'), findsOneWidget);
+        expect(find.text('Password (required)'), findsNothing);
       },
     );
 
@@ -576,14 +692,6 @@ void main() {
           'ops@example.test',
         );
         await tester.enterText(
-          find.byKey(const Key('provider-password')),
-          'a-long-test-password',
-        );
-        await tester.enterText(
-          find.byKey(const Key('provider-confirm-password')),
-          'a-long-test-password',
-        );
-        await tester.enterText(
           find.byKey(const Key('provider-work-address')),
           'Nakawa',
         );
@@ -628,9 +736,9 @@ void main() {
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+        await tester.ensureVisible(find.byKey(const Key('kcca-sign-in')));
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('staff-sign-in')));
+        await tester.tap(find.byKey(const Key('kcca-sign-in')));
         await tester.pumpAndSettle();
 
         expect(find.text('Email address'), findsOneWidget);
@@ -674,9 +782,9 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+      await tester.ensureVisible(find.byKey(const Key('kcca-sign-in')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('staff-sign-in')));
+      await tester.tap(find.byKey(const Key('kcca-sign-in')));
       await tester.pumpAndSettle();
 
       await tester.showKeyboard(find.byKey(const Key('sign-in-password')));
@@ -699,9 +807,9 @@ void main() {
         );
         await pumpApp(tester, repository);
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+        await tester.ensureVisible(find.byKey(const Key('kcca-sign-in')));
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('staff-sign-in')));
+        await tester.tap(find.byKey(const Key('kcca-sign-in')));
         await tester.pumpAndSettle();
         await tester.enterText(
           find.byKey(const Key('sign-in-email')),
@@ -742,9 +850,9 @@ void main() {
       );
       await pumpApp(tester, repository);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+      await tester.ensureVisible(find.byKey(const Key('kcca-sign-in')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('staff-sign-in')));
+      await tester.tap(find.byKey(const Key('kcca-sign-in')));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('sign-in-email')),

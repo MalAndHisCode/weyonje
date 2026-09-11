@@ -11,7 +11,11 @@ import '../../../ui/weyonje_page.dart';
 import '../application/registration_controller.dart';
 
 class ClientPhoneSignInScreen extends ConsumerStatefulWidget {
-  const ClientPhoneSignInScreen({super.key});
+  const ClientPhoneSignInScreen({
+    this.actor = PhoneSignInActor.client,
+    super.key,
+  });
+  final PhoneSignInActor actor;
 
   @override
   ConsumerState<ClientPhoneSignInScreen> createState() =>
@@ -20,6 +24,10 @@ class ClientPhoneSignInScreen extends ConsumerStatefulWidget {
 
 class _ClientPhoneSignInScreenState
     extends ConsumerState<ClientPhoneSignInScreen> {
+  bool get _provider => widget.actor == PhoneSignInActor.serviceProvider;
+  NotifierProvider<ClientCodeController, RegistrationState>
+  get _controllerProvider =>
+      _provider ? providerCodeControllerProvider : clientCodeControllerProvider;
   Timer? _timer;
   @override
   void initState() {
@@ -41,9 +49,9 @@ class _ClientPhoneSignInScreenState
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(clientCodeControllerProvider);
+    final state = ref.watch(_controllerProvider);
     return WeyonjePage(
-      title: 'Client Sign In',
+      title: _provider ? 'Service Provider Sign In' : 'Client Sign In',
       showBack: true,
       child: Material(
         color: Colors.transparent,
@@ -53,7 +61,9 @@ class _ClientPhoneSignInScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FTextFormField(
-                key: const Key('client-sign-in-phone'),
+                key: Key(
+                  _provider ? 'provider-sign-in-phone' : 'client-sign-in-phone',
+                ),
                 control: FTextFieldControl.managed(controller: _phone),
                 enabled: !state.inProgress,
                 autofocus: true,
@@ -82,13 +92,25 @@ class _ClientPhoneSignInScreenState
               ],
               const SizedBox(height: 32),
               WeyonjeButton(
-                key: const Key('request-client-code'),
+                key: Key(
+                  _provider ? 'request-provider-code' : 'request-client-code',
+                ),
                 label: 'Send Sign-In Code',
                 loading: state.inProgress,
                 onPressed: state.waiting
                     ? null
                     : () => _submit(state.inProgress),
               ),
+              if (_provider) ...[
+                const SizedBox(height: 12),
+                WeyonjeButton(
+                  label: 'Service Provider Registration',
+                  kind: WeyonjeButtonKind.outline,
+                  onPressed: state.inProgress
+                      ? null
+                      : () => context.push('/register/service-provider'),
+                ),
+              ],
             ],
           ),
         ),
@@ -99,10 +121,10 @@ class _ClientPhoneSignInScreenState
   Future<void> _submit(bool inProgress) async {
     if (inProgress || !_formKey.currentState!.validate()) return;
     final challenge = await ref
-        .read(clientCodeControllerProvider.notifier)
+        .read(_controllerProvider.notifier)
         .requestCode(_phone.text);
     if (!mounted) return;
-    if (ref.read(clientCodeControllerProvider).registrationRequired) {
+    if (!_provider && ref.read(_controllerProvider).registrationRequired) {
       context.push(
         '/register/client',
         extra: ClientRegistrationArguments(_phone.text),
@@ -114,7 +136,9 @@ class _ClientPhoneSignInScreenState
       '/verify-phone',
       extra: PhoneVerificationArguments(
         challenge: challenge,
-        purpose: PhoneVerificationPurpose.clientSignIn,
+        purpose: _provider
+            ? PhoneVerificationPurpose.providerSignIn
+            : PhoneVerificationPurpose.clientSignIn,
       ),
     );
   }

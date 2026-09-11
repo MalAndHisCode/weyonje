@@ -199,6 +199,9 @@ class _PhoneVerificationScreenState
                     widget.arguments.purpose ==
                             PhoneVerificationPurpose.clientSignIn
                         ? '/sign-in/client'
+                        : widget.arguments.purpose ==
+                              PhoneVerificationPurpose.providerSignIn
+                        ? '/sign-in?entry=provider'
                         : '/welcome',
                   ),
                 ),

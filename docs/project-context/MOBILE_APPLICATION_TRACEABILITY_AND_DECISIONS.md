@@ -15,7 +15,7 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 | Area | Mobile | API/persistence | Current verification / remaining work |
 | --- | --- | --- | --- |
 | Existing authentication, Client registration, Provider registration, phone verification and role routing | **Implemented** | Native sessions, throttling, encryption/HMAC, eligibility | Existing flow tests preserved. |
-| Provider/KCCA password recovery | **Implemented** | Challenge tables, HMAC secret, fake SMS/email outbox, throttling, expiry, attempts, supersession, one-time use, session revocation, security audit | Challenge/migration tests pass; HTTP/service security matrix and live delivery remain incomplete. |
+| KCCA password recovery | **Implemented** | Challenge tables, HMAC secret, fake SMS/email outbox, throttling, expiry, attempts, supersession, one-time use, session revocation, security audit | Challenge/migration tests pass; HTTP/service security matrix and live delivery remain incomplete. |
 | Email verification | **Implemented foundation** | Phone/email challenge, resend/supersession, verification timestamp, audit, fake delivery | No access gate imposed pending a KCCA rule for Provider/KCCA unverified-email eligibility. |
 | Client request location | **Partially Implemented** | Authenticated Places/reverse/Routes server adapter | Client request entry uses explicit Yes/No, a compact non-interactive preview and a full-screen tap picker with direct numeric entry; read-only Service Location shows coordinates without geocoding. Journey route polyline/distance/ETA remain. Live keys, quota/error validation, KCCA map embedding and broader map widget tests remain. |
 | Client/Provider journey tracking | **Partially Implemented** | Persisted idempotent samples, Socket.IO hints, REST snapshot | Map markers and foreground service/offline queue exist; physical background/OEM/permission validation remains. |
@@ -41,10 +41,19 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 
 ## Adopted decisions
 
+### D-17 — Provider Phone Sign-In and Temporary Automatic Approval — 2026-09-11
+
+The current user-authorized requirement supersedes earlier Provider password and mandatory manual-review decisions. Provider registration keeps required email/business fields but stores no password; the backend rejects Provider password authentication/recovery. The existing Provider route now uses typed shared phone OTP UI and explicit Provider-purpose endpoints. Registered account phone and server eligibility remain authoritative.
+
+The exact Service Provider Sign In labels, scoped registration Title Case and red KCCA Approval Required heading without explanatory paragraph are adopted. The heading remains exact even while manual review is temporarily bypassed by SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED. This flag defaults false, is true only in authorized local configuration, and does not change KCCA administration controls or historical accounts. Approval, WSP numbering, null-human system provenance, history/audit/notifications and session completion are atomic after registration OTP verification. Disabled policy retains review notifications/manual decisions.
+
+Pending registration recovery preserves stored profiles. Historical hashes/sessions remain; older Provider apps require an update. Migration → API → explicit target policy → mobile is the rollout order. See PHONE_VERIFICATION_SETUP.md and current-state revision 9.5 for tests and limits; no shared migration, remote activation or live SMS is claimed.
+
+
 ### Mobile Branding and Access Entry Update — 2026-09-10
 
 - **Implemented:** Android display name `Weyonje`; complete-logo legacy, round and adaptive launcher resources, preserving application ID `ug.go.kcca.weyonje.weyonje`, source asset, signing, deep links and splash configuration.
-- **Implemented:** Four welcome actions in the requested order, with no explanatory paragraph. `/sign-in?entry=provider` and `/sign-in?entry=kcca` share the native email/password form and `/v1/auth/sign-in`. Missing/invalid `entry` preserves the compatible generic form. Context never reaches authentication or authorization code. Cross-role credentials follow the server-resolved actor and restricted Provider state. Recovery back navigation preserves the selected entry.
+- **Implemented:** Four welcome actions in the requested order, with no explanatory paragraph. Historical 2026-09-10 behavior (superseded by D-17): `/sign-in?entry=provider` and `/sign-in?entry=kcca` shared the native email/password form and `/v1/auth/sign-in`. Missing/invalid `entry` preserves the compatible generic form. Context never reaches authentication or authorization code. Cross-role credentials follow the server-resolved actor and restricted Provider state. Recovery back navigation preserves the selected entry.
 - **Implemented:** Forui 0.25.0 standard controls, central semantic palette and touch sizing, shared select/dialog wrappers, and authored Title Case headings/actions. Native pickers/maps/platform integrations remain in place. Existing typography/icon dependencies and light-only behavior remain.
 - **Implemented:** Choose Account Type descriptions and Client Registration form labels use scoped conventional Title Case, including conditional labels and Required/Optional indicators. This is a presentation exception for these two screens only; no runtime title-casing or application-wide field-label policy was introduced.
 - These adopted requirements supersede the former combined welcome action, account-creation paragraph, sentence-case heading/button guidance, and minimum-logo-size restriction for Android launcher packaging only.

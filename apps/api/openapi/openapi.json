@@ -47,7 +47,7 @@
             }
           }
         },
-        "summary": "Sign in with an existing Weyonje account",
+        "summary": "Sign in with an existing KCCA account",
         "tags": [
           "authentication"
         ]
@@ -217,6 +217,153 @@
         ]
       }
     },
+    "/v1/auth/provider-code/request": {
+      "post": {
+        "description": "Verified registered phone and login eligibility required. Unknown and ineligible accounts receive the same guidance; no account is created.",
+        "operationId": "AuthController_requestProviderCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderCodeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Request a Service Provider sign-in code",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/v1/auth/provider-code/verify": {
+      "post": {
+        "operationId": "AuthController_verifyProviderCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCredentialsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Sign in a Provider with a phone verification code",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/v1/auth/provider-code/resend": {
+      "post": {
+        "operationId": "AuthController_resendProviderCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendPhoneCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChallengeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OTP cooldown with retryAt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Hourly issuance limit with retryAt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Replace and resend a Provider sign-in code",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/v1/auth/refresh": {
       "post": {
         "operationId": "AuthController_refresh",
@@ -347,6 +494,16 @@
       "post": {
         "operationId": "RegistrationController_registerClient",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientRegistrationDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -397,8 +554,19 @@
     },
     "/v1/registrations/service-providers": {
       "post": {
+        "description": "Requires the existing business/contact fields including email. Unverified pending retries resume the stored profile without replacing it. Approval is decided only after phone verification by server policy.",
         "operationId": "RegistrationController_registerServiceProvider",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceProviderRegistrationDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -441,7 +609,7 @@
             }
           }
         },
-        "summary": "Submit a Service Provider registration and send a phone code",
+        "summary": "Submit a password-free Service Provider registration and send a phone code",
         "tags": [
           "registration"
         ]
@@ -451,6 +619,16 @@
       "post": {
         "operationId": "RegistrationController_verifyPhone",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneCodeDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1930,7 +2108,8 @@
             "enum": [
               "OTP_HOURLY",
               "OTP_COOLDOWN",
-              "CLIENT_REQUEST"
+              "CLIENT_REQUEST",
+              "PROVIDER_REQUEST"
             ]
           },
           "code": {
@@ -1991,6 +2170,18 @@
         },
         "required": [
           "challengeId"
+        ]
+      },
+      "ProviderCodeRequestDto": {
+        "type": "object",
+        "properties": {
+          "phoneNumber": {
+            "type": "string",
+            "example": "+256 700 000000"
+          }
+        },
+        "required": [
+          "phoneNumber"
         ]
       },
       "RefreshDto": {
@@ -2071,6 +2262,103 @@
           "actorType",
           "access",
           "emailVerified"
+        ]
+      },
+      "ClientRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "clientType": {
+            "type": "string",
+            "enum": [
+              "INDIVIDUAL",
+              "ORGANIZATION"
+            ]
+          },
+          "firstName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "organizationName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+256 700 000000",
+            "maxLength": 40
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "contactPersonName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "contactPersonPhone": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "clientType",
+          "phoneNumber"
+        ]
+      },
+      "ServiceProviderRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "essLicenseNumber": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "companyName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "phoneNumber": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "workAddress": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "GULPER",
+              "EMPTIER"
+            ]
+          },
+          "contactPersonName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "contactPersonPhone": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "essLicenseNumber",
+          "companyName",
+          "phoneNumber",
+          "email",
+          "workAddress",
+          "providerType",
+          "contactPersonName",
+          "contactPersonPhone"
         ]
       },
       "RegistrationVerificationDto": {
@@ -2155,6 +2443,13 @@
       "ProviderStatusHistoryDto": {
         "type": "object",
         "properties": {
+          "provenance": {
+            "type": "string",
+            "enum": [
+              "KCCA_MANUAL",
+              "SYSTEM_REGISTRATION_POLICY"
+            ]
+          },
           "fromStatus": {
             "type": "string",
             "enum": [
@@ -2184,6 +2479,7 @@
           }
         },
         "required": [
+          "provenance",
           "fromStatus",
           "toStatus",
           "createdAt"

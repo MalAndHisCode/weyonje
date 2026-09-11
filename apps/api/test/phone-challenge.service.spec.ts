@@ -107,7 +107,60 @@ describe("PhoneChallengeService", () => {
     };
   }
 
+  it.each(["wrong", "expired", "consumed", "exhausted", "delivery"])(
+    "rejects Provider %s code",
+    async (failure) => {
+      const h = harness({ deliveryFails: failure === "delivery" });
+      const challenge = await h.service.create(
+        "+256700000123",
+        PhoneChallengePurpose.PROVIDER_SIGN_IN,
+        "provider",
+      );
+      const code = h.deliveredCode!;
+      if (failure === "expired")
+        await h.phoneChallenge.update({ data: { expiresAt: new Date(0) } });
+      if (failure === "consumed")
+        await h.service.verify(
+          challenge.challengeId,
+          code,
+          PhoneChallengePurpose.PROVIDER_SIGN_IN,
+        );
+      if (failure === "exhausted")
+        await h.phoneChallenge.update({ data: { attemptsRemaining: 0 } });
+      await expect(
+        h.service.verify(
+          challenge.challengeId,
+          failure === "wrong"
+            ? code === "000000"
+              ? "000001"
+              : "000000"
+            : code,
+          PhoneChallengePurpose.PROVIDER_SIGN_IN,
+        ),
+      ).rejects.toThrow();
+    },
+  );
+  it.each(Object.values(PhoneChallengePurpose))(
+    "isolates Provider codes from %s",
+    async (purpose) => {
+      const h = harness();
+      const challenge = await h.service.create(
+        "+256700000123",
+        PhoneChallengePurpose.PROVIDER_SIGN_IN,
+        "provider",
+      );
+      if (purpose === PhoneChallengePurpose.PROVIDER_SIGN_IN) return;
+      await expect(
+        h.service.verify(challenge.challengeId, h.deliveredCode!, purpose),
+      ).rejects.toThrow();
+      await expect(
+        h.service.resend(challenge.challengeId, purpose),
+      ).rejects.toThrow();
+    },
+  );
   it.each([
+    ["/v1/auth/provider-code/request", PhoneChallengePurpose.PROVIDER_SIGN_IN],
+    ["/v1/auth/provider-code/resend", PhoneChallengePurpose.PROVIDER_SIGN_IN],
     ["/v1/registrations/clients", PhoneChallengePurpose.REGISTRATION],
     ["/v1/registrations/service-providers", PhoneChallengePurpose.REGISTRATION],
     ["/v1/registrations/resend-phone-code", PhoneChallengePurpose.REGISTRATION],
@@ -137,7 +190,12 @@ describe("PhoneChallengeService", () => {
         providers: [
           {
             provide: AuthService,
-            useValue: { requestClientCode: create, resendClientCode: resend },
+            useValue: {
+              requestClientCode: create,
+              requestProviderCode: create,
+              resendProviderCode: resend,
+              resendClientCode: resend,
+            },
           },
           {
             provide: RegistrationService,

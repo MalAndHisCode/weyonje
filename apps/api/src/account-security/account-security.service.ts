@@ -53,7 +53,7 @@ export class AccountSecurityService {
     const user = await this.prisma.user.findFirst({
       where: {
         emailLookup: subjectHash,
-        actorType: { in: [ActorType.SERVICE_PROVIDER, ActorType.KCCA_STAFF] },
+        actorType: ActorType.KCCA_STAFF,
       },
       select: {
         id: true,
@@ -99,6 +99,11 @@ export class AccountSecurityService {
     const passwordHash = await this.passwords.hash(newPassword);
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
+      const eligible = await tx.user.findFirst({
+        where: { id: challenge.userId, actorType: ActorType.KCCA_STAFF },
+        select: { id: true },
+      });
+      if (!eligible) throw this.challengeUsed();
       const consumed = await tx.accountChallenge.updateMany({
         where: {
           id: challenge.id,
@@ -325,6 +330,11 @@ export class AccountSecurityService {
     if (!challenge || challenge.purpose !== purpose) {
       return this.synthetic(AccountChallengeMethod.email);
     }
+    if (
+      purpose === AccountChallengePurpose.PASSWORD_RECOVERY &&
+      challenge.user.actorType !== ActorType.KCCA_STAFF
+    )
+      throw this.challengeUsed();
     if (challenge.consumedAt) throw this.challengeUsed();
     if (challenge.supersededAt) throw this.challengeSuperseded();
     if (challenge.resendAvailableAt > new Date()) {

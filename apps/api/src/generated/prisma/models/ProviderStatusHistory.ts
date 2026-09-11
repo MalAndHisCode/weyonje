@@ -28,6 +28,7 @@ export type ProviderStatusHistoryMinAggregateOutputType = {
   id: string | null
   providerUserId: string | null
   changedByUserId: string | null
+  provenance: string | null
   fromStatus: $Enums.ProviderStatus | null
   toStatus: $Enums.ProviderStatus | null
   reason: string | null
@@ -38,6 +39,7 @@ export type ProviderStatusHistoryMaxAggregateOutputType = {
   id: string | null
   providerUserId: string | null
   changedByUserId: string | null
+  provenance: string | null
   fromStatus: $Enums.ProviderStatus | null
   toStatus: $Enums.ProviderStatus | null
   reason: string | null
@@ -48,6 +50,7 @@ export type ProviderStatusHistoryCountAggregateOutputType = {
   id: number
   providerUserId: number
   changedByUserId: number
+  provenance: number
   fromStatus: number
   toStatus: number
   reason: number
@@ -60,6 +63,7 @@ export type ProviderStatusHistoryMinAggregateInputType = {
   id?: true
   providerUserId?: true
   changedByUserId?: true
+  provenance?: true
   fromStatus?: true
   toStatus?: true
   reason?: true
@@ -70,6 +74,7 @@ export type ProviderStatusHistoryMaxAggregateInputType = {
   id?: true
   providerUserId?: true
   changedByUserId?: true
+  provenance?: true
   fromStatus?: true
   toStatus?: true
   reason?: true
@@ -80,6 +85,7 @@ export type ProviderStatusHistoryCountAggregateInputType = {
   id?: true
   providerUserId?: true
   changedByUserId?: true
+  provenance?: true
   fromStatus?: true
   toStatus?: true
   reason?: true
@@ -162,7 +168,8 @@ export type ProviderStatusHistoryGroupByArgs<ExtArgs extends runtime.Types.Exten
 export type ProviderStatusHistoryGroupByOutputType = {
   id: string
   providerUserId: string
-  changedByUserId: string
+  changedByUserId: string | null
+  provenance: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason: string | null
@@ -193,19 +200,21 @@ export type ProviderStatusHistoryWhereInput = {
   NOT?: Prisma.ProviderStatusHistoryWhereInput | Prisma.ProviderStatusHistoryWhereInput[]
   id?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
   providerUserId?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
-  changedByUserId?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
+  changedByUserId?: Prisma.UuidNullableFilter<"ProviderStatusHistory"> | string | null
+  provenance?: Prisma.StringFilter<"ProviderStatusHistory"> | string
   fromStatus?: Prisma.EnumProviderStatusFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   reason?: Prisma.StringNullableFilter<"ProviderStatusHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderStatusHistory"> | Date | string
   provider?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  changedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  changedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type ProviderStatusHistoryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
-  changedByUserId?: Prisma.SortOrder
+  changedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -220,19 +229,21 @@ export type ProviderStatusHistoryWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ProviderStatusHistoryWhereInput[]
   NOT?: Prisma.ProviderStatusHistoryWhereInput | Prisma.ProviderStatusHistoryWhereInput[]
   providerUserId?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
-  changedByUserId?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
+  changedByUserId?: Prisma.UuidNullableFilter<"ProviderStatusHistory"> | string | null
+  provenance?: Prisma.StringFilter<"ProviderStatusHistory"> | string
   fromStatus?: Prisma.EnumProviderStatusFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   reason?: Prisma.StringNullableFilter<"ProviderStatusHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderStatusHistory"> | Date | string
   provider?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  changedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  changedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type ProviderStatusHistoryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
-  changedByUserId?: Prisma.SortOrder
+  changedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -248,7 +259,8 @@ export type ProviderStatusHistoryScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ProviderStatusHistoryScalarWhereWithAggregatesInput | Prisma.ProviderStatusHistoryScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"ProviderStatusHistory"> | string
   providerUserId?: Prisma.UuidWithAggregatesFilter<"ProviderStatusHistory"> | string
-  changedByUserId?: Prisma.UuidWithAggregatesFilter<"ProviderStatusHistory"> | string
+  changedByUserId?: Prisma.UuidNullableWithAggregatesFilter<"ProviderStatusHistory"> | string | null
+  provenance?: Prisma.StringWithAggregatesFilter<"ProviderStatusHistory"> | string
   fromStatus?: Prisma.EnumProviderStatusWithAggregatesFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusWithAggregatesFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   reason?: Prisma.StringNullableWithAggregatesFilter<"ProviderStatusHistory"> | string | null
@@ -257,18 +269,20 @@ export type ProviderStatusHistoryScalarWhereWithAggregatesInput = {
 
 export type ProviderStatusHistoryCreateInput = {
   id?: string
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
   createdAt?: Date | string
   provider: Prisma.UserCreateNestedOneWithoutProviderStatusHistoryInput
-  changedBy: Prisma.UserCreateNestedOneWithoutProviderStatusChangesMadeInput
+  changedBy?: Prisma.UserCreateNestedOneWithoutProviderStatusChangesMadeInput
 }
 
 export type ProviderStatusHistoryUncheckedCreateInput = {
   id?: string
   providerUserId: string
-  changedByUserId: string
+  changedByUserId?: string | null
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -277,18 +291,20 @@ export type ProviderStatusHistoryUncheckedCreateInput = {
 
 export type ProviderStatusHistoryUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.UserUpdateOneRequiredWithoutProviderStatusHistoryNestedInput
-  changedBy?: Prisma.UserUpdateOneRequiredWithoutProviderStatusChangesMadeNestedInput
+  changedBy?: Prisma.UserUpdateOneWithoutProviderStatusChangesMadeNestedInput
 }
 
 export type ProviderStatusHistoryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  changedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  changedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -298,7 +314,8 @@ export type ProviderStatusHistoryUncheckedUpdateInput = {
 export type ProviderStatusHistoryCreateManyInput = {
   id?: string
   providerUserId: string
-  changedByUserId: string
+  changedByUserId?: string | null
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -307,6 +324,7 @@ export type ProviderStatusHistoryCreateManyInput = {
 
 export type ProviderStatusHistoryUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -316,7 +334,8 @@ export type ProviderStatusHistoryUpdateManyMutationInput = {
 export type ProviderStatusHistoryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  changedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  changedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -337,6 +356,7 @@ export type ProviderStatusHistoryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
   changedByUserId?: Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   reason?: Prisma.SortOrder
@@ -347,6 +367,7 @@ export type ProviderStatusHistoryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
   changedByUserId?: Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   reason?: Prisma.SortOrder
@@ -357,6 +378,7 @@ export type ProviderStatusHistoryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   providerUserId?: Prisma.SortOrder
   changedByUserId?: Prisma.SortOrder
+  provenance?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   reason?: Prisma.SortOrder
@@ -453,16 +475,18 @@ export type EnumProviderStatusFieldUpdateOperationsInput = {
 
 export type ProviderStatusHistoryCreateWithoutProviderInput = {
   id?: string
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
   createdAt?: Date | string
-  changedBy: Prisma.UserCreateNestedOneWithoutProviderStatusChangesMadeInput
+  changedBy?: Prisma.UserCreateNestedOneWithoutProviderStatusChangesMadeInput
 }
 
 export type ProviderStatusHistoryUncheckedCreateWithoutProviderInput = {
   id?: string
-  changedByUserId: string
+  changedByUserId?: string | null
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -481,6 +505,7 @@ export type ProviderStatusHistoryCreateManyProviderInputEnvelope = {
 
 export type ProviderStatusHistoryCreateWithoutChangedByInput = {
   id?: string
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -491,6 +516,7 @@ export type ProviderStatusHistoryCreateWithoutChangedByInput = {
 export type ProviderStatusHistoryUncheckedCreateWithoutChangedByInput = {
   id?: string
   providerUserId: string
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -529,7 +555,8 @@ export type ProviderStatusHistoryScalarWhereInput = {
   NOT?: Prisma.ProviderStatusHistoryScalarWhereInput | Prisma.ProviderStatusHistoryScalarWhereInput[]
   id?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
   providerUserId?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
-  changedByUserId?: Prisma.UuidFilter<"ProviderStatusHistory"> | string
+  changedByUserId?: Prisma.UuidNullableFilter<"ProviderStatusHistory"> | string | null
+  provenance?: Prisma.StringFilter<"ProviderStatusHistory"> | string
   fromStatus?: Prisma.EnumProviderStatusFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFilter<"ProviderStatusHistory"> | $Enums.ProviderStatus
   reason?: Prisma.StringNullableFilter<"ProviderStatusHistory"> | string | null
@@ -554,7 +581,8 @@ export type ProviderStatusHistoryUpdateManyWithWhereWithoutChangedByInput = {
 
 export type ProviderStatusHistoryCreateManyProviderInput = {
   id?: string
-  changedByUserId: string
+  changedByUserId?: string | null
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -564,6 +592,7 @@ export type ProviderStatusHistoryCreateManyProviderInput = {
 export type ProviderStatusHistoryCreateManyChangedByInput = {
   id?: string
   providerUserId: string
+  provenance?: string
   fromStatus: $Enums.ProviderStatus
   toStatus: $Enums.ProviderStatus
   reason?: string | null
@@ -572,16 +601,18 @@ export type ProviderStatusHistoryCreateManyChangedByInput = {
 
 export type ProviderStatusHistoryUpdateWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  changedBy?: Prisma.UserUpdateOneRequiredWithoutProviderStatusChangesMadeNestedInput
+  changedBy?: Prisma.UserUpdateOneWithoutProviderStatusChangesMadeNestedInput
 }
 
 export type ProviderStatusHistoryUncheckedUpdateWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  changedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  changedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -590,7 +621,8 @@ export type ProviderStatusHistoryUncheckedUpdateWithoutProviderInput = {
 
 export type ProviderStatusHistoryUncheckedUpdateManyWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  changedByUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  changedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -599,6 +631,7 @@ export type ProviderStatusHistoryUncheckedUpdateManyWithoutProviderInput = {
 
 export type ProviderStatusHistoryUpdateWithoutChangedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -609,6 +642,7 @@ export type ProviderStatusHistoryUpdateWithoutChangedByInput = {
 export type ProviderStatusHistoryUncheckedUpdateWithoutChangedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -618,6 +652,7 @@ export type ProviderStatusHistoryUncheckedUpdateWithoutChangedByInput = {
 export type ProviderStatusHistoryUncheckedUpdateManyWithoutChangedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  provenance?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   toStatus?: Prisma.EnumProviderStatusFieldUpdateOperationsInput | $Enums.ProviderStatus
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -630,72 +665,77 @@ export type ProviderStatusHistorySelect<ExtArgs extends runtime.Types.Extensions
   id?: boolean
   providerUserId?: boolean
   changedByUserId?: boolean
+  provenance?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   reason?: boolean
   createdAt?: boolean
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  changedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  changedBy?: boolean | Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>
 }, ExtArgs["result"]["providerStatusHistory"]>
 
 export type ProviderStatusHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   providerUserId?: boolean
   changedByUserId?: boolean
+  provenance?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   reason?: boolean
   createdAt?: boolean
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  changedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  changedBy?: boolean | Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>
 }, ExtArgs["result"]["providerStatusHistory"]>
 
 export type ProviderStatusHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   providerUserId?: boolean
   changedByUserId?: boolean
+  provenance?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   reason?: boolean
   createdAt?: boolean
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  changedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  changedBy?: boolean | Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>
 }, ExtArgs["result"]["providerStatusHistory"]>
 
 export type ProviderStatusHistorySelectScalar = {
   id?: boolean
   providerUserId?: boolean
   changedByUserId?: boolean
+  provenance?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   reason?: boolean
   createdAt?: boolean
 }
 
-export type ProviderStatusHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "providerUserId" | "changedByUserId" | "fromStatus" | "toStatus" | "reason" | "createdAt", ExtArgs["result"]["providerStatusHistory"]>
+export type ProviderStatusHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "providerUserId" | "changedByUserId" | "provenance" | "fromStatus" | "toStatus" | "reason" | "createdAt", ExtArgs["result"]["providerStatusHistory"]>
 export type ProviderStatusHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  changedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  changedBy?: boolean | Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>
 }
 export type ProviderStatusHistoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  changedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  changedBy?: boolean | Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>
 }
 export type ProviderStatusHistoryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  changedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  changedBy?: boolean | Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>
 }
 
 export type $ProviderStatusHistoryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ProviderStatusHistory"
   objects: {
     provider: Prisma.$UserPayload<ExtArgs>
-    changedBy: Prisma.$UserPayload<ExtArgs>
+    changedBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     providerUserId: string
-    changedByUserId: string
+    changedByUserId: string | null
+    provenance: string
     fromStatus: $Enums.ProviderStatus
     toStatus: $Enums.ProviderStatus
     reason: string | null
@@ -1095,7 +1135,7 @@ readonly fields: ProviderStatusHistoryFieldRefs;
 export interface Prisma__ProviderStatusHistoryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   provider<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  changedBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  changedBy<T extends Prisma.ProviderStatusHistory$changedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProviderStatusHistory$changedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1128,6 +1168,7 @@ export interface ProviderStatusHistoryFieldRefs {
   readonly id: Prisma.FieldRef<"ProviderStatusHistory", 'String'>
   readonly providerUserId: Prisma.FieldRef<"ProviderStatusHistory", 'String'>
   readonly changedByUserId: Prisma.FieldRef<"ProviderStatusHistory", 'String'>
+  readonly provenance: Prisma.FieldRef<"ProviderStatusHistory", 'String'>
   readonly fromStatus: Prisma.FieldRef<"ProviderStatusHistory", 'ProviderStatus'>
   readonly toStatus: Prisma.FieldRef<"ProviderStatusHistory", 'ProviderStatus'>
   readonly reason: Prisma.FieldRef<"ProviderStatusHistory", 'String'>
@@ -1530,6 +1571,25 @@ export type ProviderStatusHistoryDeleteManyArgs<ExtArgs extends runtime.Types.Ex
    * Limit how many ProviderStatusHistories to delete.
    */
   limit?: number
+}
+
+/**
+ * ProviderStatusHistory.changedBy
+ */
+export type ProviderStatusHistory$changedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

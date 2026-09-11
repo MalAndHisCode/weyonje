@@ -23,6 +23,12 @@ const SECRET_FIELDS = [
 ] as const;
 
 export class Environment {
+  @Transform(({ value }) =>
+    value === "true" ? true : value === "false" ? false : value,
+  )
+  @IsBoolean()
+  SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED = false;
+
   // Keep file-loaded SMS settings for smsConfig, which owns their validation.
   // Without these, whitelist validation silently discards the selected provider.
   @Allow()

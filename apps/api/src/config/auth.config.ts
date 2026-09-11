@@ -3,6 +3,7 @@ import { registerAs } from "@nestjs/config";
 import { decodeSecret, Environment, validateEnvironment } from "./environment";
 
 export interface AuthConfig {
+  serviceProviderAutoApprovalEnabled: boolean;
   issuer: string;
   audience: string;
   accessTokenSecret: Buffer;
@@ -27,6 +28,8 @@ export interface AuthConfig {
 
 export function buildAuthConfig(env: Environment): AuthConfig {
   return {
+    serviceProviderAutoApprovalEnabled:
+      env.SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED,
     issuer: env.AUTH_ISSUER,
     audience: env.AUTH_AUDIENCE,
     accessTokenSecret: decodeRequired(env.ACCESS_TOKEN_SECRET),

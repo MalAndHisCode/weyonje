@@ -7,7 +7,7 @@ import {
 
 import { EmailSecurityService } from "../src/auth/email-security.service";
 import { AuthenticatedActor } from "../src/auth/authenticated-actor";
-import { PasswordService } from "../src/auth/password.service";
+import { testAuthConfig } from "./support/auth-config";
 import { SessionService } from "../src/auth/session.service";
 import { PrismaService } from "../src/database/prisma.service";
 import { PhoneChallengePurpose } from "../src/generated/prisma/enums";
@@ -27,9 +27,6 @@ describe("RegistrationService submissions", () => {
       lookup: jest.fn((value: string) => `email-lookup:${value}`),
       encrypt: jest.fn((value: string) => `encrypted-email:${value}`),
     } as unknown as EmailSecurityService;
-    const passwords = {
-      hash: jest.fn().mockResolvedValue("argon2-password-hash"),
-    } as unknown as PasswordService;
     const phones = {
       normalize: jest.fn((value: string) =>
         value.startsWith("+") ? value : "+256700000123",
@@ -43,12 +40,12 @@ describe("RegistrationService submissions", () => {
     const service = new RegistrationService(
       prisma,
       emails,
-      passwords,
       phones,
       challenge,
       {} as SessionService,
+      testAuthConfig(),
     );
-    return { service, user, emails, passwords, phones, challenge };
+    return { service, user, emails, phones, challenge };
   }
 
   it("persists a Client without email or password and starts phone verification", async () => {
@@ -85,27 +82,25 @@ describe("RegistrationService submissions", () => {
     );
   });
 
-  it("hashes the mandatory Provider password and persists mandatory email", async () => {
+  it("persists a password-free Provider with mandatory email", async () => {
     const value = harness();
     await value.service.registerServiceProvider({
       essLicenseNumber: "ESS-42",
       companyName: "Clean Kampala Ltd",
       phoneNumber: "+256700000123",
       email: " Ops@Example.test ",
-      password: "a-long-test-password",
       workAddress: "Nakawa",
       providerType: ServiceProviderType.gulper,
       contactPersonName: "Amina",
       contactPersonPhone: "+256701000123",
     });
 
-    expect(value.passwords.hash).toHaveBeenCalledWith("a-long-test-password");
     expect(value.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           encryptedEmail: "encrypted-email:ops@example.test",
           emailLookup: "email-lookup:ops@example.test",
-          passwordHash: "argon2-password-hash",
+          passwordHash: null,
           actorType: "SERVICE_PROVIDER",
           providerStatus: "PENDING",
           serviceProviderProfile: {
@@ -133,6 +128,39 @@ describe("RegistrationService submissions", () => {
       "+256700000123",
       PhoneChallengePurpose.REGISTRATION,
       "pending-client",
+    );
+  });
+
+  it("resumes an unverified pending Provider without replacing any profile data", async () => {
+    const h = harness();
+    h.user.findFirst.mockResolvedValueOnce({ id: "pending-provider" });
+    await h.service.registerServiceProvider({
+      essLicenseNumber: "new-value",
+      companyName: "Replacement attempt",
+      email: "different@example.test",
+      phoneNumber: "0700000123",
+      workAddress: "Different",
+      providerType: ServiceProviderType.gulper,
+      contactPersonName: "Different",
+      contactPersonPhone: "+256701000123",
+    });
+    expect(h.user.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          phoneLookup: "phone-lookup:+256700000123",
+          actorType: "SERVICE_PROVIDER",
+          phoneVerifiedAt: null,
+          loginEnabled: false,
+          isActive: false,
+          providerStatus: "PENDING",
+        },
+      }),
+    );
+    expect(h.user.create).not.toHaveBeenCalled();
+    expect(h.challenge.create).toHaveBeenCalledWith(
+      "+256700000123",
+      "REGISTRATION",
+      "pending-provider",
     );
   });
 

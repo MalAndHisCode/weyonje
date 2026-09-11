@@ -301,8 +301,8 @@ None.
 
 * **Create Account:** Opens `Choose Account Type`.
 * **Client Sign In:** Opens the Client phone-code sign-in experience.
-* **Provider Sign In:** Opens the shared email/password form with the `Provider Sign In` heading (`/sign-in?entry=provider`).
-* **KCCA Sign In:** Opens the same form with the `KCCA Sign In` heading (`/sign-in?entry=kcca`).
+* **Service Provider Sign In:** Opens registered-phone sign-in with the exact `Service Provider Sign In` heading (`/sign-in?entry=provider`); uses Provider-purpose request/resend/verify endpoints.
+* **KCCA Sign In:** Opens the email/password form with the `KCCA Sign In` heading (`/sign-in?entry=kcca`).
 
 Adopted 2026-09-10: Retain the logo and `Welcome to Weyonje`; remove the explanatory account-creation paragraph. Show the four actions above in order, with Create Account primary and all sign-in actions secondary. Missing/invalid sign-in context retains the compatible generic form. Entry context is presentation only; server actor resolution and eligibility determine all post-authentication routes and permissions.
 
@@ -2105,3 +2105,12 @@ None.
 * Mobile service-request process, steps 15–22 and control point.
 * Call Centre service-request process, steps 21–28 and control point.
 * Both processes’ notes requiring KCCA visibility of route and stopovers.
+
+
+## Adopted Provider Authentication Override — 2026-09-11
+
+This approved change supersedes earlier Provider password and mandatory manual-review steps in AUTH flows. Welcome action order is unchanged. The Provider form requests the registered account phone, then opens the existing six-box OTP screen using typed Provider context. Unknown/ineligible responses remain on the phone page with safe guidance and an explicit Service Provider Registration action; no automatic account creation or Client registration outcome is used. Success routes only after the server session/actor result. Restricted Providers retain Account Status; work requires approved/active/login-enabled. KCCA retains email/password and recovery.
+
+Service Provider Registration removes both password fields and payload values, keeps email and all business/contact requirements, and uses authored Title Case labels/choices/actions. KCCA Approval Required is exact, semantic red, and has no subtitle. A scoped smaller existing title token allows the long registration title to wrap at enlarged text without truncating words.
+
+Unverified pending registration retries resume the stored profile after cooldown without overwriting details. The server-owned SERVICE_PROVIDER_AUTO_APPROVAL_ENABLED flag defaults false; authorized local configuration is true. Only registration phone completion may atomically approve/activate, assign WSP once, record explicit system provenance and truthful notifications, and create a session. No review-required notification accompanies auto-approval. When false, verified registrations remain pending for KCCA. Historical/rejected/inactive/disabled accounts are not auto-approved, and ordinary sign-in never applies approval. This temporarily bypasses the original business-process manual review; administration remains available. See decision D-17 and PHONE_VERIFICATION_SETUP.md for migration/API/mobile compatibility and rollout requirements.

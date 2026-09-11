@@ -78,9 +78,9 @@ void main() {
   }
 
   Future<void> openNativeSignIn(WidgetTester tester) async {
-    await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+    await tester.ensureVisible(find.byKey(const Key('kcca-sign-in')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('staff-sign-in')));
+    await tester.tap(find.byKey(const Key('kcca-sign-in')));
     await tester.pumpAndSettle();
   }
 
@@ -134,6 +134,74 @@ void main() {
     }
   }
 
+  for (final screen in ['sign_in', 'registration']) {
+    for (final layout in ['compact', 'large_text', 'keyboard']) {
+      testWidgets('Service Provider $screen $layout', (tester) async {
+        if (layout == 'large_text') {
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        }
+        await render(
+          tester,
+          size: const Size(320, 568),
+          outcome: const NoStoredSession(),
+        );
+        GoRouter.of(tester.element(find.text('Welcome to Weyonje'))).go(
+          screen == 'sign_in'
+              ? '/sign-in?entry=provider'
+              : '/register/service-provider',
+        );
+        await tester.pumpAndSettle();
+        if (layout == 'keyboard') {
+          tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+          addTearDown(tester.view.resetViewInsets);
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(
+            find.byKey(
+              Key(
+                screen == 'sign_in'
+                    ? 'request-provider-code'
+                    : 'submit-provider-registration',
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+        }
+        expect(tester.takeException(), isNull);
+        await expectLater(
+          find.byType(WeyonjeApplication),
+          matchesGoldenFile('goldens/provider_${screen}_$layout.png'),
+        );
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+  }
+  testWidgets('Service Provider restricted account at enlarged text', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await render(
+      tester,
+      size: const Size(320, 568),
+      outcome: const ResolvedSession(
+        CurrentActor(
+          actorType: ActorType.serviceProvider,
+          access: ActorAccess.restricted,
+          providerStatus: ProviderStatus.pending,
+        ),
+      ),
+    );
+    await tester.ensureVisible(find.text('Sign Out'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await expectLater(
+      find.byType(WeyonjeApplication),
+      matchesGoldenFile('goldens/provider_restricted_large_text.png'),
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('welcome remains balanced on a compact phone', (tester) async {
     await render(
       tester,
@@ -165,7 +233,15 @@ void main() {
           if (entry != 'welcome') {
             await tester.tap(find.byKey(key));
             await tester.pumpAndSettle();
-            await tester.ensureVisible(find.byKey(const Key('submit-sign-in')));
+            await tester.ensureVisible(
+              find.byKey(
+                Key(
+                  entry == 'provider'
+                      ? 'request-provider-code'
+                      : 'submit-sign-in',
+                ),
+              ),
+            );
           }
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
@@ -234,7 +310,7 @@ void main() {
       size: const Size(640, 360),
       outcome: const NoStoredSession(),
     );
-    await tester.ensureVisible(find.byKey(const Key('staff-sign-in')));
+    await tester.ensureVisible(find.byKey(const Key('kcca-sign-in')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     await expectLater(

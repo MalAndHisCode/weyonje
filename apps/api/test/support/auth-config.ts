@@ -4,6 +4,7 @@ export function testAuthConfig(
   overrides: Partial<AuthConfig> = {},
 ): AuthConfig {
   return {
+    serviceProviderAutoApprovalEnabled: false,
     issuer: "https://auth.example.test",
     audience: "weyonje-api-test",
     accessTokenSecret: Buffer.alloc(32, 1),

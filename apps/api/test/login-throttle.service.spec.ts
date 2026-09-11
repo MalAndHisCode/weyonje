@@ -137,6 +137,26 @@ describe("LoginThrottleService", () => {
           },
         });
         expect(user.update).not.toHaveBeenCalled();
+        // Locked Client counters must not spend the Provider's request budget.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await service.consumeProviderRequest(
+            "protected-email-lookup",
+            "198.51.100.24",
+          );
+        }
+        expect([...records.values()]).toHaveLength(4);
+        await expect(
+          service.consumeProviderRequest(
+            "protected-email-lookup",
+            "198.51.100.24",
+          ),
+        ).rejects.toMatchObject({
+          response: {
+            limitCategory: "PROVIDER_REQUEST",
+            retryAt: expect.any(String),
+          },
+        });
+        expect(user.update).not.toHaveBeenCalled();
         jest.advanceTimersByTime(testAuthConfig().lockSeconds * 1000);
         await expect(
           service.consumeClientRequest(

@@ -56,7 +56,8 @@ export type ServiceProviderType = (typeof ServiceProviderType)[keyof typeof Serv
 
 export const PhoneChallengePurpose = {
   REGISTRATION: 'REGISTRATION',
-  CLIENT_SIGN_IN: 'CLIENT_SIGN_IN'
+  CLIENT_SIGN_IN: 'CLIENT_SIGN_IN',
+  PROVIDER_SIGN_IN: 'PROVIDER_SIGN_IN'
 } as const
 
 export type PhoneChallengePurpose = (typeof PhoneChallengePurpose)[keyof typeof PhoneChallengePurpose]

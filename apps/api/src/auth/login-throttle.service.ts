@@ -30,16 +30,28 @@ export class LoginThrottleService {
     phoneLookup: string,
     sourceIp: string,
   ): Promise<void> {
+    return this.consumePhoneRequest(phoneLookup, sourceIp, "client");
+  }
+
+  consumeProviderRequest(phoneLookup: string, sourceIp: string): Promise<void> {
+    return this.consumePhoneRequest(phoneLookup, sourceIp, "provider");
+  }
+
+  private async consumePhoneRequest(
+    phoneLookup: string,
+    sourceIp: string,
+    actor: "client" | "provider",
+  ): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
       const keys = [
         [
           ThrottleScope.IP,
-          this.key("client-request-ip", sourceIp),
+          this.key(`${actor}-request-ip`, sourceIp),
           this.config.ipMaxAttempts,
         ],
         [
           ThrottleScope.EMAIL,
-          this.key("client-request-phone", phoneLookup),
+          this.key(`${actor}-request-phone`, phoneLookup),
           this.config.accountMaxAttempts,
         ],
       ] as const;
@@ -63,8 +75,9 @@ export class LoginThrottleService {
           {
             code: ApiErrorCode.rateLimited,
             message:
-              "Too many Client sign-in requests. Please wait before trying again.",
-            limitCategory: "CLIENT_REQUEST",
+              "Too many sign-in requests. Please wait before trying again.",
+            limitCategory:
+              actor === "client" ? "CLIENT_REQUEST" : "PROVIDER_REQUEST",
             retryAt: new Date(retryAt).toISOString(),
           },
           HttpStatus.TOO_MANY_REQUESTS,
