@@ -89,6 +89,35 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
   private safeMessage(value: unknown, status: number): string {
     if (typeof value === "string") return value;
+    if (status === HttpStatus.BAD_REQUEST && Array.isArray(value)) {
+      // Emit owned copy only. Never echo validator values, targets, or unknown
+      // property names (including names supplied by an unexpected payload).
+      const fields: Record<string, string> = {
+        toiletType: "Select the type of toilet to empty.",
+        scheduleMode:
+          "The service timing is unsupported. Update the app and try again.",
+        idempotencyKey:
+          "The request reference is invalid. Update the app before retrying.",
+        locationKind:
+          "Choose current location or select a location on the map.",
+        location: "Select a valid service location.",
+        additionalContactName:
+          "Enter an additional contact name of at most 200 characters, or clear both contact fields.",
+        additionalContactPhone:
+          "Enter the additional contact telephone number, or clear both contact fields.",
+      };
+      const messages = Object.entries(fields)
+        .filter(([field]) =>
+          value.some(
+            (item: unknown) =>
+              typeof item === "string" && item.startsWith(`${field} `),
+          ),
+        )
+        .map(([, message]) => message);
+      return messages.length
+        ? messages.join(" ")
+        : "Check the request details. This app may need updating to submit the supported fields.";
+    }
     if (status === HttpStatus.UNAUTHORIZED)
       return "Authentication is required.";
     if (status === HttpStatus.FORBIDDEN)

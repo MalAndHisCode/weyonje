@@ -1,5 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:weyonje/core/config/app_config.dart';
+import 'package:weyonje/core/auth/session_credentials.dart';
+import 'auth_repository_test.dart' show MemorySessionStore, credentialsJson;
+import 'support/client_request_http_adapter.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,10 +39,12 @@ class RequestWorkflows extends Fake implements WorkflowRepository {
     'phoneNumber': '+256700000123',
   };
   bool profileFails = false;
+  WorkflowRepository? wireRepository;
+  Completer<ServiceRequestDetail>? pendingSubmission;
+  ServiceRequestDetail? created;
   String? failureCode = 'INVALID_REQUEST';
   final submissions = <Map<String, Object?>>[];
-  final addresses = <Completer<String?>>[];
-  bool holdAddresses = false;
+  int geocodeCalls = 0;
   @override
   Future<Map<String, dynamic>> clientProfile() async {
     if (profileFails) throw Exception('offline');
@@ -52,18 +59,23 @@ class RequestWorkflows extends Fake implements WorkflowRepository {
     recentRequests: [],
   );
   @override
-  Future<String?> reverseGeocode(double latitude, double longitude) {
-    if (!holdAddresses) return Future.value('Resolved test address');
-    final pending = Completer<String?>();
-    addresses.add(pending);
-    return pending.future;
+  Future<String?> reverseGeocode(double latitude, double longitude) async {
+    geocodeCalls++;
+    throw StateError('Client selection must not geocode');
   }
+
+  @override
+  Future<ServiceRequestDetail> clientRequest(String id) async => created!;
 
   @override
   Future<ServiceRequestDetail> createClientRequest(
     Map<String, Object?> data,
   ) async {
     submissions.add(data);
+    if (wireRepository != null) {
+      return created = await wireRepository!.createClientRequest(data);
+    }
+    if (pendingSubmission != null) return pendingSubmission!.future;
     throw WorkflowException(
       'The response was interrupted. Retry.',
       code: failureCode,
@@ -122,6 +134,7 @@ void main() {
   late RequestLocations locations;
   late FakeAuthRepository auth;
   WeyonjeMap? map;
+  WeyonjeMap? pickerMap;
   setUp(() {
     workflows = RequestWorkflows();
     locations = RequestLocations();
@@ -142,10 +155,14 @@ void main() {
             const ConfiguredGoogleMapsGateway(),
           ),
           requestMapBuilderProvider.overrideWithValue((value) {
-            map = value;
-            return const SizedBox(
-              height: 320,
-              child: Center(child: Text('Map test surface')),
+            if (value.height == null) {
+              pickerMap = value;
+            } else {
+              map = value;
+            }
+            return SizedBox(
+              height: value.height,
+              child: const Center(child: Text('Map test surface')),
             );
           }),
         ],
@@ -166,10 +183,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  void selectToilet(WidgetTester tester) {
+  void selectToilet(WidgetTester tester, [String toilet = 'PIT_LATRINE']) {
     tester
         .widget<WeyonjeSelect<String>>(find.byType(WeyonjeSelect<String>))
-        .onChanged!('PIT_LATRINE');
+        .onChanged!(toilet);
     // Exercise the managed form field's validation value too.
     final field = find.descendant(
       of: find.byType(WeyonjeSelect<String>),
@@ -177,9 +194,110 @@ void main() {
     );
     for (final element in field.evaluate()) {
       final state = (element as StatefulElement).state;
-      if (state is FormFieldState<String>) state.didChange('PIT_LATRINE');
+      if (state is FormFieldState<String>) state.didChange(toilet);
     }
   }
+
+  for (final mode in ['CURRENT', 'MAP_PIN']) {
+    for (final toilet in ['PIT_LATRINE', 'SEPTIC_TANK']) {
+      testWidgets('wire payload and confirmed details: $mode / $toilet', (
+        tester,
+      ) async {
+        final adapter = ClientRequestHttpAdapter();
+        final dio = Dio()..httpClientAdapter = adapter;
+        workflows.wireRepository = NativeWorkflowRepository(
+          const AppConfig(apiBaseUrl: 'https://api.example.test'),
+          MemorySessionStore(
+            SessionCredentials.fromJson(credentialsJson(suffix: 'test')),
+          ),
+          dio,
+        );
+        await open(tester);
+        await tap(tester, mode == 'CURRENT' ? 'Yes' : 'No');
+        if (mode == 'MAP_PIN') {
+          await tap(tester, 'Select Location on Map');
+          pickerMap!.onSelected!(const LatLng(0.312345678, 32.512345678));
+          await tester.pumpAndSettle();
+        }
+        selectToilet(tester, toilet);
+        await tester.pumpAndSettle();
+        if (toilet == 'SEPTIC_TANK') {
+          final name = find.byKey(const Key('request-contact-name'));
+          await tester.ensureVisible(name);
+          await tester.enterText(name, ' Contact ');
+          final phone = find.byKey(const Key('request-contact-phone'));
+          await tester.ensureVisible(phone);
+          await tester.enterText(phone, ' 0700000123 ');
+        }
+        await tap(tester, 'Submit Request');
+        final wire = adapter.payloads.single;
+        expect(wire.keys.toSet(), {
+          'locationKind',
+          'location',
+          'toiletType',
+          'scheduleMode',
+          'idempotencyKey',
+          if (toilet == 'SEPTIC_TANK') 'additionalContactName',
+          if (toilet == 'SEPTIC_TANK') 'additionalContactPhone',
+        });
+        if (toilet == 'SEPTIC_TANK') {
+          expect(wire['additionalContactName'], 'Contact');
+          expect(wire['additionalContactPhone'], '0700000123');
+        }
+        expect(
+          wire['idempotencyKey'],
+          matches(
+            RegExp(
+              r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+            ),
+          ),
+        );
+        expect(wire['locationKind'], mode);
+        expect(wire['toiletType'], toilet);
+        expect(wire['scheduleMode'], 'AS_SOON_AS_POSSIBLE');
+        expect((wire['location'] as Map)['latitude'], isA<num>());
+        expect((wire['location'] as Map)['longitude'], isA<num>());
+        expect(find.text('Request Details'), findsOneWidget);
+        expect(find.text('Status: Pending'), findsOneWidget);
+        expect(find.text('Requested: As soon as possible'), findsOneWidget);
+      });
+    }
+  }
+
+  testWidgets('duplicate submit is blocked; timeout holds the same key', (
+    tester,
+  ) async {
+    workflows.pendingSubmission = Completer<ServiceRequestDetail>();
+    await open(tester);
+    await tap(tester, 'Yes');
+    selectToilet(tester);
+    await tester.pumpAndSettle();
+    final submit = tester
+        .widget<WeyonjeButton>(
+          find.widgetWithText(WeyonjeButton, 'Submit Request'),
+        )
+        .onPressed!;
+    submit();
+    submit();
+    await tester.pump();
+    expect(workflows.submissions, hasLength(1));
+    workflows.pendingSubmission!.completeError(
+      const WorkflowException('Response timed out.', code: 'REQUEST_TIMEOUT'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Request Status Unconfirmed'), findsOneWidget);
+    workflows.pendingSubmission = null;
+    workflows.wireRepository = NativeWorkflowRepository(
+      const AppConfig(apiBaseUrl: 'https://api.example.test'),
+      MemorySessionStore(
+        SessionCredentials.fromJson(credentialsJson(suffix: 'test')),
+      ),
+      Dio()..httpClientAdapter = ClientRequestHttpAdapter(),
+    );
+    await tap(tester, 'Submit Request');
+    expect(workflows.submissions[0], workflows.submissions[1]);
+    expect(find.text('Request Details'), findsOneWidget);
+  });
 
   testWidgets('profile, exact field order, modes, ASAP and stable retry key', (
     tester,
@@ -222,45 +340,68 @@ void main() {
     await tap(tester, 'Submit Request');
     expect(workflows.submissions.length, 2);
     expect(workflows.submissions[0], workflows.submissions[1]);
-    expect(workflows.submissions[0]['scheduleMode'], 'ASAP');
+    expect(workflows.submissions[0]['scheduleMode'], 'AS_SOON_AS_POSSIBLE');
     expect(workflows.submissions[0].containsKey('requestedServiceAt'), false);
     expect(workflows.submissions[0]['locationKind'], 'CURRENT');
     expect(workflows.submissions[0].containsKey('clientName'), false);
   });
 
-  testWidgets('No confirms map coordinates and discards obsolete addresses', (
-    tester,
-  ) async {
-    workflows.holdAddresses = true;
-    await open(tester);
-    await tap(tester, 'No');
-    map!.onSelected!(const LatLng(1, 32));
-    await tester.pump();
-    map!.onSelected!(const LatLng(2, 33));
-    await tester.pump();
-    workflows.addresses[1].complete('Newest address');
-    await tester.pump();
-    workflows.addresses[0].complete('Obsolete address');
-    await tester.pumpAndSettle();
-    expect(find.text('Newest address'), findsOneWidget);
-    expect(find.text('Obsolete address'), findsNothing);
-    selectToilet(tester);
-    await tester.pump();
-    await tap(tester, 'Submit Request');
-    expect(workflows.submissions, isEmpty);
-    await tap(tester, 'Confirm Location');
-    await tap(tester, 'Submit Request');
-    expect(workflows.submissions.single['locationKind'], 'MAP_PIN');
-    expect(workflows.submissions.single['location'], {
-      'latitude': 2.0,
-      'longitude': 33.0,
-    });
-    await tap(tester, 'Yes');
-    expect(find.text('Newest address'), findsNothing);
-    workflows.addresses.last.complete(null);
-    await tester.pumpAndSettle();
-    expect(find.textContaining('No address returned'), findsOneWidget);
-  });
+  testWidgets(
+    'map tap returns immediately; cancellation and stale taps preserve draft',
+    (tester) async {
+      await open(tester);
+      await tap(tester, 'No');
+      expect(map!.interactive, false);
+      expect(map!.onSelected, isNull);
+      await tap(tester, 'Select Location on Map');
+      expect(pickerMap!.height, isNull);
+      final staleTap = pickerMap!.onSelected!;
+      staleTap(const LatLng(2.123456789, 33.123456789));
+      await tester.pumpAndSettle();
+      expect(find.text('Request for a Service'), findsOneWidget);
+      expect(find.text('2.123457, 33.123457'), findsOneWidget);
+      staleTap(const LatLng(3, 34));
+      await tester.pumpAndSettle();
+      expect(map!.destinationLatitude, 2.123456789);
+      selectToilet(tester);
+      await tester.pumpAndSettle();
+      final name = find.byKey(const Key('request-contact-name'));
+      await tester.ensureVisible(name);
+      await tester.enterText(name, ' Draft contact ');
+      final phone = find.byKey(const Key('request-contact-phone'));
+      await tester.ensureVisible(phone);
+      await tester.enterText(phone, '0700000123');
+      await tap(tester, 'Select Location on Map');
+      expect(map!.destinationLatitude, 2.123456789);
+      final cancelledTap = pickerMap!.onSelected!;
+      await tester.tap(find.byTooltip('Close Map'));
+      await tester.pumpAndSettle();
+      cancelledTap(const LatLng(4, 35));
+      await tester.pumpAndSettle();
+      expect(find.text(' Draft contact '), findsOneWidget);
+      expect(map!.destinationLatitude, 2.123456789);
+      await tap(tester, 'Submit Request');
+      expect(workflows.submissions.single['locationKind'], 'MAP_PIN');
+      expect(workflows.submissions.single['location'], {
+        'latitude': 2.123456789,
+        'longitude': 33.123456789,
+      });
+      expect(
+        workflows.submissions.single['additionalContactName'],
+        'Draft contact',
+      );
+      expect(workflows.submissions.single.containsKey('locationText'), false);
+      for (final label in [
+        'Reload Map',
+        'Choose Location in Full Screen',
+        'Confirm Location',
+        'Retry Address',
+      ]) {
+        expect(find.text(label), findsNothing);
+      }
+      expect(workflows.geocodeCalls, 0);
+    },
+  );
 
   testWidgets('unknown submission locks edits and retries the same command', (
     tester,
@@ -320,7 +461,8 @@ void main() {
       await tester.ensureVisible(find.text('No'));
       await tester.tap(find.text('No'));
       await tester.pump();
-      map!.onSelected!(const LatLng(1, 33));
+      await tap(tester, 'Select Location on Map');
+      pickerMap!.onSelected!(const LatLng(1, 33));
       await tester.pump();
       locations.pending!.complete(
         DevicePoint(
@@ -418,9 +560,110 @@ void main() {
     },
   );
 
-  for (final layout in ['compact', 'large_text', 'keyboard', 'permission']) {
+  testWidgets('dismissed picker ignores callbacks after logout', (
+    tester,
+  ) async {
+    await open(tester);
+    await tap(tester, 'No');
+    await tap(tester, 'Select Location on Map');
+    final callback = pickerMap!.onSelected!;
+    auth.onResolve = (_) async => const InvalidSession('revoked');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    callback(const LatLng(1, 33));
+    await tester.pumpAndSettle();
+    expect(find.text('Welcome to Weyonje'), findsOneWidget);
+    expect(workflows.submissions, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('coordinate accessibility entry returns directly', (
+    tester,
+  ) async {
+    await open(tester);
+    await tap(tester, 'No');
+    await tap(tester, 'Select Location on Map');
+    await tester.tap(find.byTooltip('Enter Coordinates'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText).at(0), '1.23456789');
+    await tester.enterText(find.byType(EditableText).at(1), '32.98765432');
+    await tap(tester, 'Use Entered Coordinates');
+    expect(find.text('Request for a Service'), findsOneWidget);
+    expect(find.text('1.234568, 32.987654'), findsOneWidget);
+    expect(map!.destinationLatitude, 1.23456789);
+  });
+
+  for (final layout in [
+    'compact',
+    'large_text',
+    'landscape',
+    'permission',
+    'coordinates',
+  ]) {
+    testWidgets('picker visual and layout $layout', (tester) async {
+      tester.view.physicalSize = layout == 'landscape'
+          ? const Size(740, 360)
+          : const Size(320, 740);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.view.resetViewInsets();
+      });
+      await open(tester);
+      await tap(tester, 'No');
+      await tap(tester, 'Select Location on Map');
+      if (layout == 'large_text') {
+        tester.platformDispatcher.textScaleFactorTestValue = 2;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpAndSettle();
+      }
+      expect(pickerMap!.height, isNull);
+      expect(find.byType(SingleChildScrollView), findsNothing);
+      if (layout == 'permission') {
+        locations.access = ClientLocationAccess.deniedForever;
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.inactive,
+        );
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('Location access is required'),
+          findsOneWidget,
+        );
+      }
+      if (layout == 'coordinates') {
+        await tester.tap(find.byTooltip('Enter Coordinates'));
+        tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+        await tester.pumpAndSettle();
+        await tap(tester, 'Use Entered Coordinates');
+        expect(
+          find.text('Enter valid latitude and longitude values.'),
+          findsOneWidget,
+        );
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byType(WeyonjeApplication),
+        matchesGoldenFile('visual/goldens/picker_$layout.png'),
+      );
+    });
+  }
+
+  for (final layout in [
+    'compact',
+    'large_text',
+    'keyboard',
+    'permission',
+    'landscape',
+  ]) {
     testWidgets('request visual $layout', (tester) async {
-      tester.view.physicalSize = const Size(360, 740);
+      tester.view.physicalSize = layout == 'landscape'
+          ? const Size(740, 360)
+          : const Size(360, 740);
       tester.view.devicePixelRatio = 1;
       addTearDown(() {
         tester.view.resetPhysicalSize();

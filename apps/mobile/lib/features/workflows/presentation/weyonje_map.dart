@@ -1,8 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+/// Native-map replacement only for deterministic Client widget tests.
+final requestMapBuilderProvider = Provider<Widget Function(WeyonjeMap)>(
+  (ref) =>
+      (map) => map,
+);
 
 class WeyonjeMap extends StatefulWidget {
   const WeyonjeMap({
@@ -14,6 +21,8 @@ class WeyonjeMap extends StatefulWidget {
     this.encodedRoute,
     this.hasDestination = true,
     this.showDeviceLocation = true,
+    this.interactive = true,
+    this.height = 320,
     super.key,
   });
 
@@ -25,6 +34,8 @@ class WeyonjeMap extends StatefulWidget {
   final String? encodedRoute;
   final bool hasDestination;
   final bool showDeviceLocation;
+  final bool interactive;
+  final double? height;
 
   @override
   State<WeyonjeMap> createState() => _WeyonjeMapState();
@@ -96,37 +107,56 @@ class _WeyonjeMapState extends State<WeyonjeMap> {
           ? 'Map. Destination $destinationLatitude, $destinationLongitude.'
           : 'Map. No service location selected.',
       child: SizedBox(
-        height: 320,
+        height: widget.height,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(widget.height == null ? 0 : 12),
           child: Stack(
             children: [
-              GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: destination,
-                  zoom: 15,
+              IgnorePointer(
+                ignoring: !widget.interactive,
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: destination,
+                    zoom: 15,
+                  ),
+                  markers: markers,
+                  polylines: encodedRoute == null || encodedRoute.isEmpty
+                      ? const <Polyline>{}
+                      : {
+                          Polyline(
+                            polylineId: const PolylineId('google-guidance'),
+                            points: _decodePolyline(encodedRoute),
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 5,
+                          ),
+                        },
+                  onMapCreated: (controller) {
+                    if (!mounted) {
+                      controller.dispose();
+                      return;
+                    }
+                    _controller = controller;
+                    _loadTimer?.cancel();
+                    if (mounted) setState(() => _created = true);
+                  },
+                  // The full-screen Client toolbar occupies the top edge.
+                  // Keep native top controls out from underneath that overlay.
+                  myLocationButtonEnabled:
+                      widget.showDeviceLocation &&
+                      widget.interactive &&
+                      widget.height != null,
+                  myLocationEnabled: widget.showDeviceLocation,
+                  compassEnabled: widget.interactive && widget.height != null,
+                  scrollGesturesEnabled: widget.interactive,
+                  zoomGesturesEnabled: widget.interactive,
+                  rotateGesturesEnabled: widget.interactive,
+                  tiltGesturesEnabled: widget.interactive,
+                  zoomControlsEnabled: widget.interactive,
+                  onTap: (point) {
+                    if (mounted && widget.interactive) onSelected?.call(point);
+                  },
+                  onCameraIdle: () {},
                 ),
-                markers: markers,
-                polylines: encodedRoute == null || encodedRoute.isEmpty
-                    ? const <Polyline>{}
-                    : {
-                        Polyline(
-                          polylineId: const PolylineId('google-guidance'),
-                          points: _decodePolyline(encodedRoute),
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 5,
-                        ),
-                      },
-                onMapCreated: (controller) {
-                  _controller = controller;
-                  _loadTimer?.cancel();
-                  if (mounted) setState(() => _created = true);
-                },
-                myLocationButtonEnabled: widget.showDeviceLocation,
-                myLocationEnabled: widget.showDeviceLocation,
-                compassEnabled: true,
-                onTap: onSelected,
-                onCameraIdle: () {},
               ),
               if (!_created)
                 IgnorePointer(
@@ -134,9 +164,17 @@ class _WeyonjeMapState extends State<WeyonjeMap> {
                     child: FCard(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
-                        child: _timedOut
-                            ? const Text(
-                                'Map did not initialize. Check your connection and reload the map.',
+                        child: !widget.interactive
+                            ? Text(
+                                _timedOut
+                                    ? 'Map preview unavailable.'
+                                    : 'Loading map…',
+                              )
+                            : _timedOut
+                            ? Text(
+                                widget.height == null
+                                    ? 'Map did not initialize. Check your connection. Close and reopen location selection to try again.'
+                                    : 'Map did not initialize. Check your connection and reopen this screen.',
                               )
                             : const Column(
                                 mainAxisSize: MainAxisSize.min,

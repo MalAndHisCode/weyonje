@@ -13,7 +13,8 @@ String humanStatus(String value) => value
     )
     .join(' ');
 
-String scheduleLabel(String mode, DateTime? time) => mode == 'ASAP'
+String scheduleLabel(String mode, DateTime? time) =>
+    (mode == 'AS_SOON_AS_POSSIBLE' || mode == 'ASAP')
     ? 'As soon as possible'
     : time == null
     ? 'Scheduled time unavailable'

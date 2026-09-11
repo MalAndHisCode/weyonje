@@ -163,7 +163,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.locationPicker,
-        builder: (context, state) => const RequestLocationPickerScreen(),
+        builder: (context, state) =>
+            RequestLocationPickerScreen(initialPoint: state.extra),
       ),
       GoRoute(
         path: AppRoutes.clientRequests,

@@ -17,12 +17,6 @@ import '../application/workflow_providers.dart';
 import '../domain/workflow_models.dart';
 import 'weyonje_map.dart';
 
-/// Keeps routine form tests independent of the native Maps platform view.
-final requestMapBuilderProvider = Provider<Widget Function(WeyonjeMap)>(
-  (ref) =>
-      (map) => map,
-);
-
 class RequestServiceScreen extends ConsumerStatefulWidget {
   const RequestServiceScreen({super.key});
   @override
@@ -35,18 +29,15 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   final _form = GlobalKey<FormState>();
   final _contactName = TextEditingController();
   final _contactPhone = TextEditingController();
-  final _address = TextEditingController();
+  final _serviceLocation = TextEditingController();
   Map<String, dynamic>? _profile;
   String? _profileError;
   bool? _current;
   LatLng? _point;
-  bool _confirmed = false;
   String? _toilet;
   ClientLocationAccess? _access;
   bool _checking = false;
   bool _locating = false;
-  bool _geocoding = false;
-  bool _addressFromGoogle = false;
   bool _submitting = false;
   bool _submissionUncertain = false;
   bool get _draftLocked => _submitting || _submissionUncertain;
@@ -56,7 +47,6 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
   int _selection = 0;
   int _permissionCheck = 0;
   int _profileCheck = 0;
-  int _mapRevision = 0;
   String? _payloadSignature;
   String? _idempotencyKey;
 
@@ -74,7 +64,7 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     WidgetsBinding.instance.removeObserver(this);
     _contactName.dispose();
     _contactPhone.dispose();
-    _address.dispose();
+    _serviceLocation.dispose();
     super.dispose();
   }
 
@@ -143,11 +133,9 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     setState(() {
       _current = current;
       _point = null;
-      _confirmed = false;
-      _address.clear();
+      _serviceLocation.clear();
       _locationError = null;
       _locating = false;
-      _geocoding = false;
     });
     if (current) _locate();
   }
@@ -156,10 +144,8 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     final generation = ++_selection;
     setState(() {
       _point = null;
-      _confirmed = false;
-      _address.clear();
+      _serviceLocation.clear();
       _locating = true;
-      _geocoding = false;
       _locationError = null;
     });
     try {
@@ -197,70 +183,42 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
         point.longitude.abs() > 180) {
       return;
     }
-    final generation = ++_selection;
+    ++_selection;
     setState(() {
       _point = point;
-      _confirmed = automatic;
-      _address.clear();
+      _serviceLocation.text =
+          '${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}';
       _locationError = null;
       _locating = false;
     });
-    _resolveAddress(point, generation);
   }
 
   Future<void> _chooseLocation() async {
-    final generation = _selection;
+    if (_draftLocked || _current != false) return;
+    final generation = ++_selection;
+    if (!await _checkAccess(request: true)) return;
+    if (!mounted || generation != _selection || _current != false) return;
+    FocusScope.of(context).unfocus();
     final point = await context.push<Map<String, double>>(
       '/client/location-picker',
+      extra: _point,
     );
     if (!mounted ||
         generation != _selection ||
         _current != false ||
+        _draftLocked ||
         point == null) {
       return;
     }
     _select(LatLng(point['latitude']!, point['longitude']!));
-    setState(() => _confirmed = true);
-  }
-
-  Future<void> _resolveAddress(LatLng point, int generation) async {
-    setState(() {
-      _geocoding = true;
-      _addressFromGoogle = false;
-      _address.clear();
-    });
-    try {
-      final address = await ref
-          .read(workflowRepositoryProvider)
-          .reverseGeocode(point.latitude, point.longitude);
-      if (mounted && generation == _selection) {
-        _addressFromGoogle = address?.trim().isNotEmpty == true;
-        setState(
-          () => _address.text = address?.trim().isNotEmpty == true
-              ? address!
-              : 'No address returned. Selected coordinates will be used.',
-        );
-      }
-    } catch (_) {
-      if (mounted && generation == _selection) {
-        setState(
-          () => _address.text =
-              'Address unavailable. Selected coordinates will be used.',
-        );
-      }
-    } finally {
-      if (mounted && generation == _selection) {
-        setState(() => _geocoding = false);
-      }
-    }
   }
 
   Future<void> _submit() async {
     if (_submitting || !_form.currentState!.validate()) return;
-    if (_profile == null || _current == null || _point == null || !_confirmed) {
+    if (_profile == null || _current == null || _point == null) {
       setState(
         () => _error =
-            'Load Client details, choose Yes or No, and confirm a service location.',
+            'Load Client details, choose Yes or No, and select a service location.',
       );
       return;
     }
@@ -278,7 +236,7 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
           'longitude': _point!.longitude,
         },
         'toiletType': _toilet,
-        'scheduleMode': 'ASAP',
+        'scheduleMode': 'AS_SOON_AS_POSSIBLE',
         if (_contactName.text.trim().isNotEmpty)
           'additionalContactName': _contactName.text.trim(),
         if (_contactPhone.text.trim().isNotEmpty)
@@ -297,7 +255,13 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
     } on WorkflowException catch (error) {
       if (mounted) {
         setState(() {
-          _submissionUncertain = error.code == null;
+          _submissionUncertain =
+              error.code == null ||
+              const {
+                'REQUEST_TIMEOUT',
+                'DEPENDENCY_UNAVAILABLE',
+                'UNEXPECTED_ERROR',
+              }.contains(error.code);
           _error = error.message;
           if (error.message == 'Enter a valid Ugandan phone number.') {
             _phoneError = error.message;
@@ -320,7 +284,15 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
 
   Widget _heading(String text) => Padding(
     padding: const EdgeInsets.only(top: 24, bottom: 12),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      ),
+    ),
   );
 
   Widget _detail(String label, String value) => Padding(
@@ -382,14 +354,12 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
             if (configured)
               ref.watch(requestMapBuilderProvider)(
                 WeyonjeMap(
-                  key: ValueKey(_mapRevision),
+                  interactive: false,
+                  height: 180,
                   destinationLatitude: _point?.latitude ?? 0.3476,
                   destinationLongitude: _point?.longitude ?? 32.5825,
                   hasDestination: _point != null,
                   showDeviceLocation: _access == ClientLocationAccess.ready,
-                  onSelected: _current == false && !_draftLocked
-                      ? _select
-                      : null,
                 ),
               )
             else
@@ -399,59 +369,24 @@ class _RequestServiceScreenState extends ConsumerState<RequestServiceScreen>
                     'Map display is not configured in this build. Current location can still provide coordinates; choosing another location requires a configured map.',
               ),
             FTextField(
-              control: FTextFieldControl.managed(controller: _address),
+              control: FTextFieldControl.managed(controller: _serviceLocation),
               readOnly: true,
               maxLines: 3,
               label: const Text('Service Location'),
-              description: _addressFromGoogle && _address.text.isNotEmpty
-                  ? const Text('Google Maps')
-                  : null,
-              hint: _geocoding
-                  ? 'Resolving address…'
-                  : 'No service location selected',
+              hint: 'No service location selected',
             ),
-            if (_point != null)
-              Text(
-                'Coordinates: ${_point!.latitude.toStringAsFixed(6)}, ${_point!.longitude.toStringAsFixed(6)}',
-              ),
-            if (configured)
+            if (_current == false)
               WeyonjeButton(
-                label: 'Reload Map',
+                label: 'Select Location on Map',
                 kind: WeyonjeButtonKind.outline,
-                onPressed: _submitting
-                    ? null
-                    : () => setState(() => _mapRevision++),
+                onPressed: _draftLocked || _checking ? null : _chooseLocation,
               ),
-            if (_current == false) ...[
-              const Text('Tap the map, then confirm the selected location.'),
-              if (configured)
-                WeyonjeButton(
-                  label: 'Choose Location in Full Screen',
-                  kind: WeyonjeButtonKind.outline,
-                  onPressed: _draftLocked ? null : _chooseLocation,
-                ),
-              WeyonjeButton(
-                label: _confirmed ? 'Location Confirmed' : 'Confirm Location',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: _point == null || _submitting
-                    ? null
-                    : () => setState(() => _confirmed = true),
-              ),
-            ],
             if (_current == true)
               WeyonjeButton(
                 label: 'Refresh Current Location',
                 kind: WeyonjeButtonKind.outline,
                 loading: _locating,
                 onPressed: _draftLocked || _locating ? null : _locate,
-              ),
-            if (_point != null && !_geocoding)
-              WeyonjeButton(
-                label: 'Retry Address',
-                kind: WeyonjeButtonKind.outline,
-                onPressed: _submitting
-                    ? null
-                    : () => _resolveAddress(_point!, ++_selection),
               ),
             if (_checking) const Text('Checking location access…'),
             if (_access != ClientLocationAccess.ready && !_checking) ...[
