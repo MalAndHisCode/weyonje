@@ -241,6 +241,12 @@ bool _isUnauthenticatedPath(String path) =>
     path == AppRoutes.serviceProviderRegistration;
 
 String? _authenticatedRedirect(CurrentActor actor, String path) {
+  if (actor.access == ActorAccess.restricted) {
+    final destination = actor.actorType == ActorType.serviceProvider
+        ? AppRoutes.providerAccountStatus
+        : AppRoutes.accessDenied;
+    return path == destination ? null : destination;
+  }
   final destination = switch ((actor.actorType, actor.access)) {
     (ActorType.serviceProvider, ActorAccess.restricted) =>
       AppRoutes.providerAccountStatus,

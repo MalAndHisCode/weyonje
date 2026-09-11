@@ -56,3 +56,7 @@ For Maps, enable Maps SDK for Android, Places API (New), Geocoding API and Route
 ## Client phone verification
 
 The existing registration and Client code-sign-in screens share automatic six-box Forui verification and Android SMS Retriever. Server-confirmed success remains visible before actor routing; manual entry and paste remain available. Sandbox simulator receipt requires deliberate entry/paste and does not generate an Android SMS event. See [phone verification setup](../../docs/PHONE_VERIFICATION_SETUP.md) for lifecycle/recovery, trusted app hashes, the first-party Android dependency, exact signing limitations, and the bounded live-SMS test procedure. Live delivery/autofill remains unverified.
+
+## Client Request Form and Maps (2026-09-11)
+
+See [Client request and Maps setup](../../docs/CLIENT_REQUEST_AND_MAPS_SETUP.md) for profile/API compatibility, location permissions, stable retry keys, warm-resume behavior and the remaining external setup. In private config/auth.local.json, WEYONJE_GOOGLE_MAPS_ENABLED controls map display (default false). The separate Android key belongs in the existing WEYONJE_GOOGLE_MAPS_ANDROID_KEY Gradle property, never as the server key or a Dart define. Keep config/auth.example.json secret-free. Build with `flutter build apk --debug --no-pub --dart-define-from-file=config/auth.local.json`. The API must include GET /v1/client/profile before rollout.

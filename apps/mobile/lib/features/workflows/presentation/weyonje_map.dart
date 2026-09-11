@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class WeyonjeMap extends StatelessWidget {
+class WeyonjeMap extends StatefulWidget {
   const WeyonjeMap({
     required this.destinationLatitude,
     required this.destinationLongitude,
@@ -9,6 +12,8 @@ class WeyonjeMap extends StatelessWidget {
     this.providerLongitude,
     this.onSelected,
     this.encodedRoute,
+    this.hasDestination = true,
+    this.showDeviceLocation = true,
     super.key,
   });
 
@@ -18,20 +23,68 @@ class WeyonjeMap extends StatelessWidget {
   final double? providerLongitude;
   final ValueChanged<LatLng>? onSelected;
   final String? encodedRoute;
+  final bool hasDestination;
+  final bool showDeviceLocation;
+
+  @override
+  State<WeyonjeMap> createState() => _WeyonjeMapState();
+}
+
+class _WeyonjeMapState extends State<WeyonjeMap> {
+  GoogleMapController? _controller;
+  Timer? _loadTimer;
+  bool _created = false;
+  bool _timedOut = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTimer = Timer(const Duration(seconds: 15), () {
+      if (mounted && !_created) setState(() => _timedOut = true);
+    });
+  }
+
+  @override
+  void didUpdateWidget(WeyonjeMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.hasDestination &&
+        (oldWidget.destinationLatitude != widget.destinationLatitude ||
+            oldWidget.destinationLongitude != widget.destinationLongitude)) {
+      _controller?.moveCamera(
+        CameraUpdate.newLatLng(
+          LatLng(widget.destinationLatitude, widget.destinationLongitude),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _loadTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final destinationLatitude = widget.destinationLatitude;
+    final destinationLongitude = widget.destinationLongitude;
+    final providerLatitude = widget.providerLatitude;
+    final providerLongitude = widget.providerLongitude;
+    final encodedRoute = widget.encodedRoute;
+    final onSelected = widget.onSelected;
     final destination = LatLng(destinationLatitude, destinationLongitude);
     final markers = <Marker>{
-      Marker(
-        markerId: const MarkerId('destination'),
-        position: destination,
-        infoWindow: const InfoWindow(title: 'Selected Destination'),
-      ),
+      if (widget.hasDestination)
+        Marker(
+          markerId: const MarkerId('destination'),
+          position: destination,
+          infoWindow: const InfoWindow(title: 'Selected Destination'),
+        ),
       if (providerLatitude != null && providerLongitude != null)
         Marker(
           markerId: const MarkerId('provider'),
-          position: LatLng(providerLatitude!, providerLongitude!),
+          position: LatLng(providerLatitude, providerLongitude),
           infoWindow: const InfoWindow(title: 'Provider Position'),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueAzure,
@@ -39,32 +92,65 @@ class WeyonjeMap extends StatelessWidget {
         ),
     };
     return Semantics(
-      label: 'Map. Destination $destinationLatitude, $destinationLongitude.',
+      label: widget.hasDestination
+          ? 'Map. Destination $destinationLatitude, $destinationLongitude.'
+          : 'Map. No service location selected.',
       child: SizedBox(
         height: 320,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: destination,
-              zoom: 15,
-            ),
-            markers: markers,
-            polylines: encodedRoute == null || encodedRoute!.isEmpty
-                ? const <Polyline>{}
-                : {
-                    Polyline(
-                      polylineId: const PolylineId('google-guidance'),
-                      points: _decodePolyline(encodedRoute!),
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 5,
+          child: Stack(
+            children: [
+              GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: destination,
+                  zoom: 15,
+                ),
+                markers: markers,
+                polylines: encodedRoute == null || encodedRoute.isEmpty
+                    ? const <Polyline>{}
+                    : {
+                        Polyline(
+                          polylineId: const PolylineId('google-guidance'),
+                          points: _decodePolyline(encodedRoute),
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 5,
+                        ),
+                      },
+                onMapCreated: (controller) {
+                  _controller = controller;
+                  _loadTimer?.cancel();
+                  if (mounted) setState(() => _created = true);
+                },
+                myLocationButtonEnabled: widget.showDeviceLocation,
+                myLocationEnabled: widget.showDeviceLocation,
+                compassEnabled: true,
+                onTap: onSelected,
+                onCameraIdle: () {},
+              ),
+              if (!_created)
+                IgnorePointer(
+                  child: Center(
+                    child: FCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: _timedOut
+                            ? const Text(
+                                'Map did not initialize. Check your connection and reload the map.',
+                              )
+                            : const Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FCircularProgress(),
+                                  SizedBox(height: 8),
+                                  Text('Loading Google Map…'),
+                                ],
+                              ),
+                      ),
                     ),
-                  },
-            myLocationButtonEnabled: true,
-            myLocationEnabled: true,
-            compassEnabled: true,
-            onTap: onSelected,
-            onCameraIdle: () {},
+                  ),
+                ),
+            ],
           ),
         ),
       ),

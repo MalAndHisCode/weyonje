@@ -6,9 +6,9 @@
 
 | Field | Value |
 | --- | --- |
-| Document version | 8.2 |
-| Last updated | 2026-09-10 |
-| Verified against | Local repository at `D:\Dev\weyonje`; no deployment, shared database or billing action; ignored SMS configuration validated without exposing values; Railway process and installed APK not verified |
+| Document version | 9.0 |
+| Last updated | 2026-09-11 |
+| Verified against | Local repository, 151 API tests, 146 Flutter tests, debug APK; signed-in Google weyonje-dev and read-only Railway settings; no deployment or connected Android device |
 | System version | Mobile `0.1.0+1`; API/contracts `0.1.0` |
 
 ## Current project summary
@@ -21,6 +21,8 @@ The established Client request, marketplace and Call Centre ingress, atomic Prov
 
 | Capability | Status | Repository reality |
 | --- | --- | --- |
+| Client service requests | **Implemented locally; rollout pending** | Read-only authenticated profile; explicit current/alternative coordinate modes, foreground access recovery, mandatory toilet type, paired contacts, ASAP payload, stable retry/reconciliation behavior. |
+| Authenticated warm resume | **Implemented locally; physical cycle unverified** | Background session validation retains route/draft/scroll; transient failures retain session, invalid/revoked/denied outcomes preserve safe routing. |
 | Native authentication/registration | **Implemented locally; live SMS unverified** | Automatic six-box Client verification, pending registration recovery and atomic OTP/account/session completion extend existing native endpoints. Provider review and role eligibility remain server-authoritative. |
 | Password recovery | **Implemented; live email/SMS unverified** | Provider/KCCA recovery supports registered phone or email, non-enumerating requests, throttling, expiry, attempt limits, supersession, HMAC-only secrets, one-time use, password rules, session revocation, audit events, guarded fake SMS/email, and mobile request/code/password/success states. |
 | Email verification | **Implemented; access gating unresolved** | Authenticated request, phone/email method selection, resend, supersession, expiry, one-time verification, `emailVerifiedAt`, audit events, mobile flow and deep-link route exist. No new Provider/KCCA access block was imposed because the Business Process Specification does not clearly approve that rule. |
@@ -29,7 +31,7 @@ The established Client request, marketplace and Call Centre ingress, atomic Prov
 | KCCA manual Call Centre entry | **Partially Implemented** | Separate KCCA permission protects mobile routing and server queries. Mobile UI can find an existing Client, enter manual contact/service/location/timing data, select an active approved Provider, enter whole-number UGX price, create/assign, and list statuses. Existing API feedback/reassignment operations remain available; dedicated mobile feedback/reassignment detail controls are incomplete. |
 | KCCA Provider administration | **Implemented** | Mobile status lists show registration/ESS/contact details and confirmation actions for approve, reject with reason, activate, deactivate and disable. Server permission is independent of UI. Approval/status histories are append-only and Provider in-app/push notifications are durable. |
 | KCCA disposal administration | **Partially Implemented** | Mobile list/create/edit/activate/deactivate exists. Server records catalogue audits and immutable assignment history and refuses reassignment after the disposal journey starts. Dedicated history rendering and request assignment controls in the disposal-site screen are incomplete. |
-| Google Maps | **Partially Implemented; live calls unverified** | `google_maps_flutter` displays destination/Provider markers, tap selection and decoded Routes polylines with distance/ETA. Authenticated server adapters provide Places text search, reverse geocoding and Routes guidance without exposing the server credential. Request and journey screens keep address/coordinate fallbacks. KCCA administration map embeddings remain incomplete. |
+| Google Maps | **Partially Implemented; live calls unverified** | `google_maps_flutter` displays destination/Provider markers, tap selection and decoded Routes polylines with distance/ETA. Authenticated server adapters provide Places text search, reverse geocoding and Routes guidance without exposing the server credential. The Client form uses coordinate-backed locations and a read-only resolved address; the compatible picker retains search/coordinate controls. KCCA administration map embeddings remain incomplete. |
 | Android foreground/background tracking | **Partially Implemented; device behavior unverified** | An authorised active Provider journey starts a foreground service with persistent disclosure, restores the active session after process restart, uses API policy, preserves sample UUID/device time, and stores at most 200 encrypted samples for 24 hours before chronological upload. It stops on server-reconciled completion, logout or lost app eligibility. Force-stop survival is not claimed. OEM/battery/process-removal behavior and permission UX require physical-device validation and final KCCA approval. |
 | FCM push | **Implemented behind adapter; live FCM unverified** | Android permission, token registration/refresh/delete, per-installation/environment association, encrypted token storage, stale-token invalidation, open/terminated hint routing, private lock-screen visibility, fake push and Firebase Admin delivery exist. Push always routes to REST notification reconciliation. No Firebase project/config/credentials were used. |
 | In-app notifications/Socket.IO | **Implemented** | PostgreSQL notifications remain authoritative. Socket.IO remains an authenticated hint channel with REST reconciliation. |
@@ -93,7 +95,7 @@ The last migration backfills Provider decision history and current disposal assi
 
 - `mobileMonitoringPermitted`, `providerApprovalPermitted`, and `callCentreOperationsPermitted` are exposed separately to KCCA mobile routing and enforced again in API services. KCCA administration does not imply journey monitoring.
 - Provider work still requires approved, active, login-enabled status. All such Providers see eligible marketplace requests; first valid acceptance wins atomically.
-- Scheduled timing is mandatory as `ASAP` or a future timestamp. Prices are non-negative whole-number UGX.
+- Every request carries `ASAP` or a scheduled future timestamp. The redesigned Client form selects `ASAP` and omits requestedServiceAt; scheduled APIs/records/reminders remain. Client ingress requires toilet type, independently of Call Centre and historical nullable records. Prices are non-negative whole-number UGX.
 - Feedback remains 1–5. Negative feedback creates a separate follow-up. `LEFT_INCOMPLETE` permits disposal because waste was collected; `NOT_DONE_AT_ALL` does not.
 - KCCA alone controls disposal-site catalogue and assignment. Providers see only assigned sites for authorised work.
 - Email verification foundations do not block existing Client phone flows or impose an unapproved access gate.
@@ -116,7 +118,7 @@ The API supplies the adopted development defaults: 15-second interval, 25-metre 
 
 | Integration | State |
 | --- | --- |
-| Google Maps Platform | **Unknown / Not Yet Verified.** Requires authorised non-production Google Cloud project, billing/quota budget and alerts, Maps SDK for Android, Places API (New), Geocoding API, Routes API, restricted Android key and separate restricted server key. |
+| Google Maps Platform | **Partially Implemented / configured but unverified.** Confirmed weyonje-dev; Android/Geocoding/Places New/Routes APIs enabled, Android debug credential restricted to package/SHA-1 and Maps SDK for Android. Local key/flag and server key still absent. Railway Trial has no static egress capability; server restriction requires approved networking and later service configuration/deployment. Trial untouched. |
 | Firebase/FCM | **Unknown / Not Yet Verified.** Requires authorised Firebase project, Android app registration/config, Railway service credentials and physical-device foreground/background/terminated tests. |
 | SMS/email | **Live SMS adapter configured locally.** User-generated live key saved in ignored .env; default sender supported by omitting from. One connection test accepted (HTTP 201/status 100, UGX 27), with user-provided dashboard Sent record from AFRICASTKNG. Local provider selects Africa's Talking. No deployed settings changed; live registration/sign-in completion and physical autofill remain unverified. Production fake is prohibited. Live email provider remains unselected. |
 | Railway worker | **Not Implemented externally.** Code and command exist; creating the worker service, variables, health monitoring and capacity is an external authorisation. |
@@ -181,6 +183,7 @@ The requested mobile changes are **Implemented** with local build, widget and re
 
 | Date | Version | Change | Evidence |
 | --- | --- | --- | --- |
+| 2026-09-11 | 9.0 | Client request redesign, authenticated profile, coordinate/permission rules, scoped toilet requirement, ASAP presentation and stable warm resume; development Maps setup | Local suites/build and signed-in configuration audit; no deployment/device |
 | 2026-09-10 | 8.2 | Client registration branching, simpler verification copy and server-derived retry recovery | 146 API tests, 132 Flutter tests, reviewed renders and configured APK; read-only Railway settings audit |
 | 2026-09-10 | 8.1 | Remove response-driven OTP verification and resolve local API root configuration | Regression suites and contract checks; device/Railway verification pending |
 | 2026-09-10 | 8.0 | Automatic phone verification, Android Retriever, provider acceptance and atomic completion | Local code/tests/build; external SMS/device/database evidence pending |
@@ -195,7 +198,7 @@ The requested mobile changes are **Implemented** with local build, widget and re
 - `AI_CODING_AGENT_RULES.md`, `MOBILE_UI_UX_DESIGN_RULES.md`, `BRAND_IDENTITY_GUIDELINES.md`: current Forui, writing and launcher packaging rules.
 - `CURRENT_SYSTEM_STATE_TEMPLATE.md`: immutable structure and status/evidence rules; unchanged.
 
-## Authority boundary
+## Historical Authority Boundary — Prior Changes
 
 No external account, database, deployment, Railway setting, Google/Firebase resource, credential, billing configuration, real message, Git commit, push or destructive data action was performed. `CURRENT_SYSTEM_STATE_TEMPLATE.md` remains unchanged.
 
@@ -214,3 +217,51 @@ The shared non-secret settings are AFRICAS_TALKING, the live endpoint, username 
 ### Approved Railway SMS attachment — 2026-09-10
 
 **Implemented externally:** Following explicit user approval, attached the six existing shared SMS variables to weyonje-api: SMS_PROVIDER, AFRICASTALKING_API_BASE_URL, AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY, AFRICASTALKING_SENDER_ID and SMS_ANDROID_APP_HASH. Railway now reports 27 service variables and nine shared references in use. Reviewed exactly six staged reference additions and deployed them. Deployment 1a28a4f2-6650-410f-9861-a46bd6d2f471 reports ACTIVE / Deployment successful. The existing key was neither revealed nor replaced. No SMS was sent; actual provider acceptance, outbox entry, handset receipt and authentication still require a bounded authorized live test. This supersedes the preceding pending-attachment/deployment status.
+
+## Client Request Form, Session Resume and Maps — 2026-09-11
+
+### Implemented Functionality and UI
+
+**Implemented locally:** The dashboard and destination title read **Request for a Service** at the compatible /client/requests/new route. The new request_service_screen.dart owns the mounted form draft; client_request_screens.dart re-exports it and preserves other workflow screens. Order is Client Details (Client Name, Phone Number, nonempty Email Address only), Location Details (exact Title Case current-location question, explicit Yes/No radios, Google Map, read-only Service Location), Service Details (mandatory Type of Toilet to Empty: Pit Latrine/Septic Tank), Additional Contact Details (optional name, conditional telephone), Submit Request. Profile loading/failure/retry are explicit and authoritative profile contacts are never submitted by the form.
+
+Foreground location services and permission are checked on entry, resume/settings return and submission for both modes. Disabled, denied, permanent denial and acquisition timeout are distinct. Yes obtains and confirms one current point and blocks manual controls; explicit refresh replaces it. No requires a selected and confirmed coordinate. The compatible full-screen picker retains existing search/coordinate accessibility controls. Mode changes clear stale points/addresses; generation guards ignore late GPS/geocoding. Camera movement does not trigger reverse geocoding. Missing addresses remain honest, coordinate-backed requests remain usable, and Google-derived addresses are not persisted by this form. Native map initialization has loading/timeout/reload feedback; SDK tile/key/quota failures cannot be inferred from map-created and remain a device validation limitation.
+
+The form always sends ASAP without requestedServiceAt. This adopted presentation decision leaves scheduled APIs, existing records and reminder creation unchanged. Existing server Ugandan phone normalization is reused; paired-name/phone validation stays mandatory, and a rejected invalid phone is reflected at its field. A Client-only DTO/service requires toilet type without backfills, migrations or database constraints. Repeated taps are guarded, unchanged retries preserve a UUID, definite rejection permits edited payload/new UUID, and an ambiguous response holds edits pending retry or My Requests reconciliation.
+
+### Authentication and Session Lifecycle
+
+**Confirmed cause and correction:** revalidateOnResume previously emitted LaunchChecking, which GoRouter redirected to /launch, destroying the page before authenticated routing returned to the dashboard. The existing router provider was already stable. Warm checks now preserve LaunchAuthenticated while validating; transient/rate-limited failures keep the route and draft. Invalid/revoked/missing/denied sessions still leave protected routes, and restricted Provider eligibility goes to account status. Controller cancellation/generations and coalesced refresh plus repository session generations reject stale results across logout/account changes. Initial launch still uses its session-check page. No OTP bypass, token lifetime change, route-guard removal or Provider journey tracking change was introduced. Process-death draft restoration is **Not Implemented**.
+
+### APIs, Data and Dependency Boundaries
+
+**Implemented:** GET /v1/client/profile in the existing guarded ClientWorkflowController returns only clientName, phoneNumber and optional emailAddress. Individual/Organization names use existing conventions and creation independently derives encrypted contacts/name from the account. Shared ClientRequestProfileContract and CreateClientServiceRequestContract plus Client-specific DTO/OpenAPI describe the new read and required toilet. Shared CreateServiceRequestContract and Call Centre DTO retain compatibility. Updated mobile requires the new profile endpoint; older apps omitting toilet type will receive validation errors on new Client requests after API rollout. No schema, dependency, package or signing changes. Existing MapsModule imports AuthModule and its authenticated server adapters remain intact.
+
+### Configuration, Deployment and Operational Limits
+
+**Configured but unverified:** User confirmed Google project weyonje-dev (Weyonje-Development). Four required APIs were enabled and Weyonje Android Debug was restricted to Maps SDK for Android, ug.go.kcca.weyonje.weyonje and the actual debug SHA-1 82:63:D6:53:D3:C7:C3:AF:8D:C4:A1:D9:00:06:B2:C1:B0:62:F2:C8. Google's onboarding restriction was not retained on first attempt; the editor's saved credential inventory subsequently confirmed Android apps and 1 API. No unrelated APIs were intentionally enabled. The initially open My First Project was rejected by the user and left unchanged. Free trial remains active, expiring December 11, 2026; no billing linkage, purchase, paid-quota increase or trial deactivation.
+
+The Maps billing page links to the existing billing account; no billing linkage was changed. Geocoding quotas showed Unlimited requests/day and 3000 requests/minute with zero usage, Adjustable No, and disabled Edit quota/Create usage alert controls. No custom cost cap or alert was configured.
+
+GOOGLE_MAPS_SERVER_API_KEY remains unset. Following the user's no-extra-expense instruction, the restricted Android credential is installed privately in user Gradle properties and WEYONJE_GOOGLE_MAPS_ENABLED is true in the ignored local configuration. No source file contains the key. .env.example, mobile README and config/maps.gradle.properties.example document the existing settings without secrets. The APK uses the established ignored auth.local.json API configuration. Local setup does not configure Railway.
+
+**Known Broken / Unstable external configuration:** Read-only Railway inspection found weyonje-api sleeping, Trial plan, environment named production, and a service-settings warning that the configured ams region is invalid and blocks deployments. No service settings were changed. Static outbound IPs require Pro and a redeploy according to current Railway documentation, so a suitably IP-restricted server Maps credential remains blocked on an approved networking/deployment decision. Do not remove key restrictions to bypass this. See ../CLIENT_REQUEST_AND_MAPS_SETUP.md for exact remaining actions and official references.
+
+### Validation Evidence
+
+- Dart formatting: dart format --output=none --set-exit-if-changed lib test passed; Flutter analysis passed with no issues.
+- flutter test --no-pub: **146 passed**, including 13 new form tests and late-refresh-after-logout coverage; existing OTP no-response-autofill, actor routing and auth tests remain passing.
+- Rendered and inspected compact 360px, 2x text, keyboard-inset, permission recovery and updated Client dashboard goldens. Tests use bundled fonts and a labeled fake map, not live Google tiles. Controls/labels wrap and scroll; actions remain reachable.
+- pnpm typecheck and pnpm build passed, including Prisma validate/generate without applying migrations. API suite: **151 passed, 4 isolated PostgreSQL tests skipped**. New coverage checks scoped toilet validation, Individual/Organization profile, conditional email and denied actors; existing lifecycle/Call Centre tests remain.
+- pnpm openapi:generate, pnpm openapi:check and affected Prettier checks passed. git diff --check passed.
+- flutter build apk --debug --no-pub --dart-define-from-file=config/auth.local.json passed. Artifact: apps/mobile/build/app/outputs/flutter-apk/app-debug.apk; SHA-256 7BD93802E3323B7B10A09A2790C86CCA05AE67A8ED5301C60857F07067B050FA. Existing flutter_foreground_task Kotlin Gradle Plugin compatibility warning remains; it did not fail the build.
+- adb devices returned no connected device. Physical map rendering, permissions, actual GPS and display-off/on are **Not Verified**. No process-death restoration, live Maps result, deployment or installed-app behavior is claimed.
+
+### Current Authority Boundary
+
+Repository/code/test/docs edits and authorized development Google API/key restrictions only. Railway was inspected read-only. No commit, push, PR, deployment, purchase, production modification, database migration/data operation or secret rotation. CURRENT_SYSTEM_STATE_TEMPLATE.md was read and remains unchanged; the separate current-state document was updated.
+
+### No-extra-expense Android Maps follow-up — 2026-09-11
+
+**Configured / built, device verification pending:** User declined Pro and authorized the remaining native Android map setup. Installed the existing restricted Android key through the existing Gradle property, enabled Maps locally and rebuilt with flutter build apk --debug --no-pub --dart-define-from-file=config/auth.local.json. Build passed; existing plugin KGP warning remains. APK manifest key matches private configuration (comparison only, no value logged), package identity unchanged. Latest artifact SHA-256: 244E9252B62A93AB02C0AC00E3101E6E31FE1ABEAE7FE7C55244DE800BCEDED7; this supersedes the earlier Maps-disabled artifact above.
+
+No code change required; earlier 146 Flutter / 151 API passing results remain applicable. User will test the APK on their own phone; no physical or emulator map result is claimed. An existing emulator was briefly started and stopped without app installation. Google's ordinary Maps SDK tier lists unlimited free usage; current code uses no cloud map ID or Street View. Railway plan/settings/deployments, Google billing and trial remain unchanged. Server address/search/routes integration is deferred; complete redesigned request submission still requires the new backend profile endpoint to be deployed. No commit, deployment or purchase performed.

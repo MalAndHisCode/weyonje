@@ -9,6 +9,7 @@ import {
 import { ConfigType } from "@nestjs/config";
 import {
   AcceptRequestContract,
+  ToiletType,
   ActorType,
   ApiErrorCode,
   AssignmentStatus,
@@ -158,11 +159,40 @@ export class WorkflowService {
     };
   }
 
+  async clientProfile(actor: AuthenticatedActor) {
+    this.assertClient(actor);
+    const user = await this.prisma.user.findUnique({
+      where: { id: actor.user.id },
+      select: {
+        encryptedPhone: true,
+        encryptedEmail: true,
+        clientProfile: true,
+      },
+    });
+    if (!user?.encryptedPhone || !user.clientProfile) throw this.notFound();
+    const profile = user.clientProfile;
+    return {
+      clientName:
+        profile.clientType === "INDIVIDUAL"
+          ? `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim()
+          : (profile.organizationName ?? "Weyonje Client"),
+      phoneNumber: this.phones.decrypt(user.encryptedPhone),
+      ...(user.encryptedEmail
+        ? { emailAddress: this.emails.decrypt(user.encryptedEmail) }
+        : {}),
+    };
+  }
+
   async createClientRequest(
     actor: AuthenticatedActor,
     input: CreateServiceRequestContract,
   ): Promise<ServiceRequestDetailContract> {
     this.assertClient(actor);
+    if (
+      !input.toiletType ||
+      !Object.values(ToiletType).includes(input.toiletType)
+    )
+      throw this.invalid("Select the type of toilet to empty.");
     const normalized = this.validateRequestInput(input);
     const profile = await this.prisma.user.findUnique({
       where: { id: actor.user.id },

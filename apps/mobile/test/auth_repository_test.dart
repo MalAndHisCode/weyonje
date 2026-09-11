@@ -45,6 +45,48 @@ Map<String, Object> credentialsJson({required String suffix}) => {
 void main() {
   const config = AppConfig(apiBaseUrl: 'https://api.example.test');
 
+  test('late refresh cannot restore credentials after logout', () async {
+    final store = MemorySessionStore(
+      SessionCredentials(
+        accessToken: 'old',
+        refreshToken: 'old-refresh',
+        accessTokenExpiresAt: DateTime.utc(2020),
+        refreshTokenExpiresAt: DateTime.now().toUtc().add(
+          const Duration(days: 1),
+        ),
+      ),
+    );
+    final entered = Completer<void>();
+    final release = Completer<void>();
+    final dio = Dio(BaseOptions(baseUrl: config.apiBaseUrl));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (request, handler) async {
+          if (request.path == '/v1/auth/refresh') {
+            entered.complete();
+            await release.future;
+            handler.resolve(
+              Response(
+                requestOptions: request,
+                data: credentialsJson(suffix: 'late'),
+              ),
+            );
+          } else {
+            handler.resolve(Response(requestOptions: request));
+          }
+        },
+      ),
+    );
+    final repository = NativeAuthRepository(config, store, dio);
+    final pending = repository.resolveStoredSession(CancelToken());
+    await entered.future;
+    await repository.signOut();
+    release.complete();
+    expect(await pending, isA<TransientAuthFailure>());
+    expect(store.value, isNull);
+    expect(store.writes, 0);
+  });
+
   test('rejects missing, insecure, and placeholder API addresses', () {
     expect(const AppConfig(apiBaseUrl: '').validate(), isNotNull);
     expect(

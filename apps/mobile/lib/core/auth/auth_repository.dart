@@ -104,6 +104,7 @@ class NativeAuthRepository implements AuthRepository {
   final SessionStore _sessionStore;
   final Dio _dio;
   Future<Object>? _refreshInFlight;
+  int _sessionGeneration = 0;
 
   @override
   Future<AuthOutcome> resolveStoredSession(CancelToken cancelToken) async {
@@ -126,6 +127,8 @@ class NativeAuthRepository implements AuthRepository {
     String password,
     CancelToken cancelToken,
   ) async {
+    _sessionGeneration++;
+    _refreshInFlight = null;
     final configurationError = _config.validate();
     if (configurationError != null) {
       return TransientAuthFailure(configurationError);
@@ -337,6 +340,8 @@ class NativeAuthRepository implements AuthRepository {
     String code,
     CancelToken cancelToken,
   ) async {
+    _sessionGeneration++;
+    _refreshInFlight = null;
     final configurationError = _config.validate();
     if (configurationError != null) {
       return TransientAuthFailure(configurationError);
@@ -399,6 +404,7 @@ class NativeAuthRepository implements AuthRepository {
     CancelToken cancelToken, {
     required bool allowRefresh,
   }) async {
+    final generation = _sessionGeneration;
     if (allowRefresh &&
         credentials.accessTokenExpiresAt.isBefore(
           DateTime.now().toUtc().add(const Duration(seconds: 10)),
@@ -415,8 +421,12 @@ class NativeAuthRepository implements AuthRepository {
         cancelToken: cancelToken,
         options: _bearer(credentials.accessToken),
       );
+      if (cancelToken.isCancelled || generation != _sessionGeneration) {
+        return const CancelledSignIn();
+      }
       return ResolvedSession(CurrentActor.fromJson(response.data));
     } on DioException catch (error) {
+      if (generation != _sessionGeneration) return const CancelledSignIn();
       if (CancelToken.isCancel(error)) {
         return const TransientAuthFailure(
           'The session check was cancelled. Retry to continue.',
@@ -470,6 +480,7 @@ class NativeAuthRepository implements AuthRepository {
     SessionCredentials credentials,
     CancelToken cancelToken,
   ) async {
+    final generation = _sessionGeneration;
     try {
       final response = await _dio.post<Object?>(
         '/v1/auth/refresh',
@@ -477,6 +488,9 @@ class NativeAuthRepository implements AuthRepository {
         cancelToken: cancelToken,
       );
       final refreshed = SessionCredentials.fromJson(response.data);
+      if (cancelToken.isCancelled || generation != _sessionGeneration) {
+        return const TransientAuthFailure('Session renewal was cancelled.');
+      }
       await _sessionStore.write(refreshed);
       return refreshed;
     } on DioException catch (error) {
@@ -486,6 +500,9 @@ class NativeAuthRepository implements AuthRepository {
         );
       }
       if (error.response?.statusCode == 401) {
+        if (generation != _sessionGeneration) {
+          return const CancelledSignIn();
+        }
         await _sessionStore.clear();
         return const InvalidSession(
           'Your session can no longer be renewed. Sign in again.',
@@ -495,7 +512,9 @@ class NativeAuthRepository implements AuthRepository {
         'Weyonje could not renew your session. Check your connection and retry.',
       );
     } on FormatException {
-      await _sessionStore.clear();
+      if (!cancelToken.isCancelled && generation == _sessionGeneration) {
+        await _sessionStore.clear();
+      }
       return const InvalidSession(
         'Your session can no longer be renewed. Sign in again.',
       );
@@ -504,6 +523,8 @@ class NativeAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    final generation = ++_sessionGeneration;
+    _refreshInFlight = null;
     final stored = await _sessionStore.read();
     try {
       if (stored != null && _config.validate() == null) {
@@ -515,7 +536,7 @@ class NativeAuthRepository implements AuthRepository {
     } catch (_) {
       // Local credentials must be cleared even when server revocation is offline.
     } finally {
-      await _sessionStore.clear();
+      if (generation == _sessionGeneration) await _sessionStore.clear();
     }
   }
 

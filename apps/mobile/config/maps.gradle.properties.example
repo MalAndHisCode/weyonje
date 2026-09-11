@@ -1,0 +1,4 @@
+# Copy this setting to private user Gradle properties, not this example.
+# Development Android key only: restrict to Maps SDK for Android and verified package/SHA-1.
+# Never use the server API key here. See docs/CLIENT_REQUEST_AND_MAPS_SETUP.md.
+WEYONJE_GOOGLE_MAPS_ANDROID_KEY=

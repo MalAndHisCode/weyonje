@@ -58,7 +58,7 @@ class _ClientDashboardScreenState extends ConsumerState<ClientDashboardScreen> {
             ),
             const SizedBox(height: 16),
             WeyonjeButton(
-              label: 'Request a Service',
+              label: 'Request for a Service',
               onPressed: () => context
                   .push(AppRoutes.clientRequestNew)
                   .then((_) => _reload()),

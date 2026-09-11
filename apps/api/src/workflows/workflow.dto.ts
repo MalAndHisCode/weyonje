@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, OmitType } from "@nestjs/swagger";
 import {
   AcceptRequestContract,
   AssignmentStatus,
@@ -387,4 +387,21 @@ export class LocationPolicyDto implements LocationPolicyContract {
 export class NotificationChannelDto {
   @ApiProperty({ type: String, enum: NotificationChannel })
   channel!: NotificationChannel;
+}
+
+export class ClientRequestProfileDto {
+  @ApiProperty({ type: String })
+  clientName!: string;
+  @ApiProperty({ type: String })
+  phoneNumber!: string;
+  @ApiPropertyOptional({ type: String })
+  emailAddress?: string;
+}
+export class CreateClientServiceRequestDto extends OmitType(
+  CreateServiceRequestDto,
+  ["toiletType"] as const,
+) {
+  @ApiProperty({ type: String, enum: ToiletType })
+  @IsEnum(ToiletType)
+  toiletType!: ToiletType;
 }

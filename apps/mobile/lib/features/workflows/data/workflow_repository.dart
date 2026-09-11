@@ -10,6 +10,7 @@ import '../../../core/config/app_config.dart';
 import '../domain/workflow_models.dart';
 
 abstract interface class WorkflowRepository {
+  Future<Map<String, dynamic>> clientProfile();
   Future<WorkflowDashboard> clientDashboard();
   Future<WorkflowDashboard> providerDashboard();
   Future<List<ServiceRequestSummary>> clientRequests();
@@ -147,6 +148,10 @@ class NativeWorkflowRepository implements WorkflowRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> clientProfile() async =>
+      Map<String, dynamic>.from((await _get('/v1/client/profile')) as Map);
+
+  @override
   Future<WorkflowDashboard> clientDashboard() async =>
       WorkflowDashboard.fromJson(await _get('/v1/client/dashboard'));
   @override
@@ -165,7 +170,7 @@ class NativeWorkflowRepository implements WorkflowRepository {
   ) async => ServiceRequestDetail.fromJson(
     await _send('POST', '/v1/client/requests', {
       ...data,
-      'idempotencyKey': _uuid.v4(),
+      'idempotencyKey': data['idempotencyKey'] ?? _uuid.v4(),
     }),
   );
   @override

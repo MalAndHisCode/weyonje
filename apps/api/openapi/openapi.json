@@ -778,6 +778,32 @@
         ]
       }
     },
+    "/v1/client/profile": {
+      "get": {
+        "operationId": "ClientWorkflowController_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientRequestProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "client workflows"
+        ]
+      }
+    },
     "/v1/client/requests": {
       "post": {
         "operationId": "ClientWorkflowController_create",
@@ -2213,6 +2239,24 @@
           "retentionDays",
           "backgroundTrackingEnabled",
           "approvalNotice"
+        ]
+      },
+      "ClientRequestProfileDto": {
+        "type": "object",
+        "properties": {
+          "clientName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "emailAddress": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientName",
+          "phoneNumber"
         ]
       },
       "GeoPointDto": {

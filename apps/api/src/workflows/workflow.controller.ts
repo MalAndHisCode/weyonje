@@ -30,7 +30,8 @@ import {
   AssignDisposalSiteDto,
   CallCentreAssignmentDto,
   CallCentreCreateRequestDto,
-  CreateServiceRequestDto,
+  CreateClientServiceRequestDto,
+  ClientRequestProfileDto,
   DisposalSiteDto,
   IdempotentCommandDto,
   JourneySnapshotDto,
@@ -76,11 +77,17 @@ export class ClientWorkflowController {
     return this.workflows.clientDashboard(actor(request));
   }
 
+  @Get("profile")
+  @ApiOkResponse({ type: ClientRequestProfileDto })
+  profile(@Req() request: AuthenticatedRequest) {
+    return this.workflows.clientProfile(actor(request));
+  }
+
   @Post("requests")
   @ApiCreatedResponse({ type: ServiceRequestDetailDto })
   create(
     @Req() request: AuthenticatedRequest,
-    @Body() body: CreateServiceRequestDto,
+    @Body() body: CreateClientServiceRequestDto,
   ) {
     return this.workflows.createClientRequest(actor(request), body);
   }

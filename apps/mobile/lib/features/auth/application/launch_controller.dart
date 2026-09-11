@@ -66,17 +66,19 @@ class LaunchController extends Notifier<LaunchState> {
         state is LaunchAccessDenied ||
         (_started && state is LaunchChecking);
     if (!shouldRevalidate) return;
-    await _check(isRetry: false);
+    await _check(isRetry: false, background: state is LaunchAuthenticated);
   }
 
-  Future<void> _check({required bool isRetry}) async {
+  Future<void> _check({required bool isRetry, bool background = false}) async {
     if (_inProgress) return;
     _inProgress = true;
     final generation = ++_generation;
     _cancelToken?.cancel('A newer session check replaced this request.');
     final cancelToken = CancelToken();
     _cancelToken = cancelToken;
-    if (isRetry && state is LaunchTransientError) {
+    if (background) {
+      // Keep the mounted route and its in-memory draft while validating.
+    } else if (isRetry && state is LaunchTransientError) {
       state = LaunchTransientError(
         (state as LaunchTransientError).message,
         retryInProgress: true,
@@ -89,6 +91,11 @@ class LaunchController extends Notifier<LaunchState> {
           .read(authRepositoryProvider)
           .resolveStoredSession(cancelToken);
       if (generation == _generation && !cancelToken.isCancelled) {
+        if (background &&
+            (outcome is TransientAuthFailure ||
+                outcome is RateLimitedAuthFailure)) {
+          return;
+        }
         _apply(outcome);
       }
     } finally {
@@ -99,7 +106,10 @@ class LaunchController extends Notifier<LaunchState> {
     }
   }
 
-  void acceptSignInOutcome(AuthOutcome outcome) => _apply(outcome);
+  void acceptSignInOutcome(AuthOutcome outcome) {
+    cancelActiveCheck();
+    _apply(outcome);
+  }
 
   void _apply(AuthOutcome outcome) {
     state = switch (outcome) {
@@ -126,10 +136,15 @@ class LaunchController extends Notifier<LaunchState> {
 
   Future<void> signOut() async {
     cancelActiveCheck();
+    final generation = _generation;
+    final signOut = ref.read(authRepositoryProvider).signOut();
+    state = const LaunchUnauthenticated(message: 'You have signed out.');
     await ref.read(pushNotificationCoordinatorProvider).disable();
     await ref.read(journeyTrackingCoordinatorProvider).clear();
-    await ref.read(authRepositoryProvider).signOut();
-    state = const LaunchUnauthenticated(message: 'You have signed out.');
+    await signOut;
+    if (generation == _generation) {
+      state = const LaunchUnauthenticated(message: 'You have signed out.');
+    }
   }
 
   void cancelActiveCheck() {

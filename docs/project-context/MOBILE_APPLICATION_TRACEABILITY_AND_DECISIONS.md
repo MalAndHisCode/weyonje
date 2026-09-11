@@ -17,7 +17,7 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 | Existing authentication, Client registration, Provider registration, phone verification and role routing | **Implemented** | Native sessions, throttling, encryption/HMAC, eligibility | Existing flow tests preserved. |
 | Provider/KCCA password recovery | **Implemented** | Challenge tables, HMAC secret, fake SMS/email outbox, throttling, expiry, attempts, supersession, one-time use, session revocation, security audit | Challenge/migration tests pass; HTTP/service security matrix and live delivery remain incomplete. |
 | Email verification | **Implemented foundation** | Phone/email challenge, resend/supersession, verification timestamp, audit, fake delivery | No access gate imposed pending a KCCA rule for Provider/KCCA unverified-email eligibility. |
-| Client request location | **Partially Implemented** | Authenticated Places/reverse/Routes server adapter | Map/tap/current/coordinate/search fallback and journey route polyline/distance/ETA exist. Live keys, quota/error validation, KCCA map embedding and broader map widget tests remain. |
+| Client request location | **Partially Implemented** | Authenticated Places/reverse/Routes server adapter | Client request entry now uses explicit Yes/No, inline map, confirmed coordinate selection and read-only reverse-geocoded address; the existing full-screen picker retains search/coordinate controls. Journey route polyline/distance/ETA remain. Live keys, quota/error validation, KCCA map embedding and broader map widget tests remain. |
 | Client/Provider journey tracking | **Partially Implemented** | Persisted idempotent samples, Socket.IO hints, REST snapshot | Map markers and foreground service/offline queue exist; physical background/OEM/permission validation remains. |
 | Manual Call Centre request entry | **Partially Implemented** | Separate permission; Client lookup, eligible Provider query, request list/create/detail/assignment/feedback | Mobile create/find/assign/list exists. Dedicated mobile feedback and permitted reassignment detail controls remain. |
 | KCCA Provider administration | **Implemented** | Separate permission; filtered lists/detail/decision/status endpoints; append-only histories; durable notification/outbox | Mobile pending/approved/rejected/inactive/disabled lists and confirmed actions exist. Additional widget/authorization HTTP tests remain. |
@@ -60,7 +60,7 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 | D-06 | Maps | Google Maps SDK key is Android-restricted. Places/Geocoding/Routes use a separate server credential through authenticated Weyonje endpoints. PostgreSQL samples, not Google routes, are journey history. |
 | D-07 | FCM | FCM is a hint/delivery channel only. Device tokens are protected and revoked/invalidated. REST notifications remain authoritative. |
 | D-08 | Location | Start follows explicit authorised journey action; provisional 15-second/25-metre policy comes from API. Foreground service does not claim force-stop survival. Offline queue is encrypted, chronological, 200 samples/24 hours. |
-| D-09 | Timing/reminders | Every request selects ASAP or scheduled. Only scheduled requests create reminders. Default provisional offsets are 1440 and 120 minutes. |
+| D-09 | Timing/reminders | Every request carries ASAP or scheduled; the redesigned Client form selects ASAP without timing controls. Only scheduled requests create reminders. Default provisional offsets are 1440 and 120 minutes. |
 | D-10 | Call Centre | Authorised KCCA mobile manual entry is approved. It is not a separate external system. Permission is enforced in API and routing. |
 | D-11 | Provider administration | Existing Provider state model is extended with append-only status history; no parallel approval model. |
 | D-12 | Disposal | KCCA owns catalogue/assignment. Assignment change is refused after the disposal journey starts and every change is retained. |
@@ -77,7 +77,7 @@ Working code/migrations are implementation truth, followed by `CURRENT_SYSTEM_ST
 - KCCA/privacy: final location frequency, distance/arrival thresholds, consent/disclosure, background behavior, offline/server retention and purge policy.
 - Business decision: whether unverified Provider or KCCA email blocks access. The foundation remains non-blocking meanwhile.
 
-## Validation register
+## Historical Validation Register — 2026-08-20
 
 - Baseline root typecheck, API tests and OpenAPI drift passed before changes; isolated PostgreSQL was skipped.
 - Current Prisma format/generate and API TypeScript checks pass.
@@ -98,3 +98,15 @@ This register no longer contains the former approval gate that prohibited author
 The existing request operation gains a typed registration-required alternative; existing eligible challenge fields remain unchanged. Separate protected phone/IP request counters reuse AUTH policies and the existing table with transaction locks. Safe retryAt/limitCategory errors survive API filtering and mobile parsing. OTP failed-delivery accounting, hourly limits, cooldowns, expiry, attempts and atomic one-time completion are retained. No issuance loop was found; missing recovery timing and clearing a resend wait during code editing are addressed. The exact live incident remains unconfirmed.
 
 Requested copy changes retain six-digit input/accessibility and distinct provider-error feedback. The no-response-autofill correction, matching SMS scope, manual/paste input, server-success transition and Provider/KCCA authority are unchanged. No deployment, schema or dependency change was made. Current state records validation and configuration evidence.
+
+## Client Request Form and Warm Resume — 2026-09-11
+
+**Implemented locally:** REQ-CL-001 now presents Request for a Service, Client Details (name, phone, nonempty email only), Location Details (exact Title Case question, explicit Yes/No, map, read-only Service Location), Service Details (mandatory Pit Latrine/Septic Tank), Additional Contact Details (paired optional name/conditional phone), Submit Request. This user decision supersedes text-only Client form entry and undefined toilet requiredness in the original specification. The existing picker route remains compatible and provides confirmed coordinates; it does not create a request.
+
+**Adopted timing decision:** The replacement form submits ASAP and omits requestedServiceAt. Other APIs, Call Centre, historical records and scheduled reminders keep existing timing support. No nullable scheduling change or historical backfill.
+
+**Boundaries:** Authenticated GET /v1/client/profile returns only clientName, phoneNumber and optional emailAddress; creation derives authoritative account data independently. A Client-specific DTO/service check requires toilet type without altering shared Call Centre rules. Foreground access checks run at entry, resume and submit. Yes captures once and locks manual selection; No requires confirmation. Obsolete acquisition/geocoding responses are discarded. Address failure does not fabricate a place or discard valid coordinates. Request UUID survives unchanged retries; uncertain submission locks edits until reconciliation.
+
+**Confirmed resume defect:** LaunchChecking during warm revalidation triggered /launch and discarded the mounted request route. Background checks now preserve authenticated state on transient failure, while invalid/revoked/denied outcomes retain safe routing. Cancellation/generations and refresh coalescing protect logout and account changes. In-memory route/draft/scroll preservation is implemented; process-death drafts are Not Implemented.
+
+**External status:** The user confirmed weyonje-dev. Four required Google APIs and an Android debug credential restricted by verified package/SHA-1 and Maps SDK for Android are configured. Trial untouched. Server credentials await approved fixed egress; Railway Trial lacks the documented Pro static-egress feature and its production-named service reports an invalid ams region. Quota editing/alerts were disabled in the inspected Geocoding UI. Local Android key installation and Maps-enabled APK are complete following the user's no-extra-expense instruction. Server integration is deferred; backend deployment and physical-device checks remain pending. The user will test the APK on their own phone. See ../CLIENT_REQUEST_AND_MAPS_SETUP.md and CURRENT_SYSTEM_STATE.md for configuration and final validation evidence.

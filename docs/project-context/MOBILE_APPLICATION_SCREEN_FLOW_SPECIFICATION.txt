@@ -96,7 +96,7 @@ If verification fails:
 #### Mobile service request
 
 `Client Dashboard`
-→ `Request a Service`
+→ `Request for a Service`
 → review auto-populated Client details
 → select whether service is needed at the current location
 
@@ -108,7 +108,7 @@ Branches:
 
 Then:
 
-`Request a Service`
+`Request for a Service`
 → complete the remaining documented fields
 → save and submit
 → request saved as **Pending**
@@ -924,7 +924,7 @@ None.
 
 **User actions:**
 
-* **Request for a Service:** Opens `Request a Service`.
+* **Request for a Service:** Opens `Request for a Service`.
 * **View My Requests:** Opens `My Requests`.
 
 **Business rules, decisions, and validations:**
@@ -954,7 +954,7 @@ None.
 **Navigation and workflow transitions:**
 
 * **Previous or entry page:** `Phone Verification` or `Sign In`.
-* **Next page after success:** `Request a Service` or `My Requests`.
+* **Next page after success:** `Request for a Service` or `My Requests`.
 * **Alternative or failure paths:** Data-load failure remains recoverable.
 * **Exit behaviour:** Sign out or close the application.
 
@@ -1152,197 +1152,37 @@ None.
 
 ## Client Service Requests
 
-### Request a Service
+### Request for a Service
 
-**Screen ID:** `REQ-CL-001`
+**Screen ID:** REQ-CL-001
+**Route:** /client/requests/new
+**Status:** Implemented locally, superseding user presentation decision dated 2026-09-11; external Maps setup and on-device checks remain incomplete.
 
-**Requirement status:** Explicit Requirement.
+**Exact display order:** Client Details → Client Name → Phone Number → Email Address (only when available) → Location Details → Is the Weyonje Service Needed at Your Current Location? → Yes / No → Google Map → Service Location (read-only resolved address) → Service Details → Type of Toilet to Empty (Pit Latrine / Septic Tank) → Additional Contact Details → Contact Person (Name) → Contact Person (Telephone Contact) → Submit Request.
 
-**Purpose:**
-Presents the Weyonje Service Request Form so a verified Client can request waste-collection services through the mobile application.
 
-**Actors:**
-Verified Client.
+The compatible `/client/requests/new` route displays **Request for a Service**. Its sections are Client Details, Location Details, Service Details, and Additional Contact Details, followed by Submit Request. `GET /v1/client/profile` returns only `clientName`, `phoneNumber`, and optional `emailAddress` for the authenticated active Client. Individual names join first/last names; Organization names use the organization name. No displayed profile data is submitted as authoritative identity. The creation service reads encrypted contacts and the Client profile again.
 
-**Entry points and preconditions:**
+The foreground-only location gateway checks services and permission on entry, resume, and immediately before submission. Disabled services, denied permission, permanent denial, and acquisition timeout have separate recovery messages. Settings return keeps the mounted form. Yes takes one position and disables manual selection; explicit refresh replaces it. No allows map selection and requires confirmation, with the compatible full-screen picker available for its existing search/coordinate accessibility controls. Mode changes clear the selection/address; generation checks ignore obsolete GPS and reverse-geocoding responses. Camera movement does not geocode. Missing addresses are honestly reported and valid coordinates remain usable. Address text stays in memory and is not sent as Google-derived persistent request content.
 
-* Reached from `Client Dashboard`.
-* Client Account must be verified.
-* Client must be signed in.
-* Device location must be enabled to make a Weyonje Service Request.
+Client ingress requires a supported toilet type in both the endpoint DTO and service; Call Centre DTOs and historical nullable records remain unchanged. The form sends `ASAP` without `requestedServiceAt`; scheduled API/record/reminder support is preserved. Additional name/phone remain a pair. The existing server PhoneSecurityService normalizes and validates Ugandan numbers, with its invalid-phone message reflected at the form field.
 
-**Processes covered:**
+Repeated taps are guarded. An unchanged submission keeps its UUID across retries. A definite rejection permits editing and a changed payload receives a new UUID. An ambiguous response locks payload edits and permits retry of the same UUID or opening My Requests to reconcile; it does not silently create a new request. Drafts remain in the mounted page only; process-death restoration is not implemented.
 
-* Collection of the complete documented request form.
-* Capture of the current location or an alternative request location.
-* Submission and creation of a Pending request.
-* Presentation of the request to Service Providers.
+## Resume diagnosis and correction
 
-**Information displayed:**
+Previously `revalidateOnResume()` called `_check()`, which emitted `LaunchChecking`; GoRouter redirected to `/launch`, disposed the request page, and then selected the dashboard after validation. The router itself was already stable. Background checks now retain `LaunchAuthenticated` while resolving the stored session; transient/rate-limit failures retain it. Invalid, revoked, denied, and missing sessions still reach safe auth/access routes. Restricted Provider status redirects immediately to account status. Checks remain coalesced. Controller generations, cancellation, and repository session generations prevent stale checks/refresh writes from replacing a newer session or resurrecting logout.
 
-* Client Details section.
-* Service Request Details section.
-* Additional Contact Details section.
-* Current location and selected request-location information.
-* Mandatory, optional, conditional, and auto-populated indicators.
 
-**Inputs and form fields:**
-
-* **Client Name:** Auto-populated from the Client profile.
-* **Telephone Contact:** Auto-populated from the Client profile.
-* **Email Address:** Conditionally auto-populated and displayed only when the Client supplied one during registration.
-* **Is the Weyonje Service needed at your current location?:** Mandatory selection: `Yes` or `No`.
-* **Service Location:** Conditionally auto-populated with the device’s Google map coordinates when the answer is `Yes`. Device location must be enabled.
-* **Request Location:** Conditionally mandatory when the answer is `No`. The Client may either drop a pin on a map, which captures the selected coordinates, or enter an open-text location.
-* **Type of Toilet to Empty:** Single-select field: `Pit Latrine` or `Septic Tank`. The source leaves its field-status column blank, so its requiredness is not defined and must not be assumed.
-* **Contact Person (Name):** Optional open-text field.
-* **Contact Person (Telephone Contact):** Conditionally mandatory numeric field when Contact Person (Name) is entered.
-* **Scheduled Date and Time — documented data gap:** Both service-request workflows refer to a “date and time that were selected,” but the Service Request Form contains no date or time field and does not identify who selects it. The field, actor, format, and requiredness require clarification before implementation.
-
-**User actions:**
-
-* **Select Current Location:** Captures device coordinates when current-location service is selected.
-* **Choose Location on Map:** Opens `Request Location Picker`.
-* **Save and Submit:** Validates and submits the request. The source does not establish a separate draft workflow despite referring to saving and submitting.
-
-**Business rules, decisions, and validations:**
-
-* Client profile fields are read-only and auto-populated.
-* Location must be enabled before the request is made.
-* Selecting `Yes` requires current coordinates.
-* Selecting `No` requires a map pin or textual Request Location.
-* Contact Person Telephone Contact becomes mandatory when a Contact Person Name is supplied.
-* Numeric telephone validation applies, but no number format or length is documented.
-* The request becomes Pending only after successful submission.
-* Scheduling cannot be implemented reliably until the missing date-and-time rule is resolved.
-
-**Permissions and actor-specific behaviour:**
-
-* Only a verified, authenticated Client may submit this mobile form.
-* KCCA Staff use the equivalent form through the external Call Centre system, not this page.
-* A Client may submit only under their own account and auto-populated profile.
-
-**Page states and feedback:**
-
-* Initial state with Client details loading.
-* Populated Client-details state.
-* Current-location branch.
-* Alternative-location branch.
-* Location-permission-denied or location-disabled state.
-* Form-validation state.
-* Submission-in-progress state.
-* Recoverable map, location, connectivity, or server error.
-* Successful-submission state that transitions to the Pending request.
-
-**Notifications and external-process effects:**
-
-* Submission does not yet notify the Client of provider acceptance.
-* Provider acceptance later causes a push notification and updates the request to Accepted.
-
-**Navigation and workflow transitions:**
-
-* **Previous or entry page:** `Client Dashboard`.
-* **Next page after success:** `Client Request Details` in Pending state.
-* **Alternative or failure paths:** Location or validation failure remains on this page; map selection opens `Request Location Picker`.
-* **Exit behaviour:** Return to the dashboard. Draft persistence is not documented.
-
-**Backend and data requirements:**
-
-* Retrieve Client profile data for auto-population.
-* Validate authentication, ownership, mandatory fields, conditional fields, and captured coordinates.
-* Persist the service request as Pending.
-* Make the Pending request available to eligible Service Providers.
-* Preserve location coordinates, textual location when supplied, toilet type, additional contact details, and any later-approved scheduling data.
-
-**Source traceability:**
-
-* Mobile service-request process, prerequisites and steps 1–4.
-* Weyonje Service Request Form, Sections A–C, fields 1–9.
-* Mobile and Call Centre processes, reminder steps referring to selected date and time.
+**Transitions:** Dashboard action Request for a Service opens this page; successful submission opens Client Request Details in Pending state. Validation/settings/network recovery keeps the mounted form. Leaving discards its in-memory draft. Invalid or revoked sessions still leave protected pages.
 
 ### Request Location Picker
 
-**Screen ID:** `REQ-CL-002`
+**Screen ID:** REQ-CL-002
+**Route:** /client/location-picker
+**Status:** Existing compatible full-screen selection route retained.
 
-**Requirement status:** Derived Requirement.
-
-**Purpose:**
-Provides a full-screen map interaction for choosing a service location different from the Client’s current location.
-
-**Actors:**
-Verified Client.
-
-**Entry points and preconditions:**
-
-* Opened from `Request a Service`.
-* Client selected `No` for service at the current location.
-* Client chose the map-pin option rather than open-text location entry.
-* Map data must be available.
-
-**Processes covered:**
-
-* Displaying a map.
-* Allowing the Client to drop or move a pin.
-* Capturing the selected point’s Google map coordinates.
-* Returning the selected coordinates to the request form.
-
-**Information displayed:**
-
-* Map.
-* Current pin position.
-* Selected coordinates or a human-readable representation when available.
-* Instructions to position and confirm the pin.
-
-**Inputs and form fields:**
-
-* **Request Location Pin:** Conditionally mandatory map point representing the requested service location.
-
-**User actions:**
-
-* **Drop or Move Pin:** Changes the proposed request location.
-* **Confirm Location:** Returns the selected coordinates to `Request a Service`.
-* **Return Without Confirming:** Returns without changing the existing field value.
-
-**Business rules, decisions, and validations:**
-
-* A valid location point must be selected before confirmation.
-* The system must capture the coordinates of the point where the pin is dropped.
-* Textual Request Location entry remains an alternative on the parent form.
-* The source does not define map boundaries, address search, accuracy rules, or service-area restrictions.
-
-**Permissions and actor-specific behaviour:**
-
-* Available only within an authenticated Client request flow.
-* This page does not create or submit the service request.
-
-**Page states and feedback:**
-
-* Map-loading state.
-* No-pin-selected state.
-* Pin-selected state.
-* Map-load or connectivity error.
-* Invalid or unavailable coordinate state.
-
-**Notifications and external-process effects:**
-
-None documented.
-
-**Navigation and workflow transitions:**
-
-* **Previous or entry page:** `Request a Service`.
-* **Next page after success:** `Request a Service` with Request Location populated.
-* **Alternative or failure paths:** Map failure returns to the form where the Client may use open-text entry.
-* **Exit behaviour:** Return without confirming leaves the previous value unchanged.
-
-**Backend and data requirements:**
-
-* Supply map data needed for location selection.
-* Return selected latitude and longitude to the parent form.
-* Do not submit the service request from this page.
-
-**Source traceability:**
-
-* Weyonje Service Request Form, field 6, Request Location, Option 1.
+The No branch can open the existing map/Places/coordinate picker. It returns explicitly confirmed valid coordinates to the form, where the address is resolved for those coordinates. Returning without confirmation leaves the parent selection intact. The picker never submits a request. Existing coordinate controls remain an accessibility option; the redesigned parent form provides no text-only location fallback. Google credentials and native Maps validation remain external setup requirements.
 
 ### My Requests
 

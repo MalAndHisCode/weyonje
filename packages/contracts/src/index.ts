@@ -332,6 +332,16 @@ export interface GeoPointContract {
   longitude: number;
 }
 
+export interface ClientRequestProfileContract {
+  clientName: string;
+  phoneNumber: string;
+  emailAddress?: string;
+}
+
+export interface CreateClientServiceRequestContract extends CreateServiceRequestContract {
+  toiletType: ToiletType;
+}
+
 export interface CreateServiceRequestContract {
   idempotencyKey: string;
   locationKind: RequestLocationKind;
